@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 )
@@ -47,9 +46,7 @@ func CreateNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Cre
 		return fmt.Errorf("failed to create note directory: %w", err)
 	}
 
-	// 将用户输入的内容中的转义字符（如 \n）还原为真实换行等
-	normalizedContent := NormalizeContent(params.Content)
-	if err := WriteNoteFile(notePath, normalizedContent, params.ShouldAppend, params.ShouldOverwrite); err != nil {
+	if err := WriteNoteFile(notePath, params.Content, params.ShouldAppend, params.ShouldOverwrite); err != nil {
 		return err
 	}
 
@@ -74,7 +71,7 @@ func CreateNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Cre
 //   - 文件不存在：直接创建并写入
 //   - 文件存在且 shouldAppend=true：追加内容
 //   - 文件存在且 shouldOverwrite=true：覆盖内容
-//   - 文件存在且两者都为 false：不做任何修改
+//   - 文件存在且两者都为 false：返回错误，要求用户明确选择 append 或 overwrite
 func WriteNoteFile(notePath, content string, shouldAppend, shouldOverwrite bool) error {
 	_, err := os.Stat(notePath)
 	fileExists := err == nil
@@ -92,23 +89,8 @@ func WriteNoteFile(notePath, content string, shouldAppend, shouldOverwrite bool)
 	}
 
 	if fileExists && !shouldOverwrite {
-		// 文件已存在且没有显式请求修改，保持原样（静默跳过）
-		return nil
+		return fmt.Errorf("note already exists: use --append or --overwrite: %s", notePath)
 	}
 
 	return os.WriteFile(notePath, []byte(content), 0644)
-}
-
-// NormalizeContent 将用户通过命令行传入的转义字符串还原为实际字符。
-// 例如 "\n" 字符串会被转换为真正的换行符，方便在 shell 中输入多行内容。
-func NormalizeContent(content string) string {
-	replacer := strings.NewReplacer(
-		"\\n", "\n",
-		"\\r", "\r",
-		"\\t", "\t",
-		"\\\\", "\\",
-		"\\\"", "\"",
-		"\\'", "'",
-	)
-	return replacer.Replace(content)
 }

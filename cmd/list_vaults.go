@@ -21,10 +21,9 @@ var listVaultsDefault bool
 // listVaultsCmd 定义了 "list-vaults" 子命令，用于列出所有已注册的 Obsidian vault。
 // 支持多种输出格式：表格（默认）、JSON、仅路径、仅默认 vault。
 var listVaultsCmd = &cobra.Command{
-	Use:     "list-vaults",
-	Aliases: []string{"lv"},
-	Short:   "lists all registered Obsidian vaults",
-	Args:    cobra.ExactArgs(0), // 不接受任何参数
+	Use:   "list-vaults",
+	Short: "lists all registered Obsidian vaults",
+	Args:  cobra.ExactArgs(0), // 不接受任何参数
 	Run: func(cmd *cobra.Command, args []string) {
 		vaults, err := obsidian.ListVaults()
 		if err != nil {

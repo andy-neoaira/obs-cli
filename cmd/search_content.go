@@ -11,10 +11,9 @@ import (
 )
 
 var searchContentCmd = &cobra.Command{
-	Use:     "search-content [search term]",
-	Short:   "Search note content for search term",
-	Args:    cobra.ExactArgs(1),
-	Aliases: []string{"sc"},
+	Use:   "search-content [search term]",
+	Short: "Search note content for search term",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		vault := obsidian.Vault{Name: vaultName}
 		note := obsidian.Note{}

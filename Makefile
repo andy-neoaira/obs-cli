@@ -26,16 +26,12 @@ test:
 	go test ./...
 
 test-search-content:
-	go test ./pkg/actions -run TestSearchNotesContent -v
+	go test ./pkg/actions -run TestSearchNotesContentWithOptions -v
 
 test-coverage:
 	go test ./... -coverprofile=coverage.out
 
-update-usage-image:
-	@command -v freeze >/dev/null 2>&1 || { echo "freeze is required to generate docs/usage.png"; exit 1; }
-	freeze --execute "go run main.go --help" --theme dracula  --output docs/usage.png
-
-# Release automation
+	# Release automation
 # Usage: make release VERSION=v0.2.2
 release:
 ifndef VERSION

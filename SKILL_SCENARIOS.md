@@ -50,7 +50,7 @@
 
 ```bash
 obs-cli add-vault <path> [--set-default]
-obs-cli set-default-vault [name|path] [--open-type obsidian|editor]
+obs-cli set-default-vault [name] [--open-type obsidian|editor]
 obs-cli list-vaults [--default] [--path-only|--json]
 ```
 

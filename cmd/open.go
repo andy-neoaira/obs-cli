@@ -13,12 +13,10 @@ var vaultName string
 var sectionName string
 
 // OpenVaultCmd 定义了 "open" 子命令，用于在 Obsidian 或编辑器中打开指定笔记。
-// 别名 "o" 让用户可以输入 "obs-cli o" 来快速调用。
 var OpenVaultCmd = &cobra.Command{
-	Use:     "open",
-	Aliases: []string{"o"},
-	Short:   "Opens note in vault by note name",
-	Args:    cobra.ExactArgs(1), // 严格要求恰好 1 个参数：笔记名称
+	Use:   "open",
+	Short: "Opens note in vault by note name",
+	Args:  cobra.ExactArgs(1), // 严格要求恰好 1 个参数：笔记名称
 	Run: func(cmd *cobra.Command, args []string) {
 		// 构造 Vault 对象（Name 为空时业务层会从配置中读取默认值）
 		vault := obsidian.Vault{Name: vaultName}

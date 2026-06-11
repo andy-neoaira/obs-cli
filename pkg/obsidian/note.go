@@ -40,85 +40,23 @@ type NoteManager interface {
 	FindBacklinks(string, string) ([]NoteMatch, error)
 }
 
-// hasExplicitPath 判断用户输入是否明确包含路径信息。
-// 带目录分隔符的输入必须按相对路径精确解析；只有纯文件名才允许 fallback 到 basename 搜索。
-func hasExplicitPath(noteName string) bool {
-	return filepath.IsAbs(noteName) || strings.Contains(noteName, "/") || strings.Contains(noteName, "\\")
-}
-
 // ResolveNotePath 将用户输入的笔记名解析为 vault 内的唯一 Markdown 文件路径。
 //
 // 设计目标：
-//  1. 显式路径严格限制在 vault 内，避免 ../ 或绝对路径逃逸。
-//  2. 纯文件名仍支持旧版本的 basename 查找，兼容 "obs-cli print Note" 的用法。
-//  3. basename 命中多个文件时返回歧义错误，避免 frontmatter/print 随机读写错误笔记。
-//  4. 查找时跳过隐藏目录和 Obsidian 用户忽略规则，和搜索/列表行为保持一致。
+//  1. 用户输入必须按 vault 内相对路径精确解析。
+//  2. 路径严格限制在 vault 内，避免 ../ 或绝对路径逃逸。
+//  3. 自动补充 .md 后缀，保持命令输入简洁。
 func ResolveNotePath(vaultPath, noteName string) (string, error) {
 	note := AddMdSuffix(noteName)
-
-	if hasExplicitPath(noteName) {
-		notePath, err := ValidatePath(vaultPath, note)
-		if err != nil {
-			return "", err
-		}
-		info, err := os.Stat(notePath)
-		if err != nil || info.IsDir() {
-			return "", errors.New(NoteDoesNotExistError)
-		}
-		return notePath, nil
-	}
-
-	excluded := ExcludedPaths(vaultPath)
-	var matches []string
-	err := filepath.WalkDir(vaultPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if isHiddenDir(d) {
-			return filepath.SkipDir
-		}
-
-		relPath, err := filepath.Rel(vaultPath, path)
-		if err != nil {
-			return err
-		}
-		if relPath != "." && IsExcluded(relPath, excluded) {
-			if d.IsDir() {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if filepath.Base(path) == note {
-			matches = append(matches, path)
-		}
-		return nil
-	})
+	notePath, err := ValidatePath(vaultPath, note)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return "", errors.New(NoteDoesNotExistError)
-		}
 		return "", err
 	}
-	if len(matches) == 0 {
+	info, err := os.Stat(notePath)
+	if err != nil || info.IsDir() {
 		return "", errors.New(NoteDoesNotExistError)
 	}
-	if len(matches) > 1 {
-		relMatches := make([]string, 0, len(matches))
-		for _, match := range matches {
-			relPath, err := filepath.Rel(vaultPath, match)
-			if err != nil {
-				relPath = match
-			}
-			relMatches = append(relMatches, filepath.ToSlash(relPath))
-		}
-		sort.Strings(relMatches)
-		return "", fmt.Errorf("%s %q. Use a full path to disambiguate:\n%s", NoteNameAmbiguousError, noteName, strings.Join(relMatches, "\n"))
-	}
-
-	return matches[0], nil
+	return notePath, nil
 }
 
 // Move 将笔记从原路径移动到新路径，会自动补充 .md 后缀。
@@ -152,7 +90,7 @@ func (m *Note) Delete(path string) error {
 }
 
 // GetContents 读取 vault 中指定笔记的完整文本内容。
-// 搜索策略：先尝试完整相对路径匹配，再回退到 basename 匹配（向后兼容）。
+// noteName 必须是 vault 内的精确相对路径；函数会自动补充 .md 后缀。
 func (m *Note) GetContents(vaultPath string, noteName string) (string, error) {
 	notePath, err := ResolveNotePath(vaultPath, noteName)
 	if err != nil {
@@ -187,13 +125,6 @@ func (m *Note) SetContents(vaultPath string, noteName string, content string) er
 	}
 
 	return nil
-}
-
-// UpdateLinks 遍历 vault 中所有笔记，将指向旧笔记的链接更新为新笔记的链接。
-// 这是为了兼容 NoteManager 接口保留的委托方法；具体链接解析和重写策略由 LinkRewriter 负责。
-func (m *Note) UpdateLinks(vaultPath string, oldNoteName string, newNoteName string) error {
-	rewriter := LinkRewriter{}
-	return rewriter.UpdateLinks(vaultPath, oldNoteName, newNoteName)
 }
 
 // GetNotesList 获取 vault 中所有 .md 笔记的相对路径列表。

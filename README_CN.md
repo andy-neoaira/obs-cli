@@ -278,7 +278,7 @@ obs-cli set-default-vault --open-type editor
 
 ### 添加 Vault
 
-将目录注册为 Obsidian vault。如果 Obsidian 配置文件（`~/.config/obsidian/obsidian.json`）不存在，会自动创建。别名：`av`
+将目录注册为 Obsidian vault。如果 Obsidian 配置文件（`~/.config/obsidian/obsidian.json`）不存在，会自动创建。
 
 如果你已安装 Obsidian，打开 vault 时会自动注册。只有在无图形界面环境或 Obsidian 未安装的情况下（服务器、容器、CI），才需要使用此命令。
 
@@ -292,19 +292,17 @@ obs-cli add-vault /path/to/vault --set-default
 
 ### 移除 Vault
 
-从 Obsidian 配置中移除一个 vault。不会删除磁盘上的任何文件。如果被移除的 vault 是默认 vault，默认设置会被清除。别名：`rv`
+按 vault 名称从 Obsidian 配置中移除一个 vault。不会删除磁盘上的任何文件。如果被移除的 vault 是默认 vault，默认设置会被清除。
 
 ```bash
 # 按 vault 名称移除
 obs-cli remove-vault "{vault-name}"
 
-# 按 vault 路径移除
-obs-cli remove-vault /path/to/vault
 ```
 
 ### 列出 Vault
 
-列出所有已注册的 Obsidian vault。默认 vault 会标注 `(default)`。别名：`lv`
+列出所有已注册的 Obsidian vault。默认 vault 会标注 `(default)`。
 
 ```bash
 # 列出所有 vault（名称和路径，默认标注）
@@ -339,7 +337,7 @@ obs_cd() {
 设置默认 vault 和/或默认打开方式，供后续命令使用。如果没有设置默认 vault，可以在其他命令中通过 `--vault` 标志指定。
 
 ```bash
-# 设置默认 vault（按名称或路径）
+# 按名称设置默认 vault
 obs-cli set-default-vault "{vault-name}"
 
 # 设置默认打开方式：'obsidian'（默认）或 'editor'
@@ -355,7 +353,7 @@ obs-cli set-default-vault "{vault-name}" --open-type editor
 
 ### 打开笔记
 
-在 Obsidian（或你的默认编辑器）中打开指定笔记。笔记名称也可以是 vault 顶层目录的绝对路径。
+在 Obsidian（或你的默认编辑器）中打开指定笔记。笔记参数必须是 vault 内相对路径，`.md` 后缀可省略。
 
 ```bash
 # 在默认 vault 中打开笔记
@@ -456,7 +454,7 @@ obs-cli list "001 Notes" --vault "{vault-name}"
 
 ### 打印笔记
 
-打印指定笔记名称或路径的内容。如果裸笔记名匹配多个文件，请使用 vault 内的完整相对路径消除歧义。
+打印指定笔记的内容。笔记参数必须是 vault 内相对路径，`.md` 后缀可省略。
 
 ```bash
 # 打印默认 vault 中的笔记
@@ -471,7 +469,7 @@ obs-cli print "{note-name}" --vault "{vault-name}"
 
 ### 创建 / 更新笔记
 
-直接在磁盘上创建笔记（也可以是包含路径的笔记名）。**Obsidian 不需要正在运行**。如果笔记已存在且未传递 `--overwrite` 或 `--append`，文件将保持不变。中间目录会自动创建。
+直接在磁盘上创建笔记。**Obsidian 不需要正在运行**。如果笔记已存在且未传递 `--overwrite` 或 `--append`，命令会失败。中间目录会自动创建。
 
 当笔记名称没有显式路径（不含 `/`）时，CLI 会读取 vault 中的 `.obsidian/app.json`，检查是否配置了默认文件夹（`newFileLocation: "folder"` 和 `newFileFolderPath`）。如果已配置，笔记会放在该文件夹中。如果配置缺失或无法读取，笔记将创建在 vault 根目录。
 
@@ -536,7 +534,7 @@ obs-cli delete "{note-path}" --vault "{vault-name}"
 
 ### Frontmatter
 
-查看和修改笔记中的 YAML frontmatter。别名：`fm`。如果裸笔记名匹配多个文件，命令会失败，而不是随机编辑其中一个。
+查看和修改笔记中的 YAML frontmatter。笔记参数必须是 vault 内相对路径，`.md` 后缀可省略。
 
 ```bash
 # 打印笔记的 frontmatter
@@ -560,7 +558,7 @@ CLI 尊重 Obsidian 的**排除文件**设置（`设置 > 文件与链接 > 排�
 
 - `search` — 被排除的笔记不会出现在模糊搜索器中
 - `search-content` — 被排除的文件夹不会被搜索
-- `print` / `frontmatter` — 裸名称查找会忽略被排除的文件夹；显式路径仍可访问
+- `print` / `frontmatter` — 使用准确的 vault 内相对路径时仍可访问被排除的文件
 
 其他显式路径命令（`open`、`move`、`delete` 等）在你提供准确路径时仍然可以访问被排除的文件。
 

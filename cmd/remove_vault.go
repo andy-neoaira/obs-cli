@@ -13,11 +13,10 @@ import (
 // 注意：此操作不会删除磁盘上的任何文件，只是移除了注册信息。
 // 如果该 vault 恰好是当前默认 vault，还会自动清除默认设置。
 var removeVaultCmd = &cobra.Command{
-	Use:     "remove-vault <name|path>",
-	Aliases: []string{"rv"},
-	Short:   "Unregister a vault",
-	Long:    "Removes a vault from the Obsidian config. Does not delete any files on disk.",
-	Args:    cobra.ExactArgs(1), // 必须提供 1 个参数：vault 名称或完整路径
+	Use:   "remove-vault <name>",
+	Short: "Unregister a vault",
+	Long:  "Removes a vault from the Obsidian config. Does not delete any files on disk.",
+	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：vault 名称
 	Run: func(cmd *cobra.Command, args []string) {
 		input := args[0]
 

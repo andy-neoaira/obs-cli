@@ -10,12 +10,10 @@ import (
 )
 
 // listCmd 定义了 "list" 子命令，用于列出笔记库中的文件和文件夹。
-// 别名 "ls" 方便习惯 Linux 命令的用户使用。
 var listCmd = &cobra.Command{
-	Use:     "list [path]",
-	Aliases: []string{"ls"},
-	Short:   "List files and folders in vault",
-	Args:    cobra.MaximumNArgs(1), // 最多接收 1 个参数：可选的目标路径
+	Use:   "list [path]",
+	Short: "List files and folders in vault",
+	Args:  cobra.MaximumNArgs(1), // 最多接收 1 个参数：可选的目标路径
 	Run: func(cmd *cobra.Command, args []string) {
 		// 如果用户没有提供路径参数，则默认列出 vault 根目录
 		var targetPath string

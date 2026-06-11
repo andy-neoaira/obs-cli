@@ -69,20 +69,18 @@ func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Dail
 		}
 	}
 
-	normalizedContent := NormalizeContent(params.Content)
-
 	// 检查日记文件是否已存在
 	_, statErr := os.Stat(notePath)
 	fileExists := statErr == nil
 
-	if fileExists && normalizedContent != "" {
+	if fileExists && params.Content != "" {
 		// 日记已存在且有新内容：追加到末尾
-		if err := WriteNoteFile(notePath, normalizedContent, true, false); err != nil {
+		if err := WriteNoteFile(notePath, params.Content, true, false); err != nil {
 			return err
 		}
 	} else if !fileExists {
 		// 日记不存在：创建新文件，内容为模板 + 用户输入
-		newContent := templateContent + normalizedContent
+		newContent := templateContent + params.Content
 		if err := WriteNoteFile(notePath, newContent, false, false); err != nil {
 			return err
 		}

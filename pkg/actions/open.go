@@ -2,7 +2,6 @@ package actions
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 )
@@ -26,7 +25,7 @@ func OpenNote(vault obsidian.VaultManager, uri obsidian.UriManager, params OpenP
 	// 如果使用编辑器打开，直接操作文件系统，不需要 URI
 	if params.UseEditor {
 		if params.Section != "" {
-			fmt.Fprintln(os.Stderr, "Warning: --section is ignored when using --editor")
+			return fmt.Errorf("--section cannot be used with --editor")
 		}
 		vaultPath, err := vault.Path()
 		if err != nil {

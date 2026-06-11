@@ -115,15 +115,16 @@ func TestNote_GetContents(t *testing.T) {
 		assert.Equal(t, nil, err, "Expected no error while retrieving note contents by full path")
 		assert.Equal(t, fileContents, content, "Expected contents to match the file contents")
 
-		// Act - test with just filename (should still work for backward compatibility)
+		// Act - bare filename no longer searches the whole vault.
 		content2, err2 := noteManager.GetContents(filepath.Join(tempDir, vaultPath), "Cookies")
 
 		// Assert
-		assert.Equal(t, nil, err2, "Expected no error while retrieving note contents by filename")
-		assert.Equal(t, fileContents, content2, "Expected contents to match the file contents")
+		assert.Error(t, err2)
+		assert.Empty(t, content2)
+		assert.Contains(t, err2.Error(), obsidian.NoteDoesNotExistError)
 	})
 
-	t.Run("Basename lookup returns ambiguity error when multiple notes match", func(t *testing.T) {
+	t.Run("Bare filename does not perform basename lookup", func(t *testing.T) {
 		tempDir := t.TempDir()
 		for _, dir := range []string{"ProjectA", "ProjectB"} {
 			notePath := filepath.Join(tempDir, dir, "README.md")
@@ -136,9 +137,7 @@ func TestNote_GetContents(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Empty(t, content)
-		assert.Contains(t, err.Error(), obsidian.NoteNameAmbiguousError)
-		assert.Contains(t, err.Error(), "ProjectA/README.md")
-		assert.Contains(t, err.Error(), "ProjectB/README.md")
+		assert.Contains(t, err.Error(), obsidian.NoteDoesNotExistError)
 	})
 
 	t.Run("Explicit path still resolves when basename is ambiguous", func(t *testing.T) {
@@ -268,10 +267,10 @@ func TestUpdateNoteLinks(t *testing.T) {
 		// Arrange
 		tmpDir := createTmpDirAndFiles(t, 0644, testFiles, content)
 
-		noteManager := obsidian.Note{}
+		rewriter := obsidian.LinkRewriter{}
 
 		// Act
-		err := noteManager.UpdateLinks(tmpDir, oldNoteName, newNoteName)
+		err := rewriter.UpdateLinks(tmpDir, oldNoteName, newNoteName)
 		assert.Equal(t, nil, err)
 
 		// Assert
@@ -288,9 +287,9 @@ func TestUpdateNoteLinks(t *testing.T) {
 
 	t.Run("Error on incorrect vault", func(t *testing.T) {
 		// Arrange
-		noteManager := obsidian.Note{}
+		rewriter := obsidian.LinkRewriter{}
 		// Act
-		err := noteManager.UpdateLinks("", "oldNote", "newNote")
+		err := rewriter.UpdateLinks("", "oldNote", "newNote")
 		// Assert
 		assert.Equal(t, err.Error(), obsidian.VaultAccessError)
 	})
@@ -298,9 +297,9 @@ func TestUpdateNoteLinks(t *testing.T) {
 	t.Run("Error reading files in vault", func(t *testing.T) {
 		// Arrange
 		tmpDir := createTmpDirAndFiles(t, 0000, testFiles, content)
-		noteManager := obsidian.Note{}
+		rewriter := obsidian.LinkRewriter{}
 		// Act
-		err := noteManager.UpdateLinks(tmpDir, "oldNote", "newNote")
+		err := rewriter.UpdateLinks(tmpDir, "oldNote", "newNote")
 		// Assert
 		assert.Equal(t, err.Error(), obsidian.VaultReadError)
 	})
@@ -308,9 +307,9 @@ func TestUpdateNoteLinks(t *testing.T) {
 	t.Run("Error on writing to files in vault", func(t *testing.T) {
 		// Arrange
 		tmpDir := createTmpDirAndFiles(t, 0444, testFiles, content)
-		noteManager := obsidian.Note{}
+		rewriter := obsidian.LinkRewriter{}
 		// Act
-		err := noteManager.UpdateLinks(tmpDir, "oldNote", "newNote")
+		err := rewriter.UpdateLinks(tmpDir, "oldNote", "newNote")
 		// Assert
 		assert.Equal(t, err.Error(), obsidian.VaultWriteError)
 	})
@@ -326,8 +325,8 @@ func TestUpdateNoteLinks_PathBasedWikilinks(t *testing.T) {
 		err := os.WriteFile(testFile, content, 0644)
 		assert.NoError(t, err)
 
-		noteManager := obsidian.Note{}
-		err = noteManager.UpdateLinks(tmpDir, "folder/oldNote", "folder/newNote")
+		rewriter := obsidian.LinkRewriter{}
+		err = rewriter.UpdateLinks(tmpDir, "folder/oldNote", "folder/newNote")
 		assert.NoError(t, err)
 
 		newContent, _ := os.ReadFile(testFile)
@@ -348,8 +347,8 @@ func TestUpdateNoteLinks_MarkdownLinks(t *testing.T) {
 		err := os.WriteFile(testFile, content, 0644)
 		assert.NoError(t, err)
 
-		noteManager := obsidian.Note{}
-		err = noteManager.UpdateLinks(tmpDir, "folder/oldNote", "folder/newNote")
+		rewriter := obsidian.LinkRewriter{}
+		err = rewriter.UpdateLinks(tmpDir, "folder/oldNote", "folder/newNote")
 		assert.NoError(t, err)
 
 		newContent, _ := os.ReadFile(testFile)
@@ -377,8 +376,8 @@ func TestUpdateNoteLinks_MixedFormats(t *testing.T) {
 		err := os.WriteFile(testFile, content, 0644)
 		assert.NoError(t, err)
 
-		noteManager := obsidian.Note{}
-		err = noteManager.UpdateLinks(tmpDir, "folder/oldNote", "newFolder/newNote")
+		rewriter := obsidian.LinkRewriter{}
+		err = rewriter.UpdateLinks(tmpDir, "folder/oldNote", "newFolder/newNote")
 		assert.NoError(t, err)
 
 		newContent, _ := os.ReadFile(testFile)
@@ -409,8 +408,8 @@ func TestUpdateNoteLinks_AmbiguousBasename(t *testing.T) {
 		content := []byte("Path [[folder/oldNote]] and ambiguous [[oldNote]] and md [x](folder/oldNote.md)")
 		assert.NoError(t, os.WriteFile(linkFile, content, 0644))
 
-		noteManager := obsidian.Note{}
-		err := noteManager.UpdateLinks(tmpDir, "folder/oldNote", "folder/newNote")
+		rewriter := obsidian.LinkRewriter{}
+		err := rewriter.UpdateLinks(tmpDir, "folder/oldNote", "folder/newNote")
 		assert.NoError(t, err)
 
 		newContent, err := os.ReadFile(linkFile)
@@ -428,8 +427,8 @@ func TestUpdateNoteLinks_SkipsFencedCode(t *testing.T) {
 		content := []byte("Normal [[oldNote]]\n```markdown\nExample [[oldNote]]\n```\nAfter [[oldNote]]")
 		assert.NoError(t, os.WriteFile(testFile, content, 0644))
 
-		noteManager := obsidian.Note{}
-		err := noteManager.UpdateLinks(tmpDir, "oldNote", "newNote")
+		rewriter := obsidian.LinkRewriter{}
+		err := rewriter.UpdateLinks(tmpDir, "oldNote", "newNote")
 		assert.NoError(t, err)
 
 		newContent, err := os.ReadFile(testFile)
@@ -489,8 +488,8 @@ func TestUpdateLinks_PreservesTimestamps(t *testing.T) {
 		originalOtherLinks := getModTime(fileWithOtherLinks)
 
 		// Act
-		noteManager := obsidian.Note{}
-		err = noteManager.UpdateLinks(tmpDir, "OldNote", "newnote")
+		rewriter := obsidian.LinkRewriter{}
+		err = rewriter.UpdateLinks(tmpDir, "OldNote", "newnote")
 		assert.NoError(t, err)
 
 		// Assert timestamps

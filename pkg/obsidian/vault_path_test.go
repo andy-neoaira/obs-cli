@@ -32,22 +32,14 @@ func TestVaultPath(t *testing.T) {
 		t.Fatalf("Failed to create obsidian.json file: %v", err)
 	}
 
-	t.Run("Returns absolute path directly without reading obsidian config", func(t *testing.T) {
-		// When the vault name is already an absolute path, Path() should return
-		// it without touching ObsidianConfigFile at all.
-		t.Cleanup(func() {
-			obsidian.ObsidianConfigFile = func() (string, error) {
-				return mockObsidianConfigFile, nil
-			}
-		})
+	t.Run("Rejects absolute path as vault name", func(t *testing.T) {
 		obsidian.ObsidianConfigFile = func() (string, error) {
-			t.Fatal("ObsidianConfigFile should not be called when Name is an absolute path")
-			return "", nil
+			return mockObsidianConfigFile, nil
 		}
 		vault := obsidian.Vault{Name: "/home/user/Sync/MyVault"}
 		vaultPath, err := vault.Path()
-		assert.Equal(t, nil, err)
-		assert.Equal(t, "/home/user/Sync/MyVault", vaultPath)
+		assert.Error(t, err)
+		assert.Empty(t, vaultPath)
 	})
 
 	t.Run("Does not match vault with a name that is a suffix of another vault name", func(t *testing.T) {

@@ -13,12 +13,10 @@ import (
 var includeMentions bool
 
 // printCmd 定义了 "print" 子命令，用于在终端中打印笔记的完整内容。
-// 别名 "p" 提供快捷输入方式。
 var printCmd = &cobra.Command{
-	Use:     "print",
-	Aliases: []string{"p"},
-	Short:   "Print contents of note",
-	Args:    cobra.ExactArgs(1), // 必须提供 1 个参数：笔记名称或路径
+	Use:   "print",
+	Short: "Print contents of note",
+	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：笔记名称或路径
 	Run: func(cmd *cobra.Command, args []string) {
 		noteName := args[0]
 		vault := obsidian.Vault{Name: vaultName}

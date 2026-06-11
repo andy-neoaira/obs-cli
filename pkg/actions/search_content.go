@@ -55,17 +55,6 @@ const (
 	maxPageSize     = 100
 )
 
-// SearchNotesContent 是兼容旧版本的交互式入口，内部委托给 SearchNotesContentWithOptions。
-func SearchNotesContent(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidian.UriManager, fuzzyFinder obsidian.FuzzyFinderManager, searchTerm string, useEditor bool) error {
-	return SearchNotesContentWithOptions(vault, note, uri, fuzzyFinder, searchTerm, SearchContentOptions{
-		UseEditor:           useEditor,
-		EditorFlagExplicit:  useEditor,
-		Format:              searchContentFormatText,
-		InteractiveTerminal: true,
-		Output:              os.Stdout,
-	})
-}
-
 // SearchNotesContentWithOptions 是 "search-content" 命令的完整业务核心。
 // 支持交互式模糊选择、纯文本输出、JSON 输出、分页等多种模式。
 func SearchNotesContentWithOptions(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidian.UriManager, fuzzyFinder obsidian.FuzzyFinderManager, searchTerm string, options SearchContentOptions) error {

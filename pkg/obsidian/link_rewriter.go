@@ -201,42 +201,6 @@ func (r *LinkRewriter) countMarkdownFilesByBase(vaultPath, baseNoExt string) (in
 	return count, err
 }
 
-// GenerateLinkReplacements 创建移动笔记时需要替换的链接映射表。
-// 保留这个包级函数是为了兼容现有测试和外部调用；新代码优先使用 LinkRewriter。
-func GenerateLinkReplacements(oldNotePath, newNotePath string) map[string]string {
-	return GenerateLinkReplacementsWithOptions(oldNotePath, newNotePath, true)
-}
-
-// GenerateLinkReplacementsWithOptions 创建移动笔记时需要替换的链接映射表。
-// 保留这个包级函数是为了兼容现有测试和外部调用；新代码优先使用 LinkRewriter。
-func GenerateLinkReplacementsWithOptions(oldNotePath, newNotePath string, includeBaseLinks bool) map[string]string {
-	rewriter := LinkRewriter{}
-	return rewriter.GenerateReplacements(oldNotePath, newNotePath, LinkRewriteOptions{
-		IncludeBaseLinks: includeBaseLinks,
-	})
-}
-
-// ReplaceContent 批量替换 content 中的字符串，使用 replacements map 中的键值对。
-// 保留这个包级函数是为了兼容现有测试和外部调用；新代码优先使用 LinkRewriter。
-func ReplaceContent(content []byte, replacements map[string]string) []byte {
-	rewriter := LinkRewriter{}
-	return rewriter.ReplaceContent(content, replacements)
-}
-
-// ReplaceContentSkippingFencedCode 批量替换 Markdown 内容，但跳过 ``` 或 ~~~ 包裹的代码块。
-// 保留这个包级函数是为了兼容现有测试和外部调用；新代码优先使用 LinkRewriter。
-func ReplaceContentSkippingFencedCode(content []byte, replacements map[string]string) []byte {
-	rewriter := LinkRewriter{}
-	return rewriter.ReplaceContentSkippingFencedCode(content, replacements)
-}
-
-// UpdateLinks 使用默认 LinkRewriter 更新 vault 中的笔记链接。
-// 这个包级函数适合未来让 actions 层直接依赖链接重写能力。
-func UpdateLinks(vaultPath string, oldNoteName string, newNoteName string) error {
-	rewriter := LinkRewriter{}
-	return rewriter.UpdateLinks(vaultPath, oldNoteName, newNoteName)
-}
-
 // normalizePathSeparators 将反斜杠转换为正斜杠，保证跨平台一致性。
 // Obsidian 在所有操作系统中都使用正斜杠作为链接分隔符。
 func normalizePathSeparators(notePath string) string {

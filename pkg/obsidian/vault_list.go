@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -39,7 +38,7 @@ func ListVaults() ([]VaultInfo, error) {
 			path = adjustForWslMount(path)
 		}
 		vaults = append(vaults, VaultInfo{
-			Name: filepath.Base(path),
+			Name: vaultBaseName(path),
 			Path: path,
 		})
 	}
@@ -47,8 +46,8 @@ func ListVaults() ([]VaultInfo, error) {
 	return vaults, nil
 }
 
-// ResolveVaultName 将用户输入的名称或路径解析为已注册的 vault 名称。
-// 如果输入的是名称且匹配到多个 vault，会返回歧义错误并提示用户使用完整路径。
+// ResolveVaultName 将用户输入的名称解析为已注册的 vault 名称。
+// 如果匹配到多个同名 vault，会返回歧义错误，要求用户先清理重复注册。
 func ResolveVaultName(input string) (string, error) {
 	vaults, err := ListVaults()
 	if err != nil {
@@ -74,18 +73,7 @@ func ResolveVaultName(input string) (string, error) {
 		for _, m := range nameMatches {
 			paths = append(paths, fmt.Sprintf("  %s", m.Path))
 		}
-		return "", fmt.Errorf(
-			"multiple vaults named %q found. Use the full path to disambiguate:\n%s",
-			input, strings.Join(paths, "\n"),
-		)
-	}
-
-	// 再尝试完整路径匹配（用户可能直接输入了路径）
-	cleanInput := filepath.Clean(input)
-	for _, v := range vaults {
-		if filepath.Clean(v.Path) == cleanInput {
-			return v.Name, nil
-		}
+		return "", fmt.Errorf("multiple vaults named %q found. Remove duplicate registrations first:\n%s", input, strings.Join(paths, "\n"))
 	}
 
 	// 未找到，返回友好的错误信息并列出所有可用 vault

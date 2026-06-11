@@ -17,11 +17,9 @@ var fmKey string
 var fmValue string
 
 // frontmatterCmd 定义了 "frontmatter" 子命令，用于查看或修改笔记的 YAML frontmatter。
-// 别名 "fm" 提供快捷输入方式。
 var frontmatterCmd = &cobra.Command{
-	Use:     "frontmatter <note>",
-	Aliases: []string{"fm"},
-	Short:   "View or modify note frontmatter",
+	Use:   "frontmatter <note>",
+	Short: "View or modify note frontmatter",
 	Long: `View or modify YAML frontmatter in a note.
 
 Use --print to display frontmatter, --edit to modify a key,

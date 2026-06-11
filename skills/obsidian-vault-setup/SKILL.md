@@ -57,7 +57,7 @@ obs-cli add-vault "<vault_path>" --set-default
 ### 3. 设置默认 Vault
 
 ```bash
-obs-cli set-default-vault "<vault-name-or-path>"
+obs-cli set-default-vault "<vault-name>"
 ```
 
 ### 4. 设置默认打开方式

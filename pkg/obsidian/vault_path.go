@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/andy-neoaira/obs-cli/pkg/config"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 )
 
@@ -15,13 +15,8 @@ var ObsidianConfigFile = config.ObsidianFile
 var RunningInWSL = config.RunningInWSL
 
 // Path 返回当前 vault 的绝对路径。
-// 如果 Vault.Name 已经是绝对路径，直接返回（支持不依赖 Obsidian 配置文件的独立模式）。
-// 否则从 Obsidian 的 vault 注册表中查找对应路径。
+// Vault.Name 必须是已注册 vault 的名称；运行命令不再接受路径作为隐式 vault 标识。
 func (v *Vault) Path() (string, error) {
-	if filepath.IsAbs(v.Name) {
-		return v.Name, nil
-	}
-
 	obsidianConfigFile, err := ObsidianConfigFile()
 	if err != nil {
 		return "", err
@@ -57,6 +52,12 @@ func adjustForWslMount(dir string) string {
 	return dir
 }
 
+// vaultBaseName 返回 vault 路径最后一段，兼容 Obsidian 配置中的 Unix 和 Windows 路径。
+func vaultBaseName(vaultPath string) string {
+	normalized := strings.ReplaceAll(vaultPath, "\\", "/")
+	return path.Base(normalized)
+}
+
 // getPathForVault 从 Obsidian 配置内容中查找指定名称的 vault 路径。
 func getPathForVault(content []byte, name string) (string, error) {
 	vaultsContent := ObsidianVaultConfig{}
@@ -65,9 +66,7 @@ func getPathForVault(content []byte, name string) (string, error) {
 	}
 
 	for _, element := range vaultsContent.Vaults {
-		if element.Path == name ||
-			strings.HasSuffix(element.Path, "/"+name) ||
-			strings.HasSuffix(element.Path, "\\"+name) {
+		if vaultBaseName(element.Path) == name {
 			return element.Path, nil
 		}
 	}

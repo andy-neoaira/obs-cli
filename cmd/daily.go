@@ -9,10 +9,9 @@ import (
 )
 
 var DailyCmd = &cobra.Command{
-	Use:     "daily",
-	Aliases: []string{"d"},
-	Short:   "Creates or opens daily note in vault",
-	Args:    cobra.ExactArgs(0),
+	Use:   "daily",
+	Short: "Creates or opens daily note in vault",
+	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		vault := obsidian.Vault{Name: vaultName}
 		uri := obsidian.Uri{}

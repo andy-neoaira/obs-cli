@@ -199,22 +199,24 @@ func TestResolveVaultName(t *testing.T) {
 		assert.Equal(t, "Personal", name)
 	})
 
-	t.Run("Resolves full path to vault name", func(t *testing.T) {
+	t.Run("Rejects full path as vault name", func(t *testing.T) {
 		setupConfig(t)
 
 		name, err := obsidian.ResolveVaultName("/Users/user/Documents/Personal")
 
-		assert.NoError(t, err)
-		assert.Equal(t, "Personal", name)
+		assert.Error(t, err)
+		assert.Empty(t, name)
+		assert.Contains(t, err.Error(), "not found in Obsidian")
 	})
 
-	t.Run("Resolves path with trailing slash to vault name", func(t *testing.T) {
+	t.Run("Rejects path with trailing slash as vault name", func(t *testing.T) {
 		setupConfig(t)
 
 		name, err := obsidian.ResolveVaultName("/Users/user/Documents/Work/")
 
-		assert.NoError(t, err)
-		assert.Equal(t, "Work", name)
+		assert.Error(t, err)
+		assert.Empty(t, name)
+		assert.Contains(t, err.Error(), "not found in Obsidian")
 	})
 
 	t.Run("Returns error for unregistered vault", func(t *testing.T) {
@@ -273,10 +275,10 @@ func TestResolveVaultName(t *testing.T) {
 		assert.Contains(t, err.Error(), "/home/user/personal/Notes")
 	})
 
-	t.Run("Resolves ambiguous name via full path", func(t *testing.T) {
+	t.Run("Rejects full path even when name is ambiguous", func(t *testing.T) {
 		ambiguousConfig := `{
-			"vaults": {
-				"abc123": {"path": "/home/user/work/Notes"},
+				"vaults": {
+					"abc123": {"path": "/home/user/work/Notes"},
 				"def456": {"path": "/home/user/personal/Notes"}
 			}
 		}`
@@ -289,8 +291,9 @@ func TestResolveVaultName(t *testing.T) {
 
 		name, err := obsidian.ResolveVaultName("/home/user/work/Notes")
 
-		assert.NoError(t, err)
-		assert.Equal(t, "Notes", name)
+		assert.Error(t, err)
+		assert.Empty(t, name)
+		assert.Contains(t, err.Error(), "not found in Obsidian")
 	})
 
 	t.Run("Propagates config file errors", func(t *testing.T) {

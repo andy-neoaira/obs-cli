@@ -59,7 +59,9 @@ func (v *Vault) SetDefaultName(name string) error {
 	// 先读取已有配置，保留其他字段
 	cliConfig := CliConfig{}
 	if content, readErr := os.ReadFile(obsConfigFile); readErr == nil {
-		json.Unmarshal(content, &cliConfig) //nolint:errcheck
+		if err := json.Unmarshal(content, &cliConfig); err != nil {
+			return errors.New(ObsidianCLIConfigParseError)
+		}
 	}
 
 	cliConfig.DefaultVaultName = name
@@ -88,7 +90,7 @@ func (v *Vault) SetDefaultName(name string) error {
 }
 
 // DefaultOpenType 返回 CLI 配置中的默认打开方式。
-// 如果未配置或读取失败，回退到 "obsidian"。
+// 配置文件不存在时默认使用 "obsidian"；配置存在但内容损坏时返回错误。
 func (v *Vault) DefaultOpenType() (string, error) {
 	_, cliConfigFile, err := CliConfigPath()
 	if err != nil {
@@ -102,7 +104,7 @@ func (v *Vault) DefaultOpenType() (string, error) {
 
 	cliConfig := CliConfig{}
 	if err := json.Unmarshal(content, &cliConfig); err != nil {
-		return "obsidian", nil //nolint:nilerr // 解析失败时使用默认值
+		return "", errors.New(ObsidianCLIConfigParseError)
 	}
 
 	if cliConfig.DefaultOpenType == "" {
@@ -123,7 +125,9 @@ func (v *Vault) SetDefaultOpenType(openType string) error {
 	// 先读取已有配置，保留其他字段
 	cliConfig := CliConfig{}
 	if content, readErr := os.ReadFile(obsConfigFile); readErr == nil {
-		json.Unmarshal(content, &cliConfig) //nolint:errcheck
+		if err := json.Unmarshal(content, &cliConfig); err != nil {
+			return errors.New(ObsidianCLIConfigParseError)
+		}
 	}
 
 	cliConfig.DefaultOpenType = openType

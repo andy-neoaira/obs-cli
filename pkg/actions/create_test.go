@@ -57,7 +57,7 @@ func TestCreateNote(t *testing.T) {
 		assert.FileExists(t, filepath.Join(tmpDir, "folder", "note.md"))
 	})
 
-	t.Run("Existing file is left unchanged without overwrite or append", func(t *testing.T) {
+	t.Run("Existing file fails without overwrite or append", func(t *testing.T) {
 		// Arrange: 先创建一个已有内容的笔记
 		tmpDir := t.TempDir()
 		notePath := filepath.Join(tmpDir, "note.md")
@@ -71,8 +71,9 @@ func TestCreateNote(t *testing.T) {
 			NoteName: "note",
 			Content:  "new content",
 		})
-		// Assert: 原内容应保持不变
-		assert.NoError(t, err)
+		// Assert: 必须显式选择 append 或 overwrite，原文件内容不能被覆盖
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "note already exists")
 		content, _ := os.ReadFile(notePath)
 		assert.Equal(t, "original", string(content))
 	})
@@ -287,44 +288,5 @@ func TestCreateNote(t *testing.T) {
 		// Assert: 文件应被创建，但编辑器不应被调用
 		assert.NoError(t, err)
 		assert.FileExists(t, filepath.Join(tmpDir, "note.md"))
-	})
-}
-
-// TestNormalizeContent 测试内容转义字符的还原功能。
-func TestNormalizeContent(t *testing.T) {
-	t.Run("Replaces escape sequences with actual characters", func(t *testing.T) {
-		// Arrange: 输入带转义字符的字符串
-		input := "Hello\\nWorld\\tTabbed\\rReturn\\\"Quote\\'SingleQuote\\\\Backslash"
-		expected := "Hello\nWorld\tTabbed\rReturn\"Quote'SingleQuote\\Backslash"
-
-		// Act: 调用 NormalizeContent 还原
-		result := actions.NormalizeContent(input)
-
-		// Assert: 验证转义序列被正确替换
-		assert.Equal(t, expected, result, "The content should have the escape sequences replaced correctly")
-	})
-
-	t.Run("Handles empty input", func(t *testing.T) {
-		// Arrange
-		input := ""
-		expected := ""
-
-		// Act
-		result := actions.NormalizeContent(input)
-
-		// Assert
-		assert.Equal(t, expected, result, "Empty input should return empty output")
-	})
-
-	t.Run("No escape sequences in input", func(t *testing.T) {
-		// Arrange
-		input := "Plain text with no escapes"
-		expected := "Plain text with no escapes"
-
-		// Act
-		result := actions.NormalizeContent(input)
-
-		// Assert: 无转义序列时应保持原样
-		assert.Equal(t, expected, result, "Content without escape sequences should remain unchanged")
 	})
 }

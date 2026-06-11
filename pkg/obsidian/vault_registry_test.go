@@ -177,7 +177,7 @@ func TestRemoveVault(t *testing.T) {
 		}
 	})
 
-	t.Run("Removes vault by path and returns resolved name", func(t *testing.T) {
+	t.Run("Rejects vault removal by path", func(t *testing.T) {
 		mockObsidianConfigFile := mocks.CreateMockObsidianConfigFile(t)
 		obsidian.ObsidianConfigFile = func() (string, error) {
 			return mockObsidianConfigFile, nil
@@ -194,8 +194,8 @@ func TestRemoveVault(t *testing.T) {
 		assert.NoError(t, err)
 
 		name, err := obsidian.RemoveVault("/Users/user/Documents/Personal")
-		assert.NoError(t, err)
-		assert.Equal(t, "Personal", name)
+		assert.Error(t, err)
+		assert.Empty(t, name)
 
 		content, err := os.ReadFile(mockObsidianConfigFile)
 		assert.NoError(t, err)
@@ -203,7 +203,7 @@ func TestRemoveVault(t *testing.T) {
 		var cfg obsidian.ObsidianVaultConfig
 		err = json.Unmarshal(content, &cfg)
 		assert.NoError(t, err)
-		assert.Len(t, cfg.Vaults, 0)
+		assert.Len(t, cfg.Vaults, 1)
 	})
 
 	t.Run("Returns error for non-existent vault", func(t *testing.T) {

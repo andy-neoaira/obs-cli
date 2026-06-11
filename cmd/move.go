@@ -14,10 +14,9 @@ var shouldOpen bool
 // moveCmd 定义了 "move" 子命令，用于移动或重命名笔记，
 // 并自动更新 vault 中其他笔记指向该笔记的链接。
 var moveCmd = &cobra.Command{
-	Use:     "move",
-	Aliases: []string{"m"},
-	Short:   "Move or rename note in vault and updated corresponding links",
-	Args:    cobra.ExactArgs(2), // 需要 2 个参数：原路径 和 新路径
+	Use:   "move",
+	Short: "Move or rename note in vault and updated corresponding links",
+	Args:  cobra.ExactArgs(2), // 需要 2 个参数：原路径 和 新路径
 	Run: func(cmd *cobra.Command, args []string) {
 		currentName := args[0]
 		newName := args[1]

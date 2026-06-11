@@ -19,11 +19,11 @@ type UriManager interface {
 }
 
 // Construct 将基础 URI 与参数 map 拼接成完整的查询字符串。
-// 空值和 "false" 会被忽略；空格会被编码为 %20 而非 +，以兼容 Obsidian。
+// 空值会被忽略；空格会被编码为 %20 而非 +，以兼容 Obsidian。
 func (u *Uri) Construct(baseUri string, params map[string]string) string {
 	uri := baseUri
 	for key, value := range params {
-		if value != "" && value != "false" {
+		if value != "" {
 			// url.QueryEscape 会将空格编码为 +，Obsidian 需要 %20
 			encoded := strings.ReplaceAll(url.QueryEscape(value), "+", "%20")
 			if uri == baseUri {

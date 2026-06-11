@@ -13,10 +13,9 @@ var shouldOverwrite bool
 var content string
 var contentFile string
 var createNoteCmd = &cobra.Command{
-	Use:     "create",
-	Aliases: []string{"c"},
-	Short:   "Creates note in vault",
-	Args:    cobra.ExactArgs(1),
+	Use:   "create",
+	Short: "Creates note in vault",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		vault := obsidian.Vault{Name: vaultName}
 		uri := obsidian.Uri{}

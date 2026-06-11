@@ -57,11 +57,10 @@ func runSetDefaultVault(cmd *cobra.Command, args []string) {
 
 // setDefaultVaultCmd 是正式的 "set-default-vault" 命令。
 var setDefaultVaultCmd = &cobra.Command{
-	Use:     "set-default-vault",
-	Aliases: []string{"sd"},
-	Short:   "Sets default vault and/or open type",
-	Args:    cobra.RangeArgs(0, 1), // 接收 0 或 1 个参数
-	Run:     runSetDefaultVault,
+	Use:   "set-default-vault",
+	Short: "Sets default vault and/or open type",
+	Args:  cobra.RangeArgs(0, 1), // 接收 0 或 1 个参数
+	Run:   runSetDefaultVault,
 }
 
 // init 在包导入时自动执行，用于注册 set-default-vault 命令的 flag 并将其挂到根命令下。

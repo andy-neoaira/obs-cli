@@ -57,18 +57,7 @@ func captureStderr(t *testing.T, fn func()) string {
 	return string(stderrBytes)
 }
 
-func TestSearchNotesContent(t *testing.T) {
-	t.Run("Backward compatible SearchNotesContent API still works", func(t *testing.T) {
-		vault := mocks.MockVaultOperator{Name: "myVault"}
-		uri := mocks.MockUriManager{}
-		note := mocks.MockNoteManager{}
-		fuzzyFinder := mocks.MockFuzzyFinder{SelectedIndex: 0}
-
-		err := actions.SearchNotesContent(&vault, &note, &uri, &fuzzyFinder, "test", false)
-		assert.NoError(t, err)
-		assert.Equal(t, 1, uri.ExecuteCalls)
-	})
-
+func TestSearchNotesContentWithOptions(t *testing.T) {
 	t.Run("Successful interactive content search with multiple matches", func(t *testing.T) {
 		vault := mocks.MockVaultOperator{Name: "myVault"}
 		uri := mocks.MockUriManager{}

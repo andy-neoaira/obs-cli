@@ -279,7 +279,7 @@ obs-cli set-default-vault --open-type editor
 
 ### Add Vault
 
-Registers a directory as an Obsidian vault. Creates the Obsidian config file (`~/.config/obsidian/obsidian.json`) if it does not exist. Alias: `av`
+Registers a directory as an Obsidian vault. Creates the Obsidian config file (`~/.config/obsidian/obsidian.json`) if it does not exist.
 
 If you have Obsidian installed, vaults are registered automatically when you open them. You only need this command for headless setups or environments where Obsidian is not installed (servers, containers, CI).
 
@@ -293,19 +293,17 @@ obs-cli add-vault /path/to/vault --set-default
 
 ### Remove Vault
 
-Removes a vault from the Obsidian config. Does not delete any files on disk. If the removed vault was the default, the default is cleared. Alias: `rv`
+Removes a vault from the Obsidian config by vault name. Does not delete any files on disk. If the removed vault was the default, the default is cleared.
 
 ```bash
 # Remove by vault name
 obs-cli remove-vault "{vault-name}"
 
-# Remove by vault path
-obs-cli remove-vault /path/to/vault
 ```
 
 ### List Vaults
 
-Lists all registered Obsidian vaults. The default vault is marked with `(default)`. Alias: `lv`
+Lists all registered Obsidian vaults. The default vault is marked with `(default)`.
 
 ```bash
 # Lists all vaults (name and path, default marked)
@@ -340,7 +338,7 @@ Then you can use `obs_cd` to navigate to the default vault directory within your
 Defines the default vault and/or open type for future usage. If no default vault is set, pass `--vault` with other commands to specify which vault to use.
 
 ```bash
-# Set default vault (by name or path)
+# Set default vault by name
 obs-cli set-default-vault "{vault-name}"
 
 # Set default open type: 'obsidian' (default) or 'editor'
@@ -356,7 +354,7 @@ Note: `open` and other commands in `obs-cli` use this vault's base directory as 
 
 ### Open Note
 
-Open given note name in Obsidian (or your default editor). Note can also be an absolute path from top level of vault.
+Open a note in Obsidian or your default editor. The note argument is a vault-relative path; `.md` is optional.
 
 ```bash
 # Opens note in obsidian vault
@@ -460,8 +458,7 @@ obs-cli list "001 Notes" --vault "{vault-name}"
 
 ### Print Note
 
-Prints the contents of given note name or path in Obsidian.
-If a bare note name matches multiple files, use the full vault-relative path to disambiguate.
+Prints the contents of a note in Obsidian. The note argument is a vault-relative path; `.md` is optional.
 
 ```bash
 # Prints note in default vault
@@ -477,7 +474,7 @@ obs-cli print "{note-name}" --vault "{vault-name}"
 
 ### Create / Update Note
 
-Creates a note (can also be a path with name) directly on disk. **Obsidian does not need to be running**. If the note already exists and neither `--overwrite` nor `--append` is passed, the file is left unchanged. Intermediate directories are created automatically.
+Creates a note directly on disk. **Obsidian does not need to be running**. If the note already exists and neither `--overwrite` nor `--append` is passed, the command fails. Intermediate directories are created automatically.
 
 When the note name has no explicit path (no `/`), the CLI reads `.obsidian/app.json` from the vault to check for a configured default folder (`newFileLocation: "folder"` and `newFileFolderPath`). If configured, the note is placed in that folder. If the config is missing or unreadable, the note is created at the vault root.
 
@@ -543,8 +540,7 @@ obs-cli delete "{note-path}" --vault "{vault-name}"
 
 ### Frontmatter
 
-View and modify YAML frontmatter in notes. Alias: `fm`
-If a bare note name matches multiple files, the command fails instead of editing an arbitrary match.
+View and modify YAML frontmatter in notes. The note argument is a vault-relative path; `.md` is optional.
 
 ```bash
 # Print frontmatter of a note
@@ -566,7 +562,7 @@ The CLI respects Obsidian's **Excluded Files** setting (`Settings > Files & Link
 
 - `search` - excluded notes won't appear in the fuzzy finder
 - `search-content` - excluded folders won't be searched
-- `print` / `frontmatter` - bare-name lookup ignores excluded folders; explicit paths still work
+- `print` / `frontmatter` - exact vault-relative paths can still access excluded files
 
 Other explicit-path commands (`open`, `move`, `delete`, etc.) can still access excluded files when you provide the exact path.
 

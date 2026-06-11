@@ -76,7 +76,6 @@ func TestSearchContentCommandFlagsWired(t *testing.T) {
 	assert.Equal(t, "text", searchContentCmd.Flags().Lookup("format").DefValue)
 	assert.Equal(t, "0", searchContentCmd.Flags().Lookup("page").DefValue)
 	assert.Equal(t, "0", searchContentCmd.Flags().Lookup("page-size").DefValue)
-	assert.Contains(t, searchContentCmd.Aliases, "sc")
 }
 
 // TestBuildSearchContentOptionsParsesExplicitFlags 测试显式传入的 flag 被正确解析。

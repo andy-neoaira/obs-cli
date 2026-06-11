@@ -221,7 +221,7 @@ func TestDailyNote(t *testing.T) {
 		uri := mocks.MockUriManager{}
 
 		err := actions.DailyNote(&vault, &uri, actions.DailyParams{
-			Content: "\\nnew line",
+			Content: "\nnew line",
 		})
 		assert.NoError(t, err)
 

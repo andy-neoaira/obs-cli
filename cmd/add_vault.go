@@ -13,11 +13,10 @@ import (
 // 如果目录不存在或不是文件夹，会返回错误。
 // 通过 --set-default  flag 可以同时将新添加的 vault 设为默认。
 var addVaultCmd = &cobra.Command{
-	Use:     "add-vault <path>",
-	Aliases: []string{"av"},
-	Short:   "Register a vault directory",
-	Long:    "Registers a directory as an Obsidian vault. Creates the Obsidian config file if it does not exist.",
-	Args:    cobra.ExactArgs(1), // 必须提供 1 个参数：vault 的本地路径
+	Use:   "add-vault <path>",
+	Short: "Register a vault directory",
+	Long:  "Registers a directory as an Obsidian vault. Creates the Obsidian config file if it does not exist.",
+	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：vault 的本地路径
 	Run: func(cmd *cobra.Command, args []string) {
 		absPath, err := obsidian.AddVault(args[0])
 		if err != nil {

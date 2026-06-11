@@ -71,9 +71,10 @@ func TestGenerateNoteLinkTexts(t *testing.T) {
 	}
 }
 
-func TestGenerateLinkReplacements(t *testing.T) {
+func TestLinkRewriterGenerateReplacements(t *testing.T) {
 	t.Run("Simple note rename", func(t *testing.T) {
-		replacements := obsidian.GenerateLinkReplacements("oldNote", "newNote")
+		rewriter := obsidian.LinkRewriter{}
+		replacements := rewriter.GenerateReplacements("oldNote", "newNote", obsidian.LinkRewriteOptions{IncludeBaseLinks: true})
 
 		// Should have wikilink patterns
 		assert.Equal(t, "[[newNote]]", replacements["[[oldNote]]"])
@@ -90,7 +91,8 @@ func TestGenerateLinkReplacements(t *testing.T) {
 	})
 
 	t.Run("Note with path", func(t *testing.T) {
-		replacements := obsidian.GenerateLinkReplacements("folder/oldNote", "folder/newNote")
+		rewriter := obsidian.LinkRewriter{}
+		replacements := rewriter.GenerateReplacements("folder/oldNote", "folder/newNote", obsidian.LinkRewriteOptions{IncludeBaseLinks: true})
 
 		// Simple wikilinks (basename)
 		assert.Equal(t, "[[newNote]]", replacements["[[oldNote]]"])
@@ -112,7 +114,8 @@ func TestGenerateLinkReplacements(t *testing.T) {
 	})
 
 	t.Run("Move to different folder", func(t *testing.T) {
-		replacements := obsidian.GenerateLinkReplacements("folder1/note", "folder2/note")
+		rewriter := obsidian.LinkRewriter{}
+		replacements := rewriter.GenerateReplacements("folder1/note", "folder2/note", obsidian.LinkRewriteOptions{IncludeBaseLinks: true})
 
 		// Basename stays same
 		assert.Equal(t, "[[note]]", replacements["[[note]]"])
@@ -125,7 +128,8 @@ func TestGenerateLinkReplacements(t *testing.T) {
 	})
 
 	t.Run("Note with .md extension", func(t *testing.T) {
-		replacements := obsidian.GenerateLinkReplacements("folder/note.md", "folder/renamed.md")
+		rewriter := obsidian.LinkRewriter{}
+		replacements := rewriter.GenerateReplacements("folder/note.md", "folder/renamed.md", obsidian.LinkRewriteOptions{IncludeBaseLinks: true})
 
 		// Wikilinks don't include .md
 		assert.Equal(t, "[[renamed]]", replacements["[[note]]"])
@@ -136,14 +140,15 @@ func TestGenerateLinkReplacements(t *testing.T) {
 	})
 
 	t.Run("Nested path", func(t *testing.T) {
-		replacements := obsidian.GenerateLinkReplacements("a/b/c/note", "x/y/note")
+		rewriter := obsidian.LinkRewriter{}
+		replacements := rewriter.GenerateReplacements("a/b/c/note", "x/y/note", obsidian.LinkRewriteOptions{IncludeBaseLinks: true})
 
 		assert.Equal(t, "[[x/y/note]]", replacements["[[a/b/c/note]]"])
 		assert.Equal(t, "](x/y/note.md)", replacements["](a/b/c/note.md)"])
 	})
 }
 
-func TestReplaceContent(t *testing.T) {
+func TestLinkRewriterReplaceContent(t *testing.T) {
 	tests := []struct {
 		testName     string
 		content      []byte
@@ -158,7 +163,8 @@ func TestReplaceContent(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.testName, func(t *testing.T) {
 			// Act
-			got := obsidian.ReplaceContent(test.content, test.replacements)
+			rewriter := obsidian.LinkRewriter{}
+			got := rewriter.ReplaceContent(test.content, test.replacements)
 			// Assert
 			assert.Equal(t, string(test.want), string(got))
 		})

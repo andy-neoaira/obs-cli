@@ -59,7 +59,7 @@ func AddVault(vaultPath string) (string, error) {
 }
 
 // RemoveVault 从 Obsidian 配置中注销一个 vault。
-// 支持通过名称或完整路径指定。如果通过名称匹配到多个 vault，会报错提示用户使用完整路径。
+// 只支持通过 vault 名称指定；如果匹配到多个 vault，会报错提示用户先清理重复注册。
 // 返回被移除 vault 的名称（目录 basename），方便调用方做后续清理（如清除默认设置）。
 func RemoveVault(input string) (string, error) {
 	obsidianConfigFile, err := ObsidianConfigFile()
@@ -77,18 +77,6 @@ func RemoveVault(input string) (string, error) {
 		return "", errors.New(ObsidianConfigParseError)
 	}
 
-	// 如果输入看起来像路径（绝对路径、含分隔符、以 . 开头），先尝试精确路径匹配
-	if filepath.IsAbs(input) || strings.Contains(input, string(filepath.Separator)) || strings.HasPrefix(input, ".") {
-		absInput, _ := filepath.Abs(input)
-		for id, v := range vaultsConfig.Vaults {
-			if filepath.Clean(v.Path) == filepath.Clean(absInput) {
-				name := filepath.Base(v.Path)
-				delete(vaultsConfig.Vaults, id)
-				return name, writeObsidianConfig(obsidianConfigFile, vaultsConfig)
-			}
-		}
-	}
-
 	// 按名称（目录 basename）匹配，收集所有匹配项以检测歧义
 	type match struct {
 		id   string
@@ -96,7 +84,7 @@ func RemoveVault(input string) (string, error) {
 	}
 	var matches []match
 	for id, v := range vaultsConfig.Vaults {
-		if filepath.Base(v.Path) == input {
+		if vaultBaseName(v.Path) == input {
 			matches = append(matches, match{id: id, path: v.Path})
 		}
 	}
@@ -109,10 +97,7 @@ func RemoveVault(input string) (string, error) {
 		for _, m := range matches {
 			paths = append(paths, fmt.Sprintf("  %s", m.path))
 		}
-		return "", fmt.Errorf(
-			"multiple vaults named %q found. Use the full path to disambiguate:\n%s",
-			input, strings.Join(paths, "\n"),
-		)
+		return "", fmt.Errorf("multiple vaults named %q found. Remove duplicate registrations first:\n%s", input, strings.Join(paths, "\n"))
 	}
 
 	delete(vaultsConfig.Vaults, matches[0].id)
