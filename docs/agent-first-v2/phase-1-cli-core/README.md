@@ -11,10 +11,10 @@
 
 ## 任务进度
 
-阶段进度：`1 / 8`
+阶段进度：`2 / 8`
 
 - [x] [P1-T01 配置边界与 Vault 发现](./P1-T01-config-and-discovery.md)
-- [ ] [P1-T02 安全路径解析](./P1-T02-safe-paths.md)
+- [x] [P1-T02 安全路径解析](./P1-T02-safe-paths.md)
 - [ ] [P1-T03 原子写入与 Revision 内核](./P1-T03-atomic-storage.md)
 - [ ] [P1-T04 JSON 响应与稳定错误码](./P1-T04-json-errors.md)
 - [ ] [P1-T05 Capabilities、通用参数与 Dry-run](./P1-T05-capabilities-dry-run.md)

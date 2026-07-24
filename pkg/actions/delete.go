@@ -23,7 +23,7 @@ func DeleteNote(vault obsidian.VaultManager, note obsidian.NoteManager, params D
 	}
 
 	// 校验目标路径是否在 vault 目录内部，防止误删或恶意路径
-	notePath, err := obsidian.ValidatePath(vaultPath, params.NotePath)
+	notePath, err := obsidian.ValidateWritablePath(vaultPath, obsidian.AddMdSuffix(params.NotePath))
 	if err != nil {
 		return err
 	}

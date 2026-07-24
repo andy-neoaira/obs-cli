@@ -114,9 +114,13 @@ func (m *Note) GetContents(vaultPath string, noteName string) (string, error) {
 // SetContents 将内容写入 vault 中的指定笔记。
 // 先通过遍历找到笔记的实际路径，然后覆盖写入。
 func (m *Note) SetContents(vaultPath string, noteName string, content string) error {
-	notePath, err := ResolveNotePath(vaultPath, noteName)
+	notePath, err := ValidateWritablePath(vaultPath, AddMdSuffix(noteName))
 	if err != nil {
 		return err
+	}
+	info, err := os.Stat(notePath)
+	if err != nil || info.IsDir() {
+		return errors.New(NoteDoesNotExistError)
 	}
 
 	err = os.WriteFile(notePath, []byte(content), 0644)
@@ -150,6 +154,9 @@ func (m *Note) GetNotesList(vaultPath string) ([]string, error) {
 			return nil
 		}
 		if !d.IsDir() && strings.HasSuffix(d.Name(), ".md") {
+			if _, err := ValidatePath(vaultPath, relPath); err != nil {
+				return err
+			}
 			notes = append(notes, relPath)
 		}
 		return nil
@@ -186,12 +193,16 @@ func (m *Note) SearchNotesWithSnippets(vaultPath string, query string) ([]NoteMa
 			return nil
 		}
 		if !d.IsDir() && strings.HasSuffix(d.Name(), ".md") {
+			safePath, err := ValidatePath(vaultPath, relPath)
+			if err != nil {
+				return err
+			}
 			fileNameMatches := strings.Contains(strings.ToLower(relPath), queryLower)
 			var hasContentMatch bool
 
 			// 检查文件大小，避免读取超大文件（>10MB）导致内存问题
 			if info, err := d.Info(); err == nil && info.Size() < 10*1024*1024 {
-				content, err := os.ReadFile(path)
+				content, err := os.ReadFile(safePath)
 				if err == nil {
 					lines := strings.Split(string(content), "\n")
 					for lineNum, line := range lines {
@@ -336,6 +347,10 @@ func (m *Note) FindBacklinks(vaultPath, noteName string) ([]NoteMatch, error) {
 		if d.IsDir() || !strings.HasSuffix(d.Name(), ".md") {
 			return nil
 		}
+		safePath, err := ValidatePath(vaultPath, relPath)
+		if err != nil {
+			return err
+		}
 
 		// 跳过笔记自身（避免将自身的自引用算作反向链接）
 		if RemoveMdSuffix(normalizePathSeparators(relPath)) == noteName {
@@ -351,7 +366,7 @@ func (m *Note) FindBacklinks(vaultPath, noteName string) ([]NoteMatch, error) {
 			return nil
 		}
 
-		content, err := os.ReadFile(path)
+		content, err := os.ReadFile(safePath)
 		if err != nil {
 			return nil //nolint:nilerr
 		}

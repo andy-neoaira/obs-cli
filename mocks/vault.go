@@ -1,5 +1,7 @@
 package mocks
 
+import "os"
+
 // MockVaultOperator 是 VaultManager 接口的 Mock 实现，用于单元测试。
 // 通过设置各个字段的值，可以控制 Mock 对象的行为（返回指定值或模拟错误）。
 type MockVaultOperator struct {
@@ -32,7 +34,9 @@ func (m *MockVaultOperator) Path() (string, error) {
 	if m.PathValue != "" {
 		return m.PathValue, nil
 	}
-	return "path", nil
+	// 安全路径解析要求 Vault 根目录真实存在；未指定时提供只用于 Mock
+	// 交互验证的系统临时目录。
+	return os.TempDir(), nil
 }
 
 func (m *MockVaultOperator) DefaultOpenType() (string, error) {

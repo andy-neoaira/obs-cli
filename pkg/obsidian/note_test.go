@@ -159,7 +159,7 @@ func TestNote_GetContents(t *testing.T) {
 		// Arrange
 		noteManager := obsidian.Note{}
 		// Act
-		contents, err := noteManager.GetContents("path", "non-existent-note")
+		contents, err := noteManager.GetContents(t.TempDir(), "non-existent-note")
 		// Assert
 		assert.Equal(t, obsidian.NoteDoesNotExistError, err.Error(), "Expected error while deleting non-existent note")
 		assert.Equal(t, contents, "")

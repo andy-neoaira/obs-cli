@@ -60,10 +60,10 @@ func TestValidatePath(t *testing.T) {
 			wantErr:      true,
 		},
 		{
-			name:         "Current dir prefix is valid",
+			name:         "Current dir prefix is rejected by logical path contract",
 			basePath:     vaultPath,
 			relativePath: "./note.md",
-			wantErr:      false,
+			wantErr:      true,
 		},
 		{
 			name:         "Hidden directory traversal",
@@ -78,10 +78,10 @@ func TestValidatePath(t *testing.T) {
 			wantErr:      false,
 		},
 		{
-			name:         "Dot only path resolves to vault root",
+			name:         "Dot only path is rejected",
 			basePath:     vaultPath,
 			relativePath: ".",
-			wantErr:      false,
+			wantErr:      true,
 		},
 	}
 
@@ -148,8 +148,28 @@ func TestValidatePath_ResultWithinBase(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify result starts with vault path
-		absVault, _ := filepath.Abs(vaultPath)
+		absVault, _ := filepath.EvalSymlinks(vaultPath)
 		assert.True(t, len(result) >= len(absVault), "Result should be at least as long as vault path")
 		assert.Equal(t, absVault, result[:len(absVault)], "Result should start with vault path")
 	})
+}
+
+func TestValidateWritablePathRejectsInternalSymlinkAlias(t *testing.T) {
+	vault := t.TempDir()
+	target := filepath.Join(vault, "Inside.md")
+	if err := os.WriteFile(target, []byte("inside"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, filepath.Join(vault, "InternalAlias.md")); err != nil {
+		t.Skipf("symlink unavailable: %v", err)
+	}
+
+	readPath, err := obsidian.ValidatePath(vault, "InternalAlias.md")
+	assert.NoError(t, err)
+	canonicalTarget, canonicalErr := filepath.EvalSymlinks(target)
+	assert.NoError(t, canonicalErr)
+	assert.Equal(t, canonicalTarget, readPath)
+
+	_, err = obsidian.ValidateWritablePath(vault, "InternalAlias.md")
+	assert.ErrorIs(t, err, obsidian.ErrPhysicalPathConflict)
 }

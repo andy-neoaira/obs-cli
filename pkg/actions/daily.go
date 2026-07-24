@@ -45,7 +45,7 @@ func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Dail
 	}
 
 	// 校验并解析最终路径
-	notePath, err := obsidian.ValidatePath(vaultPath, obsidian.AddMdSuffix(noteName))
+	notePath, err := obsidian.ValidateWritablePath(vaultPath, obsidian.AddMdSuffix(noteName))
 	if err != nil {
 		return err
 	}

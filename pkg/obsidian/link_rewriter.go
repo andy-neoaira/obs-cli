@@ -34,6 +34,13 @@ func (r *LinkRewriter) UpdateLinks(vaultPath string, oldNoteName string, newNote
 		IncludeBaseLinks: includeBaseLinks,
 	})
 
+	type rewriteTarget struct {
+		path string
+		mode os.FileMode
+	}
+	targets := make([]rewriteTarget, 0)
+
+	// 先完整预检候选集，确保任何物理别名或越界链接都在首次写入前失败。
 	err := filepath.Walk(vaultPath, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return errors.New(VaultAccessError)
@@ -50,7 +57,21 @@ func (r *LinkRewriter) UpdateLinks(vaultPath string, oldNoteName string, newNote
 			return nil
 		}
 
-		originalContent, err := os.ReadFile(filePath)
+		// Walk 返回的是目录项路径；读写前仍必须走统一解析器，防止
+		// Markdown 文件符号链接把批量重写引到 Vault 外部。
+		safePath, err := ValidateWritablePath(vaultPath, relPath)
+		if err != nil {
+			return err
+		}
+		targets = append(targets, rewriteTarget{path: safePath, mode: info.Mode().Perm()})
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, target := range targets {
+		originalContent, err := os.ReadFile(target.path)
 		if err != nil {
 			return errors.New(VaultReadError)
 		}
@@ -60,16 +81,12 @@ func (r *LinkRewriter) UpdateLinks(vaultPath string, oldNoteName string, newNote
 
 		// 如果没有实际变化，跳过写入以提高性能并保留文件修改时间。
 		if bytes.Equal(originalContent, updatedContent) {
-			return nil
+			continue
 		}
 
-		if err := os.WriteFile(filePath, updatedContent, info.Mode()); err != nil {
+		if err := os.WriteFile(target.path, updatedContent, target.mode); err != nil {
 			return errors.New(VaultWriteError)
 		}
-		return nil
-	})
-	if err != nil {
-		return err
 	}
 	return nil
 }
@@ -194,6 +211,9 @@ func (r *LinkRewriter) countMarkdownFilesByBase(vaultPath, baseNoExt string) (in
 			return nil
 		}
 		if !d.IsDir() && filepath.Base(filePath) == target {
+			if _, err := ValidatePath(vaultPath, relPath); err != nil {
+				return err
+			}
 			count++
 		}
 		return nil

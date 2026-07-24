@@ -28,11 +28,11 @@ func MoveNote(vault obsidian.VaultManager, note obsidian.NoteManager, linkRewrit
 	}
 
 	// 分别校验原路径和新路径，确保都在 vault 目录内
-	currentPath, err := obsidian.ValidatePath(vaultPath, params.CurrentNoteName)
+	currentPath, err := obsidian.ValidateWritablePath(vaultPath, obsidian.AddMdSuffix(params.CurrentNoteName))
 	if err != nil {
 		return err
 	}
-	newPath, err := obsidian.ValidatePath(vaultPath, params.NewNoteName)
+	newPath, err := obsidian.ValidateWritablePath(vaultPath, obsidian.AddMdSuffix(params.NewNoteName))
 	if err != nil {
 		return err
 	}

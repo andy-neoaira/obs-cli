@@ -2,47 +2,51 @@ package obsidian
 
 import (
 	"errors"
-	"path/filepath"
-	"strings"
+
+	"github.com/andy-neoaira/obs-cli/pkg/pathpolicy"
 )
 
-// ErrPathTraversal 当路径试图逃逸出基础目录时返回此错误。
-var ErrPathTraversal = errors.New("path traversal detected: path must remain within vault directory")
+// ErrPathTraversal 保留旧 API 名称；V2 稳定错误语义为 PATH_OUTSIDE_VAULT。
+var ErrPathTraversal = pathpolicy.ErrOutsideVault
 
-// ValidatePath 确保 relativePath 与 basePath 拼接后仍位于 basePath 内部。
-// 返回清理后的绝对路径；如果路径试图逃逸出基础目录，返回 ErrPathTraversal。
+// ErrPhysicalPathConflict 表示逻辑路径通过 Vault 内符号链接形成物理别名。
+// 读取可以使用该别名；修改必须要求调用方选择无歧义的规范逻辑路径。
+var ErrPhysicalPathConflict = errors.New("physical path identity conflict: mutation through symbolic link is forbidden")
+
+// ValidatePath 是统一 Vault path policy 的兼容入口。
 //
-// 安全检查步骤：
-//  1. 拒绝绝对路径（防止直接传入 /etc/passwd）
-//  2. 清理并拼接路径
-//  3. 验证结果路径是否以 basePath 为前缀
+// 新代码如需显式读取隐藏路径，应直接使用 pathpolicy.Resolver 并传入可审计选项；
+// 普通 Note、附件、模板和 Daily Note 不允许隐藏路径。空路径仅供 Vault 根目录
+// 查询兼容使用。
 func ValidatePath(basePath, relativePath string) (string, error) {
-	// 拒绝绝对路径输入
-	if filepath.IsAbs(relativePath) {
-		return "", ErrPathTraversal
-	}
-
-	// 将基础路径转换为清理后的绝对路径
-	absBase, err := filepath.Abs(filepath.Clean(basePath))
+	result, err := ResolvePath(basePath, relativePath)
 	if err != nil {
 		return "", err
 	}
+	return result.Path, nil
+}
 
-	// 清理相对路径并与基础路径拼接
-	cleanRelative := filepath.Clean(relativePath)
-	joinedPath := filepath.Join(absBase, cleanRelative)
-
-	// 获取拼接后的绝对路径
-	absJoined, err := filepath.Abs(joinedPath)
+// ValidateWritablePath 在普通边界检查之上拒绝经 Vault 内符号链接的物理别名。
+func ValidateWritablePath(basePath, relativePath string) (string, error) {
+	result, err := ResolvePath(basePath, relativePath)
 	if err != nil {
 		return "", err
 	}
-
-	// 验证拼接后的路径是否以基础路径为前缀。
-	// 在 basePath 末尾加上路径分隔符，防止部分匹配（如 /vault-backup 匹配 /vault）。
-	if !strings.HasPrefix(absJoined, absBase+string(filepath.Separator)) && absJoined != absBase {
-		return "", ErrPathTraversal
+	if result.ThroughSymlink {
+		return "", ErrPhysicalPathConflict
 	}
+	return result.Path, nil
+}
 
-	return absJoined, nil
+// ResolvePath 返回统一 resolver 的完整身份信息。
+func ResolvePath(basePath, relativePath string) (pathpolicy.Result, error) {
+	resolver, err := pathpolicy.NewResolver(basePath)
+	if err != nil {
+		return pathpolicy.Result{}, err
+	}
+	result, err := resolver.Resolve(relativePath, pathpolicy.ResolveOptions{AllowRoot: true})
+	if err != nil {
+		return pathpolicy.Result{}, err
+	}
+	return result, nil
 }

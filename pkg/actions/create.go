@@ -36,7 +36,7 @@ func CreateNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Cre
 	params.NoteName = obsidian.ApplyDefaultFolder(params.NoteName, vaultPath)
 
 	// 校验最终路径是否仍在 vault 目录内部，防止路径遍历攻击
-	notePath, err := obsidian.ValidatePath(vaultPath, obsidian.AddMdSuffix(params.NoteName))
+	notePath, err := obsidian.ValidateWritablePath(vaultPath, obsidian.AddMdSuffix(params.NoteName))
 	if err != nil {
 		return err
 	}
