@@ -11,10 +11,10 @@
 
 ## 任务进度
 
-阶段进度：`1 / 6`
+阶段进度：`2 / 6`
 
 - [x] [P2-T01 测试框架、格式化与 CI](./P2-T01-tests-ci.md)
-- [ ] [P2-T02 Vault 路径安全模块](./P2-T02-safe-paths.md)
+- [x] [P2-T02 Vault 路径安全模块](./P2-T02-safe-paths.md)
 - [ ] [P2-T03 Wikilink 解析、消歧与跳转](./P2-T03-wikilinks.md)
 - [ ] [P2-T04 Daily Note 与模板一致性](./P2-T04-daily-templates.md)
 - [ ] [P2-T05 外部修改检测与缓存失效](./P2-T05-external-changes.md)
