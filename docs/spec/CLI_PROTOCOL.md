@@ -7,6 +7,7 @@
 - 架构依据：[ADR-001](../architecture/ADR-001-agent-first-boundary.md)
 - JSON Schema：[response-v2.schema.json](./schema/response-v2.schema.json)
 - Capability 约定：[CAPABILITIES.md](./CAPABILITIES.md)
+- Note 原子操作：[NOTE_OPERATIONS.md](./NOTE_OPERATIONS.md)
 
 ## 1. 设计目标
 

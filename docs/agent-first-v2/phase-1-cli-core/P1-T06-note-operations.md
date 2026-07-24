@@ -1,7 +1,7 @@
 # P1-T06：Note 原子操作 API
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`已完成`
+- 负责人：`Codex`
 - 涉及项目：`obs-cli`
 - 依赖：P1-T02、P1-T03、P1-T04、P1-T05
 
@@ -28,11 +28,11 @@
 
 ## 验收标准
 
-- [ ] Agent 可完成读—分析—条件更新闭环。
-- [ ] 默认不存在静默覆盖。
-- [ ] patch 上下文不唯一或不匹配时不修改文件。
-- [ ] 多行内容可从 stdin 或文件安全输入。
-- [ ] 每个修改命令都有 dry-run。
+- [x] Agent 可完成读—分析—条件更新闭环。
+- [x] 默认不存在静默覆盖。
+- [x] patch 上下文不唯一或不匹配时不修改文件。
+- [x] 多行内容可从 stdin 或文件安全输入。
+- [x] 每个修改命令都有 dry-run。
 
 ## 验证
 
@@ -40,3 +40,14 @@
 go test ./... -run 'Note|Append|Patch|Replace|Delete'
 ```
 
+## 完成记录
+
+- 新增 `note list/get/create/append/patch/replace/delete` V2 JSON 命令。
+- 业务层统一接入 Vault path policy、稳定快照、revision 前置条件、原子写入和可恢复删除。
+- `get` 同一快照返回原始正文、Frontmatter、逻辑路径与 revision。
+- create 使用 must-not-exist，并在冲突 details 中返回现有/请求 revision 与 `same_content`，供 Agent 判断安全重试。
+- append 固化边界换行与唯一 ATX section 规则，并忽略 fenced code block 内的伪标题。
+- patch 要求 revision 和唯一原始字节上下文；不匹配、歧义、revision 冲突均保持文件不变。
+- replace/delete 默认要求 `--if-match`，危险绕过必须显式使用 `--unsafe-no-if-match`。
+- 所有正文输入只接受文件或 stdin；所有修改命令均有无写入副作用的 dry-run。
+- 完整命令与 Agent 闭环见 `docs/spec/NOTE_OPERATIONS.md`。

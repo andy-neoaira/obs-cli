@@ -31,7 +31,7 @@ obs capabilities --output json \
 | `vault_discovery_read_only` | Obsidian Vault 发现不会修改官方配置 |
 | `vault_path_policy` | Vault 路径执行统一边界和符号链接校验 |
 | `dry_run_plans` | 当前 capability 中声明为 mutating 的 operation 支持 dry-run |
-| `note_operations_v2` | V2 Note 原子操作命令是否可用 |
+| `note_operations_v2` | V2 Note 原子操作命令是否可用；命令语义见 [NOTE_OPERATIONS.md](./NOTE_OPERATIONS.md) |
 
 operation 名称和 feature flag 只增不改。新增名称属于兼容变更；删除、改名或改变已有名称的语义需要升级协议主版本。弃用项至少保留一个 V2 发布周期，并通过新增的可选 deprecation 元数据公告；调用方必须忽略未知可选字段。
 

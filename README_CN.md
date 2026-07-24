@@ -53,7 +53,7 @@ Obsidian 是一款功能强大且可扩展的知识库应用，基于本地纯�
 - `obs-cli` 不依赖 Neovim；它只读发现或显式导入 Obsidian 所有的配置，不取得这些配置的所有权。
 - V2 核心采用非交互设计，不提供 TTY 问答、内置 picker、自动启动编辑器或隐式打开应用。
 
-完整决策见 [ADR-001：Agent-first 产品边界与三入口架构](./docs/architecture/ADR-001-agent-first-boundary.md)，配置边界见 [V2 配置规范](./docs/spec/CONFIG_V2.md)，路径边界见 [Vault 安全路径策略](./docs/spec/PATH_POLICY.md)，写入实现见 [原子存储实现](./docs/spec/ATOMIC_STORAGE.md)，执行任务见 [V2 联合改造计划](./docs/agent-first-v2/README.md)。
+完整决策见 [ADR-001：Agent-first 产品边界与三入口架构](./docs/architecture/ADR-001-agent-first-boundary.md)，配置边界见 [V2 配置规范](./docs/spec/CONFIG_V2.md)，路径边界见 [Vault 安全路径策略](./docs/spec/PATH_POLICY.md)，写入实现见 [原子存储实现](./docs/spec/ATOMIC_STORAGE.md)，Note 命令见 [V2 Note 原子操作](./docs/spec/NOTE_OPERATIONS.md)，执行任务见 [V2 联合改造计划](./docs/agent-first-v2/README.md)。
 
 共同规范状态：`target_contract = vault-contract/v1`，`implemented_contract = null`。目标规则见 [Vault 共同约定](./docs/spec/VAULT_CONVENTIONS.md)；只有 P1 共享 fixture 通过后才会声明实现符合该版本。
 

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/andy-neoaira/obs-cli/pkg/storage"
@@ -34,5 +35,17 @@ func TestRevisionContractVectors(t *testing.T) {
 				t.Fatalf("Revision() = %s, want %s", actual, vector.Revision)
 			}
 		})
+	}
+}
+
+func TestIsRevision(t *testing.T) {
+	valid := storage.Revision([]byte("content"))
+	if !storage.IsRevision(valid) {
+		t.Fatalf("valid revision rejected: %s", valid)
+	}
+	for _, value := range []string{"", "sha256:stale", strings.ToUpper(valid), valid + "0"} {
+		if storage.IsRevision(value) {
+			t.Fatalf("invalid revision accepted: %q", value)
+		}
 	}
 }

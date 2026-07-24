@@ -11,14 +11,14 @@
 
 ## 任务进度
 
-阶段进度：`5 / 8`
+阶段进度：`6 / 8`
 
 - [x] [P1-T01 配置边界与 Vault 发现](./P1-T01-config-and-discovery.md)
 - [x] [P1-T02 安全路径解析](./P1-T02-safe-paths.md)
 - [x] [P1-T03 原子写入与 Revision 内核](./P1-T03-atomic-storage.md)
 - [x] [P1-T04 JSON 响应与稳定错误码](./P1-T04-json-errors.md)
 - [x] [P1-T05 Capabilities、通用参数与 Dry-run](./P1-T05-capabilities-dry-run.md)
-- [ ] [P1-T06 Note 原子操作 API](./P1-T06-note-operations.md)
+- [x] [P1-T06 Note 原子操作 API](./P1-T06-note-operations.md)
 - [ ] [P1-T07 Move 与链接重写事务](./P1-T07-move-link-transaction.md)
 - [ ] [P1-T08 V2 命令树、质量门禁与发布迁移](./P1-T08-v2-release.md)
 

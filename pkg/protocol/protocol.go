@@ -9,6 +9,7 @@ import (
 	"io"
 	"regexp"
 
+	"github.com/andy-neoaira/obs-cli/pkg/noteops"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/andy-neoaira/obs-cli/pkg/pathpolicy"
 	"github.com/andy-neoaira/obs-cli/pkg/storage"
@@ -121,9 +122,22 @@ func MapError(err error) *DomainError {
 	if errors.As(err, &domain) {
 		return domain
 	}
+	var createConflict *noteops.CreateConflict
+	if errors.As(err, &createConflict) {
+		return Wrap(AlreadyExists, "The note already exists.", err, map[string]any{
+			"path":               createConflict.Path,
+			"existing_revision":  createConflict.ExistingRevision,
+			"requested_revision": createConflict.RequestedRevision,
+			"same_content":       createConflict.ExistingRevision == createConflict.RequestedRevision,
+		})
+	}
 	switch {
 	case errors.Is(err, storage.ErrRevisionConflict):
 		return Wrap(RevisionConflict, "The target changed after it was read.", err, nil)
+	case errors.Is(err, noteops.ErrPatchContextMismatch), errors.Is(err, noteops.ErrSectionNotFound):
+		return Wrap(RevisionConflict, "The requested content context no longer matches.", err, nil)
+	case errors.Is(err, noteops.ErrPatchContextAmbiguous), errors.Is(err, noteops.ErrSectionAmbiguous):
+		return Wrap(AmbiguousNote, "The requested content context is not unique.", err, nil)
 	case errors.Is(err, storage.ErrAlreadyExists), errors.Is(err, obsidian.ErrVaultAlreadyExists), errors.Is(err, obsidian.ErrVaultNameConflict):
 		return Wrap(AlreadyExists, "The target already exists.", err, nil)
 	case errors.Is(err, storage.ErrPartialFailure):
@@ -132,6 +146,12 @@ func MapError(err error) *DomainError {
 		return Wrap(PathOutsideVault, "The path is outside the Vault policy boundary.", err, nil)
 	case errors.Is(err, obsidian.ErrVaultNotFound):
 		return Wrap(VaultNotFound, "The Vault was not found.", err, nil)
+	case errors.Is(err, noteops.ErrNoteNotFound):
+		return Wrap(NoteNotFound, "The note was not found.", err, nil)
+	case errors.Is(err, noteops.ErrInvalidFrontmatter):
+		return Wrap(InvalidFrontmatter, "The note contains invalid frontmatter.", err, nil)
+	case errors.Is(err, noteops.ErrRevisionRequired), errors.Is(err, noteops.ErrInvalidRevision), errors.Is(err, storage.ErrPrecondition):
+		return Wrap(InvalidArgument, "A required write precondition is missing.", err, nil)
 	default:
 		return Wrap(InternalError, "The operation failed due to an internal error.", err, nil)
 	}

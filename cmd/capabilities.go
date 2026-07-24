@@ -36,6 +36,13 @@ func currentCapabilities() capabilitiesData {
 		},
 		Operations: []capabilityOperation{
 			{Name: "capabilities.get", Version: 1, CommonFlags: []string{"output", "request-id"}},
+			{Name: "note.append", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
+			{Name: "note.create", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "output", "request-id", "vault"}},
+			{Name: "note.delete", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
+			{Name: "note.get", Version: 1, CommonFlags: []string{"output", "request-id", "vault"}},
+			{Name: "note.list", Version: 1, CommonFlags: []string{"output", "request-id", "vault"}},
+			{Name: "note.patch", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
+			{Name: "note.replace", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
 			{Name: "vault.add", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "output", "request-id"}},
 			{Name: "vault.discover", Version: 1, CommonFlags: []string{"output", "request-id"}},
 			{Name: "vault.get", Version: 1, CommonFlags: []string{"output", "request-id"}},
@@ -51,7 +58,7 @@ func currentCapabilities() capabilitiesData {
 			"revision_preconditions":    true,
 			"vault_discovery_read_only": true,
 			"vault_path_policy":         true,
-			"note_operations_v2":        false,
+			"note_operations_v2":        true,
 			"dry_run_plans":             true,
 		},
 		Platform: map[string]any{
