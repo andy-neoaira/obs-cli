@@ -1,0 +1,17 @@
+{
+  "protocol_version": "obs-cli/v2",
+  "ok": false,
+  "operation": "note.replace",
+  "request_id": "fixture-error-conflict",
+  "error": {
+    "code": "REVISION_CONFLICT",
+    "message": "The note changed after it was read.",
+    "retryable": true,
+    "details": {
+      "path": "Projects/demo.md",
+      "expected_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "actual_revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  },
+  "warnings": []
+}

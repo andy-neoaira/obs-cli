@@ -31,6 +31,9 @@ test-search-content:
 test-coverage:
 	go test ./... -coverprofile=coverage.out
 
+license-check:
+	./scripts/license-check.sh
+
 	# Release automation
 # Usage: make release VERSION=v0.2.2
 release:

@@ -25,6 +25,8 @@ jobs:
           cache: true
       - name: Run tests
         run: make test
+      - name: Verify licenses and release notices
+        run: make license-check
 
   release:
     name: Release

@@ -9,6 +9,7 @@
 ## 目录
 
 - [项目描述](#项目描述)
+- [Agent-first V2 架构](#agent-first-v2-架构)
 - [安装](#安装)
   - [下载预编译二进制](#下载预编译二进制)
   - [从源码编译](#从源码编译)
@@ -39,6 +40,24 @@
 ## 项目描述
 
 Obsidian 是一款功能强大且可扩展的知识库应用，基于本地纯文本笔记文件夹工作。这款 CLI 工具（使用 Go 语言编写）让你可以通过终端与 Obsidian 交互。目前支持打开、搜索、列出、移动、创建、更新和删除笔记等操作。
+
+---
+
+## Agent-first V2 架构
+
+本项目正在向 Agent-first V2 演进：`obs-cli` 将成为供 AI Agent 和场景化 Skills 使用的安全、机器可读执行层。
+
+- Markdown Vault 是唯一内容事实源。
+- Obsidian、`obs-cli` 与 [`miniobsidian.nvim`](https://github.com/andy-neoaira/miniobsidian.nvim) 是操作同一 Vault 的同级客户端。
+- `miniobsidian.nvim` 不强制依赖 `obs-cli`；未来的可选集成只用于通过 CLI 协议协商的高级能力。
+- `obs-cli` 不依赖 Neovim；它只读发现或显式导入 Obsidian 所有的配置，不取得这些配置的所有权。
+- V2 核心采用非交互设计，不提供 TTY 问答、内置 picker、自动启动编辑器或隐式打开应用。
+
+完整决策见 [ADR-001：Agent-first 产品边界与三入口架构](./docs/architecture/ADR-001-agent-first-boundary.md)，执行任务见 [V2 联合改造计划](./docs/agent-first-v2/README.md)。
+
+共同规范状态：`target_contract = vault-contract/v1`，`implemented_contract = null`。目标规则见 [Vault 共同约定](./docs/spec/VAULT_CONVENTIONS.md)；只有 P1 共享 fixture 通过后才会声明实现符合该版本。
+
+> 在 V2 迁移任务完成前，本文后续命令仍描述当前 CLI。
 
 ---
 
@@ -607,4 +626,6 @@ Fork 本项目，添加你的功能或修复，然后提交 Pull Request。你�
 
 ## 许可证
 
-采用 [MIT 许可证](./LICENSE)
+本项目派生自 [Yakitrak/notesmd-cli](https://github.com/Yakitrak/notesmd-cli)。[LICENSE](./LICENSE) 保留了上游 MIT 版权与许可声明，并追加了本项目修改部分的版权声明。
+
+项目采用 [MIT 许可证](./LICENSE)。Vendored 依赖的许可证与声明汇总在 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)，并随发布归档一起分发。

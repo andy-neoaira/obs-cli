@@ -9,6 +9,7 @@
 ## Table of Contents
 
 - [Description](#description)
+- [Agent-first V2 Architecture](#agent-first-v2-architecture)
 - [Install](#install)
   - [Download Pre-built Binary](#download-pre-built-binary)
   - [Build from Source](#build-from-source)
@@ -41,6 +42,24 @@
 
 Obsidian is a powerful and extensible knowledge base application
 that works on top of your local folder of plain text notes. This CLI tool (written in Go) will let you interact with the application using the terminal. You are currently able to open, search, list, move, create, update and delete notes.
+
+---
+
+## Agent-first V2 Architecture
+
+The project is evolving toward an Agent-first V2: `obs-cli` will be the safe, machine-readable execution layer used by AI agents and scenario-oriented Skills.
+
+- The Markdown Vault is the single source of truth.
+- Obsidian, `obs-cli`, and [`miniobsidian.nvim`](https://github.com/andy-neoaira/miniobsidian.nvim) are peer clients of the same Vault.
+- `miniobsidian.nvim` remains fully usable without `obs-cli`; optional future integration is limited to advanced capabilities negotiated through the CLI protocol.
+- `obs-cli` does not depend on Neovim, and it only discovers or imports Obsidian-owned configuration without taking ownership of it.
+- The V2 core is non-interactive and avoids TTY prompts, built-in pickers, automatic editor launches, and implicit application opening.
+
+See [ADR-001: Agent-first Product Boundary and Three-client Architecture](./docs/architecture/ADR-001-agent-first-boundary.md) and the [V2 execution plan](./docs/agent-first-v2/README.md).
+
+Shared contract status: `target_contract = vault-contract/v1`, `implemented_contract = null`. The target rules are defined in [Vault Conventions](./docs/spec/VAULT_CONVENTIONS.md); conformance will be declared only after the P1 shared fixtures pass.
+
+> The commands documented below describe the current CLI until the V2 migration tasks are completed.
 
 ---
 
@@ -603,4 +622,6 @@ Fork the project, add your feature or fix and submit a pull request. You can als
 
 ## License
 
-Available under [MIT License](./LICENSE)
+This project is derived from [Yakitrak/notesmd-cli](https://github.com/Yakitrak/notesmd-cli). The upstream MIT copyright and permission notice are retained in [LICENSE](./LICENSE), together with the copyright for this project's modifications.
+
+Available under the [MIT License](./LICENSE). Vendored dependency licenses and notices are listed in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) and included in release archives.

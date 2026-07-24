@@ -35,6 +35,12 @@ archives:
     # macOS universal binary 在 GoReleaser 中的 Arch 为 "all"，因此会产出 darwin_all。
     name_template: >-
       {{ .ProjectName }}_{{ .Os }}_{{ if eq .Arch "all" }}all{{ else }}{{ .Arch }}{{ end }}
+    files:
+      - LICENSE
+      - THIRD_PARTY_NOTICES.md
+      - vendor/**/LICENSE*
+      - vendor/**/COPYING
+      - vendor/**/NOTICE
 
 release:
   prerelease: auto

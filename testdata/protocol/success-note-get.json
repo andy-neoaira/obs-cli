@@ -1,0 +1,17 @@
+{
+  "protocol_version": "obs-cli/v2",
+  "ok": true,
+  "operation": "note.get",
+  "request_id": "fixture-success-note-get",
+  "data": {
+    "vault": {
+      "id": "personal",
+      "name": "Personal"
+    },
+    "path": "Projects/demo.md",
+    "note_id": "Projects/demo",
+    "revision": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "content": "# Demo\n"
+  },
+  "warnings": []
+}

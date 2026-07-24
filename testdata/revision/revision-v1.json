@@ -1,0 +1,32 @@
+{
+  "algorithm": "sha256",
+  "format": "sha256:<64 lowercase hexadecimal characters>",
+  "input": "raw file bytes decoded from content_base64",
+  "vectors": [
+    {
+      "name": "empty",
+      "content_base64": "",
+      "revision": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ascii-lf",
+      "content_base64": "IyBEZW1vCg==",
+      "revision": "sha256:31ca6c61ca3fcc54029a62bd082448b88718b913d24e195794969dd2d123b990"
+    },
+    {
+      "name": "ascii-crlf",
+      "content_base64": "IyBEZW1vDQo=",
+      "revision": "sha256:a0ac7db66ef769cfac4bfb742c3aa8d53c6c86d0b132c2a09936391f8935f6af"
+    },
+    {
+      "name": "utf8-cjk",
+      "content_base64": "IyDnrJTorrAK",
+      "revision": "sha256:79eb9d16e1ef5070753e95e0cf58c6ca0722b8d86d4a8ddb687134fc82737842"
+    },
+    {
+      "name": "utf8-bom",
+      "content_base64": "77u/IyBEZW1vCg==",
+      "revision": "sha256:9102bf4aa5d294ca7fbf69036ab7731067ef3c4b903af339cf0288609feb557e"
+    }
+  ]
+}

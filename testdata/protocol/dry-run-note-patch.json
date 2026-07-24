@@ -1,0 +1,27 @@
+{
+  "protocol_version": "obs-cli/v2",
+  "ok": true,
+  "operation": "note.patch",
+  "request_id": "fixture-dry-run-patch",
+  "data": {
+    "dry_run": true,
+    "applied": false,
+    "changed": true,
+    "plan": {
+      "changes": [
+        {
+          "action": "update",
+          "path": "Projects/demo.md",
+          "expected_revision": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ],
+      "risks": []
+    }
+  },
+  "warnings": [
+    {
+      "code": "PLAN_MUST_BE_REVALIDATED",
+      "message": "Apply must revalidate all revisions."
+    }
+  ]
+}
