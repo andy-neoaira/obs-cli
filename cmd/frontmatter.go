@@ -62,5 +62,4 @@ func init() {
 	frontmatterCmd.Flags().BoolVarP(&fmDelete, "delete", "d", false, "delete a frontmatter key")
 	frontmatterCmd.Flags().StringVarP(&fmKey, "key", "k", "", "key to edit or delete")
 	frontmatterCmd.Flags().StringVar(&fmValue, "value", "", "value to set (required for --edit)")
-	rootCmd.AddCommand(frontmatterCmd)
 }

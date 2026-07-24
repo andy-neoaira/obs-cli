@@ -32,5 +32,4 @@ var removeVaultCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(removeVaultCmd)
 }

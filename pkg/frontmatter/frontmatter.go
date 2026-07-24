@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Delimiter               = "---"                      // YAML frontmatter 的起止分隔符
+	Delimiter               = "---" // YAML frontmatter 的起止分隔符
 	NoFrontmatterError      = "note does not contain frontmatter"
 	InvalidFrontmatterError = "frontmatter contains invalid YAML"
 )

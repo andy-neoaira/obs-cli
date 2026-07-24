@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"runtime/debug"
 
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/protocol"
 	"github.com/spf13/cobra"
 )
 
@@ -25,16 +27,62 @@ func resolveVersion() string {
 	return "dev"
 }
 
-// rootCmd 是 obs-cli 的根命令定义。
-// Cobra 框架会根据这里的定义自动生成帮助信息、版本号和子命令树。
-var rootCmd = &cobra.Command{
-	Use:           "obs-cli",
-	Short:         "Interact with Obsidian vaults from the terminal",
-	Version:       resolveVersion(),
-	Long:          "Interact with Obsidian vaults from the terminal",
-	SilenceErrors: true,
-	SilenceUsage:  true,
+func newRootCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:           "obs-cli",
+		Short:         "Agent-first Obsidian Vault operations",
+		Version:       resolveVersion(),
+		Long:          "A non-interactive, machine-readable execution layer for Obsidian Vaults.",
+		SilenceErrors: true,
+		SilenceUsage:  true,
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
+		},
+	}
+	command.AddCommand(
+		newCapabilitiesCommand(),
+		newVaultV2Command(defaultVaultRegistryFactory, obsidian.DiscoverObsidianVaults),
+		newNoteV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+	)
+	for _, namespace := range []string{"search", "metadata", "link", "daily", "template", "batch", "doctor"} {
+		command.AddCommand(newReservedNamespaceCommand(namespace))
+	}
+	return command
 }
+
+func newReservedNamespaceCommand(name string) *cobra.Command {
+	var common commonFlags
+	command := &cobra.Command{
+		Use:   name,
+		Short: "Reserved V2 namespace; inspect capabilities before use",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			requestID, err := protocol.ResolveRequestID(common.RequestID)
+			if err != nil {
+				requestID, _ = protocol.ResolveRequestID("")
+				return renderV2(cmd, name+".status", requestID, func() (any, error) { return nil, err })
+			}
+			if common.Output != "json" {
+				err = protocol.NewError(
+					protocol.InvalidArgument,
+					"reserved V2 namespaces only support JSON output",
+					map[string]any{"field": "output"},
+				)
+			} else {
+				err = protocol.NewError(
+					protocol.CapabilityUnsupported,
+					"this V2 namespace has no implemented operations",
+					map[string]any{"namespace": name, "required": []string{name + ".*"}},
+				)
+			}
+			return renderV2(cmd, name+".status", requestID, func() (any, error) { return nil, err })
+		},
+	}
+	bindCommonFlags(command, &common, commonFlagSet{Output: true, RequestID: true, Vault: true}, false)
+	return command
+}
+
+var rootCmd = newRootCommand()
 
 // Execute 是 CLI 的入口函数，由 main.go 调用。
 // 它会解析命令行参数并执行对应的子命令；如果出错则打印错误信息并退出程序。

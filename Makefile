@@ -31,8 +31,33 @@ test-search-content:
 test-coverage:
 	go test ./... -coverprofile=coverage.out
 
+format-check:
+	./scripts/gofmt-check.sh
+
+schema-check:
+	./scripts/schema-check.sh
+
+coverage-check:
+	./scripts/coverage-check.sh
+
+build-check:
+	./scripts/build-check.sh
+
+rc-smoke:
+	./scripts/rc-smoke.sh
+
 license-check:
 	./scripts/license-check.sh
+
+release-check: format-check
+	go vet ./...
+	go test ./...
+	go test -race ./...
+	$(MAKE) coverage-check
+	$(MAKE) schema-check
+	$(MAKE) build-check
+	$(MAKE) license-check
+	$(MAKE) rc-smoke
 
 	# Release automation
 # Usage: make release VERSION=v0.2.2

@@ -445,7 +445,3 @@ func mutationResponse(
 		"plan":    dry.Plan,
 	}
 }
-
-func init() {
-	rootCmd.AddCommand(newNoteV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory))
-}

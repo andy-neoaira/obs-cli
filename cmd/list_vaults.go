@@ -160,5 +160,4 @@ func init() {
 	listVaultsCmd.Flags().BoolVar(&listVaultsPathOnly, "path-only", false, "output one path per line")
 	listVaultsCmd.Flags().BoolVar(&listVaultsDefault, "default", false, "show only the default vault")
 	listVaultsCmd.MarkFlagsMutuallyExclusive("json", "path-only")
-	rootCmd.AddCommand(listVaultsCmd)
 }

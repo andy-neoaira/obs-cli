@@ -47,7 +47,7 @@
 | 阶段 | 内容 | 状态 | 完成条件 |
 |---|---|---|---|
 | [P0 共同协议与基线](./phase-0-contract/README.md) | 产品边界、Vault 规范、协议、并发模型、测试夹具、许可证 | `[x]` | 两个实现拥有可测试的共同语义 |
-| [P1 obs-cli 安全内核](./phase-1-cli-core/README.md) | Agent-first CLI、原子写入、JSON、revision、事务化操作 | `[-]` | CLI 可安全支撑写入型 Agent |
+| [P1 obs-cli 安全内核](./phase-1-cli-core/README.md) | Agent-first CLI、原子写入、JSON、revision、事务化操作 | `[x]` | CLI 可安全支撑写入型 Agent |
 | [P2 Neovim 可靠性](./phase-2-neovim/README.md) | 测试、路径、链接、Daily、外部变更、UX 一致性 | `[ ]` | 插件独立可靠并与共同规范一致 |
 | [P3 场景化 Skills](./phase-3-skills/README.md) | Skill 契约、迁移、新场景、评测 | `[ ]` | Agent 能按场景安全完成闭环任务 |
 | [P4 可选协同与端到端验收](./phase-4-integration/README.md) | 可选 CLI 适配、Agent 交接、冲突 UX、三入口 E2E | `[ ]` | 三入口操作同一 Vault 且不会静默覆盖 |

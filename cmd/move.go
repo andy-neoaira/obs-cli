@@ -37,5 +37,4 @@ func init() {
 	moveCmd.Flags().BoolVarP(&shouldOpen, "open", "o", false, "open new note")
 	moveCmd.Flags().StringVarP(&vaultName, "vault", "v", "", "vault name")
 	moveCmd.Flags().BoolP("editor", "e", false, "open in editor instead of Obsidian (requires --open flag)")
-	rootCmd.AddCommand(moveCmd)
 }

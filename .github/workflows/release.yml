@@ -23,10 +23,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - name: Run tests
-        run: make test
-      - name: Verify licenses and release notices
-        run: make license-check
+      - name: Run complete V2 release gate
+        run: make release-check
 
   release:
     name: Release

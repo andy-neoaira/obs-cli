@@ -32,5 +32,4 @@ func init() {
 	OpenVaultCmd.Flags().StringVarP(&vaultName, "vault", "v", "", "vault name (not required if default is set)")
 	OpenVaultCmd.Flags().StringVarP(&sectionName, "section", "s", "", "heading text to open within the note (case-sensitive)")
 	OpenVaultCmd.Flags().BoolP("editor", "e", false, "open in editor instead of Obsidian")
-	rootCmd.AddCommand(OpenVaultCmd)
 }

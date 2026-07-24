@@ -33,5 +33,4 @@ func init() {
 	DailyCmd.Flags().StringVarP(&dailyContent, "content", "c", "", "text to add to daily note (appends if note exists)")
 	DailyCmd.Flags().StringVar(&dailyContentFile, "content-file", "", "read daily note content from a file, or '-' for stdin")
 	DailyCmd.Flags().BoolP("editor", "e", false, "open in editor instead of Obsidian")
-	rootCmd.AddCommand(DailyCmd)
 }

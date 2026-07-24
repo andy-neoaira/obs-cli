@@ -129,7 +129,3 @@ func newCapabilitiesCommand() *cobra.Command {
 	command.Flags().StringSliceVar(&required, "require", nil, "required operation name (repeatable or comma-separated)")
 	return command
 }
-
-func init() {
-	rootCmd.AddCommand(newCapabilitiesCommand())
-}

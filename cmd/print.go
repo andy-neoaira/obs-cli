@@ -36,5 +36,4 @@ var printCmd = &cobra.Command{
 func init() {
 	printCmd.Flags().StringVarP(&vaultName, "vault", "v", "", "vault name")
 	printCmd.Flags().BoolVarP(&includeMentions, "mentions", "m", false, "include linked mentions at the end")
-	rootCmd.AddCommand(printCmd)
 }

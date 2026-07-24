@@ -335,7 +335,3 @@ func newVaultV2Command(factory vaultRegistryFactory, discover vaultDiscoverFunc)
 
 	return command
 }
-
-func init() {
-	rootCmd.AddCommand(newVaultV2Command(defaultVaultRegistryFactory, obsidian.DiscoverObsidianVaults))
-}

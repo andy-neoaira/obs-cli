@@ -75,5 +75,4 @@ func init() {
 	searchContentCmd.Flags().String("format", "text", "output format for non-interactive mode: text|json")
 	searchContentCmd.Flags().Int("page", 0, "page number for paginated results (enables pagination)")
 	searchContentCmd.Flags().Int("page-size", 0, "results per page, max 100 (default 25 when pagination is enabled)")
-	rootCmd.AddCommand(searchContentCmd)
 }

@@ -36,5 +36,4 @@ var listCmd = &cobra.Command{
 
 func init() {
 	listCmd.Flags().StringVarP(&vaultName, "vault", "v", "", "vault name")
-	rootCmd.AddCommand(listCmd)
 }

@@ -232,6 +232,79 @@ func TestNoteV2MoveDryRunAndApply(t *testing.T) {
 	assertFileContent(t, filepath.Join(vaultRoot, "links.md"), "[[New|Alias]]")
 }
 
+func TestV2RCSmoke(t *testing.T) {
+	registryFactory, serviceFactory, vaultRoot := noteCommandDependencies(t)
+	created := executeNoteCommand(
+		t, registryFactory, serviceFactory, "# RC\n",
+		"create", "RC/demo", "--content-file", "-", "--request-id", "rc-create",
+	)
+	if !created.OK {
+		t.Fatalf("create failed: %#v", created)
+	}
+	duplicate, _, err := executeNoteCommandResult(
+		t, registryFactory, serviceFactory, "# RC\n",
+		"create", "RC/demo", "--content-file", "-",
+	)
+	if err == nil || duplicate.Error == nil || duplicate.Error.Code != protocol.AlreadyExists {
+		t.Fatalf("duplicate create=%#v err=%v", duplicate, err)
+	}
+
+	current := executeNoteCommand(t, registryFactory, serviceFactory, "", "get", "RC/demo")
+	var data struct {
+		Note noteops.Note `json:"note"`
+	}
+	if err := json.Unmarshal(current.Data, &data); err != nil {
+		t.Fatal(err)
+	}
+	dry := executeNoteCommand(
+		t, registryFactory, serviceFactory, "item",
+		"append", "RC/demo", "--content-file", "-", "--if-match", data.Note.Revision, "--dry-run",
+	)
+	if !dry.OK {
+		t.Fatalf("append dry-run failed: %#v", dry)
+	}
+	appended := executeNoteCommand(
+		t, registryFactory, serviceFactory, "item",
+		"append", "RC/demo", "--content-file", "-", "--if-match", data.Note.Revision,
+	)
+	if !appended.OK {
+		t.Fatalf("append failed: %#v", appended)
+	}
+	conflict, _, err := executeNoteCommandResult(
+		t, registryFactory, serviceFactory, "stale",
+		"replace", "RC/demo", "--content-file", "-", "--if-match", data.Note.Revision,
+	)
+	if err == nil || conflict.Error == nil || conflict.Error.Code != protocol.RevisionConflict {
+		t.Fatalf("replace conflict=%#v err=%v", conflict, err)
+	}
+
+	current = executeNoteCommand(t, registryFactory, serviceFactory, "", "get", "RC/demo")
+	if err := json.Unmarshal(current.Data, &data); err != nil {
+		t.Fatal(err)
+	}
+	replaced := executeNoteCommand(
+		t, registryFactory, serviceFactory, "final",
+		"replace", "RC/demo", "--content-file", "-", "--if-match", data.Note.Revision,
+	)
+	if !replaced.OK {
+		t.Fatalf("replace failed: %#v", replaced)
+	}
+	current = executeNoteCommand(t, registryFactory, serviceFactory, "", "get", "RC/demo")
+	if err := json.Unmarshal(current.Data, &data); err != nil {
+		t.Fatal(err)
+	}
+	deleted := executeNoteCommand(
+		t, registryFactory, serviceFactory, "",
+		"delete", "RC/demo", "--if-match", data.Note.Revision,
+	)
+	if !deleted.OK {
+		t.Fatalf("delete failed: %#v", deleted)
+	}
+	if _, err := os.Stat(filepath.Join(vaultRoot, "RC", "demo.md")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("delete verification failed: %v", err)
+	}
+}
+
 type noteTestEnvelope struct {
 	OK        bool                  `json:"ok"`
 	Operation string                `json:"operation"`

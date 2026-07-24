@@ -91,7 +91,7 @@ func ApplyDefaultFolder(noteName, vaultPath string) string {
 
 // MomentToGoFormat 将 Moment.js 日期格式字符串转换为 Go 的 time.Layout 格式。
 // 采用两遍替换策略：先用唯一占位符替换 Moment 标记，避免级联替换错误
-//（例如将 "January" 中的 "a" 错误替换为 "pm"）。
+// （例如将 "January" 中的 "a" 错误替换为 "pm"）。
 //
 // 注意：Moment.js 的 "dd" 标记（两位星期缩写，如 "Mo"）在 Go 中没有对应物，不支持。
 func MomentToGoFormat(momentFmt string) string {

@@ -23,5 +23,4 @@ var deleteCmd = &cobra.Command{
 
 func init() {
 	deleteCmd.Flags().StringVarP(&vaultName, "vault", "v", "", "vault name")
-	rootCmd.AddCommand(deleteCmd)
 }

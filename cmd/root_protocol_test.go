@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	"github.com/andy-neoaira/obs-cli/pkg/config"
@@ -41,5 +42,60 @@ func TestRootReturnsStableExitCodeForRenderedV2Failure(t *testing.T) {
 	}
 	if response.RequestID != "req-root" || !bytes.Contains(stderr.Bytes(), []byte("req-root")) {
 		t.Fatalf("request ID mismatch stdout=%q stderr=%q", stdout.String(), stderr.String())
+	}
+}
+
+func TestV2RootCommandTreeHasNoLegacyHumanFirstCommands(t *testing.T) {
+	root := newRootCommand()
+	names := make([]string, 0)
+	for _, command := range root.Commands() {
+		names = append(names, command.Name())
+	}
+	sort.Strings(names)
+	want := []string{
+		"batch", "capabilities", "daily", "doctor", "link", "metadata",
+		"note", "search", "template", "vault",
+	}
+	if len(names) != len(want) {
+		t.Fatalf("command tree = %v, want %v", names, want)
+	}
+	for index := range want {
+		if names[index] != want[index] {
+			t.Fatalf("command tree = %v, want %v", names, want)
+		}
+	}
+	for _, legacy := range []string{
+		"add-vault", "create", "delete", "frontmatter", "list", "list-vaults",
+		"move", "open", "print", "remove-vault", "search-content", "set-default",
+	} {
+		if found, _, err := root.Find([]string{legacy}); err == nil && found.Name() == legacy {
+			t.Fatalf("legacy command %q remains registered", legacy)
+		}
+	}
+}
+
+func TestReservedNamespaceReturnsCapabilityUnsupportedJSON(t *testing.T) {
+	command := newReservedNamespaceCommand("search")
+	var stdout bytes.Buffer
+	command.SetOut(&stdout)
+	command.SetErr(&bytes.Buffer{})
+	command.SilenceErrors = true
+	command.SilenceUsage = true
+	command.SetArgs([]string{"--request-id", "req-reserved"})
+	err := command.Execute()
+	if err == nil {
+		t.Fatal("expected reserved namespace failure")
+	}
+	var response struct {
+		OK        bool                  `json:"ok"`
+		Operation string                `json:"operation"`
+		Error     *protocol.DomainError `json:"error"`
+	}
+	if decodeErr := json.Unmarshal(stdout.Bytes(), &response); decodeErr != nil {
+		t.Fatal(decodeErr)
+	}
+	if response.OK || response.Operation != "search.status" ||
+		response.Error == nil || response.Error.Code != protocol.CapabilityUnsupported {
+		t.Fatalf("unexpected response: %#v", response)
 	}
 }

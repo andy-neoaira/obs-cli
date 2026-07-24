@@ -40,5 +40,4 @@ var addVaultCmd = &cobra.Command{
 
 func init() {
 	addVaultCmd.Flags().Bool("set-default", false, "set the added vault as the default")
-	rootCmd.AddCommand(addVaultCmd)
 }

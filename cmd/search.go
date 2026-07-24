@@ -23,5 +23,4 @@ var searchCmd = &cobra.Command{
 func init() {
 	searchCmd.Flags().StringVarP(&vaultName, "vault", "v", "", "vault name")
 	searchCmd.Flags().BoolP("editor", "e", false, "open in editor instead of Obsidian")
-	rootCmd.AddCommand(searchCmd)
 }

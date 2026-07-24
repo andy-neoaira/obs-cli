@@ -44,5 +44,4 @@ func init() {
 	createNoteCmd.Flags().BoolVarP(&shouldOverwrite, "overwrite", "o", false, "overwrite note")
 	createNoteCmd.Flags().BoolP("editor", "e", false, "open in editor instead of Obsidian (requires --open flag)")
 	createNoteCmd.MarkFlagsMutuallyExclusive("append", "overwrite")
-	rootCmd.AddCommand(createNoteCmd)
 }

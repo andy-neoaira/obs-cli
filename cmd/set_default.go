@@ -63,5 +63,4 @@ var setDefaultVaultCmd = &cobra.Command{
 // init 在包导入时自动执行，用于注册 set-default-vault 命令的 flag 并将其挂到根命令下。
 func init() {
 	setDefaultVaultCmd.Flags().String("open-type", "", "default open type: 'obsidian' (default) or 'editor'")
-	rootCmd.AddCommand(setDefaultVaultCmd)
 }
