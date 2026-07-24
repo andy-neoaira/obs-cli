@@ -304,14 +304,17 @@ func TestUpdateNoteLinks(t *testing.T) {
 		assert.Equal(t, err.Error(), obsidian.VaultReadError)
 	})
 
-	t.Run("Error on writing to files in vault", func(t *testing.T) {
-		// Arrange
+	t.Run("Atomic replacement preserves read-only mode", func(t *testing.T) {
 		tmpDir := createTmpDirAndFiles(t, 0444, testFiles, content)
 		rewriter := obsidian.LinkRewriter{}
-		// Act
 		err := rewriter.UpdateLinks(tmpDir, "oldNote", "newNote")
-		// Assert
-		assert.Equal(t, err.Error(), obsidian.VaultWriteError)
+		assert.NoError(t, err)
+		for _, file := range testFiles {
+			path := filepath.Join(tmpDir, file)
+			info, statErr := os.Stat(path)
+			assert.NoError(t, statErr)
+			assert.Equal(t, os.FileMode(0444), info.Mode().Perm())
+		}
 	})
 }
 

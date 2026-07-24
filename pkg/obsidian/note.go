@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/andy-neoaira/obs-cli/pkg/storage"
 )
 
 // Note 是 NoteManager 的具体实现，提供笔记的增删改查和链接管理能力。
@@ -64,10 +66,12 @@ func (m *Note) Move(originalPath string, newPath string) error {
 	o := AddMdSuffix(originalPath)
 	n := AddMdSuffix(newPath)
 
-	err := os.Rename(o, n)
-
+	snapshot, err := storage.ReadSnapshot(o)
 	if err != nil {
 		return errors.New(NoteDoesNotExistError)
+	}
+	if _, err := storage.DefaultStore().MoveAtomic(o, n, snapshot.Revision, snapshot.Mode); err != nil {
+		return err
 	}
 
 	message := fmt.Sprintf(`Moved note
@@ -81,9 +85,12 @@ to %s`, o, n)
 // Delete 删除指定路径的笔记，会自动补充 .md 后缀。
 func (m *Note) Delete(path string) error {
 	note := AddMdSuffix(path)
-	err := os.Remove(note)
+	snapshot, err := storage.ReadSnapshot(note)
 	if err != nil {
 		return errors.New(NoteDoesNotExistError)
+	}
+	if _, err := storage.DefaultStore().DeleteAtomic(note, snapshot.Revision); err != nil {
+		return err
 	}
 	fmt.Println("Deleted note: ", note)
 	return nil
@@ -123,9 +130,18 @@ func (m *Note) SetContents(vaultPath string, noteName string, content string) er
 		return errors.New(NoteDoesNotExistError)
 	}
 
-	err = os.WriteFile(notePath, []byte(content), 0644)
+	snapshot, err := storage.ReadSnapshot(notePath)
 	if err != nil {
 		return errors.New(VaultWriteError)
+	}
+	_, err = storage.DefaultStore().WriteAtomic(
+		notePath,
+		[]byte(content),
+		storage.Preconditions{ExpectedRevision: snapshot.Revision},
+		storage.WriteOptions{},
+	)
+	if err != nil {
+		return fmt.Errorf("%s: %w", VaultWriteError, err)
 	}
 
 	return nil

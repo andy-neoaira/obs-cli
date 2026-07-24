@@ -1,7 +1,7 @@
 # P1-T03：原子写入与 Revision 内核
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`已完成`
+- 负责人：`Codex`
 - 涉及项目：`obs-cli`
 - 依赖：P0-T04、P1-T02
 
@@ -28,13 +28,13 @@
 
 ## 验收标准
 
-- [ ] 所有写命令不再直接调用 `os.WriteFile` 或裸 `os.Rename`。
-- [ ] revision 与规范测试向量一致。
-- [ ] 冲突时文件字节保持不变。
-- [ ] 中断测试不留下半文件或临时文件。
-- [ ] 成功、冲突和失败路径都按 `obs-write/v1` 清理锁、临时文件与 journal。
-- [ ] 故障注入覆盖 `CONCURRENCY_AND_WRITES.md` 第 9 节列出的提交与回滚位置。
-- [ ] `go test -race` 通过。
+- [x] 所有写命令不再直接调用 `os.WriteFile` 或裸 `os.Rename`。
+- [x] revision 与规范测试向量一致。
+- [x] 冲突时文件字节保持不变。
+- [x] 中断测试不留下半文件或临时文件。
+- [x] 成功、冲突和失败路径都按 `obs-write/v1` 清理锁、临时文件与 journal。
+- [x] 故障注入覆盖 `CONCURRENCY_AND_WRITES.md` 第 9 节列出的提交与回滚位置。
+- [x] `go test -race` 通过。
 
 ## 验证
 
@@ -42,3 +42,12 @@
 go test ./... -run 'Atomic|Revision|Conflict|FailureInjection'
 go test -race ./...
 ```
+
+## 完成记录
+
+- 完成日期：`2026-07-24`
+- 新增 `pkg/storage`：原始字节 revision、稳定快照、跨进程锁、条件原子写、可恢复删除、双路径移动和多文件事务。
+- Create、Append、Overwrite、Set、Delete、Move、Daily 与链接批量重写已移除业务层直接文件写入。
+- 链接重写使用多文件 stage/journal/commit/rollback；回滚失败保留恢复资料并返回 `PARTIAL_FAILURE`。
+- 故障注入覆盖临时文件、部分 write、flush/close、提交前复核、提交、提交后验证、多文件第 N 项提交和第 N 项回滚。
+- 全量测试、全量 Race、Vet、license check 和 Windows storage 交叉编译通过。

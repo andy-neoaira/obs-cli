@@ -3,10 +3,13 @@ package obsidian
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/andy-neoaira/obs-cli/pkg/storage"
 )
 
 // LinkRewriter 专门负责 Obsidian 链接重写。
@@ -35,8 +38,8 @@ func (r *LinkRewriter) UpdateLinks(vaultPath string, oldNoteName string, newNote
 	})
 
 	type rewriteTarget struct {
-		path string
-		mode os.FileMode
+		path     string
+		snapshot storage.Snapshot
 	}
 	targets := make([]rewriteTarget, 0)
 
@@ -63,18 +66,20 @@ func (r *LinkRewriter) UpdateLinks(vaultPath string, oldNoteName string, newNote
 		if err != nil {
 			return err
 		}
-		targets = append(targets, rewriteTarget{path: safePath, mode: info.Mode().Perm()})
+		snapshot, err := storage.ReadSnapshot(safePath)
+		if err != nil {
+			return errors.New(VaultReadError)
+		}
+		targets = append(targets, rewriteTarget{path: safePath, snapshot: snapshot})
 		return nil
 	})
 	if err != nil {
 		return err
 	}
 
+	mutations := make([]storage.Mutation, 0, len(targets))
 	for _, target := range targets {
-		originalContent, err := os.ReadFile(target.path)
-		if err != nil {
-			return errors.New(VaultReadError)
-		}
+		originalContent := target.snapshot.Data
 
 		// 执行替换时跳过 fenced code block，避免修改代码示例中的链接文本。
 		updatedContent := r.ReplaceContentSkippingFencedCode(originalContent, replacements)
@@ -83,10 +88,19 @@ func (r *LinkRewriter) UpdateLinks(vaultPath string, oldNoteName string, newNote
 		if bytes.Equal(originalContent, updatedContent) {
 			continue
 		}
-
-		if err := os.WriteFile(target.path, updatedContent, target.mode); err != nil {
-			return errors.New(VaultWriteError)
-		}
+		mutations = append(mutations, storage.Mutation{
+			Path: target.path,
+			Data: updatedContent,
+			Precondition: storage.Preconditions{
+				ExpectedRevision: target.snapshot.Revision,
+			},
+		})
+	}
+	if len(mutations) == 0 {
+		return nil
+	}
+	if _, err := storage.DefaultStore().ApplyTransaction(mutations); err != nil {
+		return fmt.Errorf("%s: %w", VaultWriteError, err)
 	}
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/storage"
 )
 
 // CreateParams 定义了 create 命令所需的业务参数。
@@ -73,24 +74,36 @@ func CreateNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Cre
 //   - 文件存在且 shouldOverwrite=true：覆盖内容
 //   - 文件存在且两者都为 false：返回错误，要求用户明确选择 append 或 overwrite
 func WriteNoteFile(notePath, content string, shouldAppend, shouldOverwrite bool) error {
-	_, err := os.Stat(notePath)
+	snapshot, err := storage.ReadSnapshot(notePath)
 	fileExists := err == nil
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
 
 	if fileExists && shouldAppend {
-		f, err := os.OpenFile(notePath, os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to open note for appending: %w", err)
-		}
-		if _, err = f.WriteString(content); err != nil {
-			f.Close()
-			return err
-		}
-		return f.Close()
+		newData := append(append([]byte(nil), snapshot.Data...), []byte(content)...)
+		_, err := storage.DefaultStore().WriteAtomic(
+			notePath,
+			newData,
+			storage.Preconditions{ExpectedRevision: snapshot.Revision},
+			storage.WriteOptions{},
+		)
+		return err
 	}
 
 	if fileExists && !shouldOverwrite {
 		return fmt.Errorf("note already exists: use --append or --overwrite: %s", notePath)
 	}
 
-	return os.WriteFile(notePath, []byte(content), 0644)
+	precondition := storage.Preconditions{MustNotExist: true}
+	if fileExists {
+		precondition = storage.Preconditions{ExpectedRevision: snapshot.Revision}
+	}
+	_, err = storage.DefaultStore().WriteAtomic(
+		notePath,
+		[]byte(content),
+		precondition,
+		storage.WriteOptions{Mode: 0o644},
+	)
+	return err
 }
