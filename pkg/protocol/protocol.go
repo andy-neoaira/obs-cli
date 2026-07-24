@@ -131,6 +131,28 @@ func MapError(err error) *DomainError {
 			"same_content":       createConflict.ExistingRevision == createConflict.RequestedRevision,
 		})
 	}
+	var partial *storage.PartialFailureError
+	if errors.As(err, &partial) {
+		return Wrap(PartialFailure, "The operation requires manual recovery.", err, map[string]any{
+			"transaction_id":   partial.TransactionID,
+			"completed":        partial.Completed,
+			"failed":           partial.Failed,
+			"rolled_back":      partial.RolledBack,
+			"rollback_failed":  partial.RollbackFailed,
+			"recovery_actions": partial.RecoveryActions,
+		})
+	}
+	var movePartial *noteops.MovePartialFailure
+	if errors.As(err, &movePartial) {
+		return Wrap(PartialFailure, "The move requires manual recovery.", err, map[string]any{
+			"transaction_id":   movePartial.TransactionID,
+			"completed":        movePartial.Completed,
+			"failed":           movePartial.Failed,
+			"rolled_back":      movePartial.RolledBack,
+			"rollback_failed":  movePartial.RollbackFailed,
+			"recovery_actions": movePartial.RecoveryActions,
+		})
+	}
 	switch {
 	case errors.Is(err, storage.ErrRevisionConflict):
 		return Wrap(RevisionConflict, "The target changed after it was read.", err, nil)

@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/andy-neoaira/obs-cli/pkg/storage"
@@ -21,6 +23,206 @@ import (
 // 把这部分单独拆出来后，后续如果要支持更完整的 Markdown parser、
 // 相对路径重算、block link 或更复杂的 Obsidian 链接规则，不需要继续膨胀 note.go。
 type LinkRewriter struct{}
+
+type LinkEdit struct {
+	Kind   string `json:"kind"`
+	Before string `json:"before"`
+	After  string `json:"after"`
+}
+
+var (
+	wikilinkPattern     = regexp.MustCompile(`\[\[([^\]|#]+)((?:#[^\]|]+)?(?:\|[^\]]+)?)\]\]`)
+	markdownLinkPattern = regexp.MustCompile(`(\[[^\]]*\]\()([^\s)]+)(\))`)
+)
+
+// RewriteStructuredLinks only rewrites parsed Wikilink and Markdown link
+// destinations. It preserves aliases/fragments and skips frontmatter, fenced
+// code, inline code, and HTML comments.
+func (r *LinkRewriter) RewriteStructuredLinks(
+	content []byte,
+	containingNote, oldNote, newNote string,
+	includeBaseLinks bool,
+) ([]byte, []LinkEdit, error) {
+	lines := bytes.SplitAfter(content, []byte("\n"))
+	inFence := false
+	inComment := false
+	inFrontmatter := len(lines) != 0 && string(bytes.TrimSpace(lines[0])) == "---"
+	frontmatterClosed := !inFrontmatter
+	edits := make([]LinkEdit, 0)
+	for index, line := range lines {
+		trimmed := bytes.TrimSpace(line)
+		if inFrontmatter && index == 0 {
+			continue
+		}
+		if inFrontmatter && !frontmatterClosed {
+			if string(trimmed) == "---" {
+				frontmatterClosed = true
+				inFrontmatter = false
+			}
+			continue
+		}
+		if bytes.HasPrefix(trimmed, []byte("```")) || bytes.HasPrefix(trimmed, []byte("~~~")) {
+			inFence = !inFence
+			continue
+		}
+		if inFence {
+			continue
+		}
+		rewritten, lineEdits, commentState, err := rewriteLinkLine(
+			line, containingNote, oldNote, newNote, includeBaseLinks, inComment,
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		inComment = commentState
+		lines[index] = rewritten
+		edits = append(edits, lineEdits...)
+	}
+	return bytes.Join(lines, nil), edits, nil
+}
+
+func rewriteLinkLine(
+	line []byte,
+	containingNote, oldNote, newNote string,
+	includeBaseLinks, inComment bool,
+) ([]byte, []LinkEdit, bool, error) {
+	var output bytes.Buffer
+	edits := make([]LinkEdit, 0)
+	for offset := 0; offset < len(line); {
+		if inComment {
+			end := bytes.Index(line[offset:], []byte("-->"))
+			if end < 0 {
+				output.Write(line[offset:])
+				return output.Bytes(), edits, true, nil
+			}
+			end += offset + 3
+			output.Write(line[offset:end])
+			offset = end
+			inComment = false
+			continue
+		}
+		if bytes.HasPrefix(line[offset:], []byte("<!--")) {
+			inComment = true
+			continue
+		}
+		if line[offset] == '`' {
+			run := 1
+			for offset+run < len(line) && line[offset+run] == '`' {
+				run++
+			}
+			delimiter := bytes.Repeat([]byte{'`'}, run)
+			end := bytes.Index(line[offset+run:], delimiter)
+			if end < 0 {
+				output.Write(line[offset:])
+				return output.Bytes(), edits, inComment, nil
+			}
+			end += offset + run*2
+			output.Write(line[offset:end])
+			offset = end
+			continue
+		}
+		next := len(line)
+		for _, marker := range [][]byte{[]byte("<!--"), []byte("`")} {
+			if found := bytes.Index(line[offset:], marker); found >= 0 && offset+found < next {
+				next = offset + found
+			}
+		}
+		segment, segmentEdits, err := rewriteLinkSyntax(
+			string(line[offset:next]), containingNote, oldNote, newNote, includeBaseLinks,
+		)
+		if err != nil {
+			return nil, nil, inComment, err
+		}
+		output.WriteString(segment)
+		edits = append(edits, segmentEdits...)
+		offset = next
+	}
+	return output.Bytes(), edits, inComment, nil
+}
+
+func rewriteLinkSyntax(
+	text, containingNote, oldNote, newNote string,
+	includeBaseLinks bool,
+) (string, []LinkEdit, error) {
+	edits := make([]LinkEdit, 0)
+	text = wikilinkPattern.ReplaceAllStringFunc(text, func(match string) string {
+		parts := wikilinkPattern.FindStringSubmatch(match)
+		target := RemoveMdSuffix(normalizePathSeparators(parts[1]))
+		oldID := RemoveMdSuffix(normalizePathSeparators(oldNote))
+		replacement := ""
+		if includeBaseLinks && !strings.Contains(target, "/") && target == path.Base(oldID) {
+			replacement = path.Base(RemoveMdSuffix(normalizePathSeparators(newNote)))
+		} else if target == oldID {
+			replacement = RemoveMdSuffix(normalizePathSeparators(newNote))
+		}
+		if replacement == "" {
+			return match
+		}
+		updated := "[[" + replacement + parts[2] + "]]"
+		edits = append(edits, LinkEdit{Kind: "wikilink", Before: match, After: updated})
+		return updated
+	})
+	var rewriteErr error
+	text = markdownLinkPattern.ReplaceAllStringFunc(text, func(match string) string {
+		parts := markdownLinkPattern.FindStringSubmatch(match)
+		destination := parts[2]
+		updatedDestination, changed, err := rewriteMarkdownDestination(
+			destination, containingNote, oldNote, newNote,
+		)
+		if err != nil {
+			rewriteErr = err
+			return match
+		}
+		if !changed {
+			return match
+		}
+		updated := parts[1] + updatedDestination + parts[3]
+		edits = append(edits, LinkEdit{Kind: "markdown", Before: match, After: updated})
+		return updated
+	})
+	return text, edits, rewriteErr
+}
+
+func rewriteMarkdownDestination(destination, containingNote, oldNote, newNote string) (string, bool, error) {
+	if strings.HasPrefix(destination, "/") || strings.Contains(strings.Split(destination, "/")[0], ":") {
+		return destination, false, nil
+	}
+	pathPart, fragment, _ := strings.Cut(destination, "#")
+	decoded, err := url.PathUnescape(pathPart)
+	if err != nil {
+		return "", false, err
+	}
+	hadExtension := strings.EqualFold(path.Ext(decoded), ".md")
+	containingDir := path.Dir(normalizePathSeparators(containingNote))
+	resolved := path.Clean(path.Join(containingDir, decoded))
+	oldWithExtension := AddMdSuffix(normalizePathSeparators(oldNote))
+	if resolved != oldWithExtension && AddMdSuffix(resolved) != oldWithExtension {
+		return destination, false, nil
+	}
+	relative, err := filepath.Rel(
+		filepath.FromSlash(containingDir),
+		filepath.FromSlash(AddMdSuffix(normalizePathSeparators(newNote))),
+	)
+	if err != nil {
+		return "", false, err
+	}
+	relative = filepath.ToSlash(relative)
+	if !hadExtension {
+		relative = RemoveMdSuffix(relative)
+	}
+	if strings.HasPrefix(pathPart, "./") && !strings.HasPrefix(relative, ".") {
+		relative = "./" + relative
+	}
+	segments := strings.Split(relative, "/")
+	for index, segment := range segments {
+		segments[index] = url.PathEscape(segment)
+	}
+	updated := strings.Join(segments, "/")
+	if fragment != "" {
+		updated += "#" + fragment
+	}
+	return updated, true, nil
+}
 
 // LinkRewriteManager 定义链接重写能力。
 // Move 业务只需要这个接口，不应该依赖完整的 NoteManager。

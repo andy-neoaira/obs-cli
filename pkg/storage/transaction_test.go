@@ -75,6 +75,38 @@ func TestTransactionCommitAndRollbackInjection(t *testing.T) {
 	})
 }
 
+func TestTransactionCreateRewriteDelete(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "old.md")
+	link := filepath.Join(root, "links.md")
+	target := filepath.Join(root, "new.md")
+	if err := os.WriteFile(source, []byte("source"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(link, []byte("[[old]]"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	sourceSnapshot, _ := storage.ReadSnapshot(source)
+	linkSnapshot, _ := storage.ReadSnapshot(link)
+	store := storage.NewStore(filepath.Join(root, "runtime", "locks"))
+	result, err := store.ApplyTransaction([]storage.Mutation{
+		{Path: target, Data: sourceSnapshot.Data, Precondition: storage.Preconditions{MustNotExist: true}, Mode: sourceSnapshot.Mode},
+		{Path: link, Data: []byte("[[new]]"), Precondition: storage.Preconditions{ExpectedRevision: linkSnapshot.Revision}},
+		{Path: source, Delete: true, Precondition: storage.Preconditions{ExpectedRevision: sourceSnapshot.Revision}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Revisions[source] != "" || result.Revisions[target] != sourceSnapshot.Revision {
+		t.Fatalf("unexpected revisions: %#v", result.Revisions)
+	}
+	if _, err := os.Stat(source); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("source exists: %v", err)
+	}
+	assertBytes(t, target, "source")
+	assertBytes(t, link, "[[new]]")
+}
+
 func transactionFiles(t *testing.T, root string) (string, string) {
 	t.Helper()
 	first := filepath.Join(root, "one.md")

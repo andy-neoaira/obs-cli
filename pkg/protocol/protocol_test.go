@@ -106,3 +106,21 @@ func TestRequestIDValidation(t *testing.T) {
 		t.Fatalf("generated request ID = %q, %v", generated, err)
 	}
 }
+
+func TestPartialFailureHasMachineReadableRecoveryDetails(t *testing.T) {
+	err := &storage.PartialFailureError{
+		TransactionID:   "txn-test",
+		Completed:       []string{"a.md"},
+		Failed:          []string{"b.md"},
+		RollbackFailed:  []string{"a.md"},
+		RecoveryActions: []string{"restore a.md"},
+	}
+	mapped := protocol.MapError(err)
+	if mapped.Code != protocol.PartialFailure ||
+		mapped.Details["transaction_id"] != "txn-test" {
+		t.Fatalf("mapped error = %#v", mapped)
+	}
+	if actions, ok := mapped.Details["recovery_actions"].([]string); !ok || len(actions) != 1 {
+		t.Fatalf("recovery actions = %#v", mapped.Details["recovery_actions"])
+	}
+}

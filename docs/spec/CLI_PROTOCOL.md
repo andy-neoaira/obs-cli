@@ -8,6 +8,7 @@
 - JSON Schema：[response-v2.schema.json](./schema/response-v2.schema.json)
 - Capability 约定：[CAPABILITIES.md](./CAPABILITIES.md)
 - Note 原子操作：[NOTE_OPERATIONS.md](./NOTE_OPERATIONS.md)
+- Move 事务：[MOVE_TRANSACTIONS.md](./MOVE_TRANSACTIONS.md)
 
 ## 1. 设计目标
 

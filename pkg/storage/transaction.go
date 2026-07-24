@@ -16,6 +16,7 @@ var ErrPartialFailure = errors.New("PARTIAL_FAILURE")
 type Mutation struct {
 	Path         string
 	Data         []byte
+	Delete       bool
 	Precondition Preconditions
 	Mode         os.FileMode
 }
@@ -23,6 +24,24 @@ type Mutation struct {
 type TransactionResult struct {
 	ID        string
 	Revisions map[string]string
+}
+
+type PartialFailureError struct {
+	TransactionID   string
+	Completed       []string
+	Failed          []string
+	RolledBack      []string
+	RollbackFailed  []string
+	RecoveryActions []string
+	Cause           error
+}
+
+func (e *PartialFailureError) Error() string {
+	return fmt.Sprintf("%s: transaction %s requires recovery", ErrPartialFailure, e.TransactionID)
+}
+
+func (e *PartialFailureError) Unwrap() error {
+	return ErrPartialFailure
 }
 
 type stagedMutation struct {
@@ -83,9 +102,15 @@ func (s *Store) ApplyTransaction(mutations []Mutation) (TransactionResult, error
 		if err := validatePrecondition(before, exists, mutation.Precondition); err != nil {
 			return TransactionResult{}, err
 		}
-		temp, err := stageFile(mutation.Path, mutation.Data, mutation.Mode, before, exists)
-		if err != nil {
-			return TransactionResult{}, err
+		if mutation.Delete && (!exists || mutation.Precondition.ExpectedRevision == "") {
+			return TransactionResult{}, ErrPrecondition
+		}
+		var temp string
+		if !mutation.Delete {
+			temp, err = stageFile(mutation.Path, mutation.Data, mutation.Mode, before, exists)
+			if err != nil {
+				return TransactionResult{}, err
+			}
 		}
 		item := stagedMutation{mutation: mutation, before: before, existed: exists, tempPath: temp}
 		if exists {
@@ -112,32 +137,37 @@ func (s *Store) ApplyTransaction(mutations []Mutation) (TransactionResult, error
 	for index := range staged {
 		item := &staged[index]
 		if err := s.checkpoint(fmt.Sprintf("transaction-commit:%d:before", index+1)); err != nil {
-			if rollbackErr := s.rollback(staged, index-1); rollbackErr != nil {
+			rolledBack, rollbackFailed, rollbackErr := s.rollback(staged, index-1)
+			if rollbackErr != nil {
 				removeJournal = false
 				retainArtifacts = true
-				return TransactionResult{}, fmt.Errorf("%w: commit=%v rollback=%v", ErrPartialFailure, err, rollbackErr)
+				return TransactionResult{}, partialFailure(id, staged, index, err, rolledBack, rollbackFailed)
 			}
 			return TransactionResult{}, err
 		}
 		current, exists, err := snapshotIfExists(item.mutation.Path)
 		if err != nil || validatePrecondition(current, exists, item.mutation.Precondition) != nil {
-			if rollbackErr := s.rollback(staged, index-1); rollbackErr != nil {
+			rolledBack, rollbackFailed, rollbackErr := s.rollback(staged, index-1)
+			if rollbackErr != nil {
 				removeJournal = false
 				retainArtifacts = true
-				return TransactionResult{}, fmt.Errorf("%w: rollback=%v", ErrPartialFailure, rollbackErr)
+				return TransactionResult{}, partialFailure(id, staged, index, ErrRevisionConflict, rolledBack, rollbackFailed)
 			}
 			return TransactionResult{}, ErrRevisionConflict
 		}
-		if item.mutation.Precondition.MustNotExist {
+		if item.mutation.Delete {
+			err = os.Remove(item.mutation.Path)
+		} else if item.mutation.Precondition.MustNotExist {
 			err = commitCreateNoReplace(item.tempPath, item.mutation.Path)
 		} else {
 			err = replaceFile(item.tempPath, item.mutation.Path)
 		}
 		if err != nil {
-			if rollbackErr := s.rollback(staged, index-1); rollbackErr != nil {
+			rolledBack, rollbackFailed, rollbackErr := s.rollback(staged, index-1)
+			if rollbackErr != nil {
 				removeJournal = false
 				retainArtifacts = true
-				return TransactionResult{}, fmt.Errorf("%w: commit=%v rollback=%v", ErrPartialFailure, err, rollbackErr)
+				return TransactionResult{}, partialFailure(id, staged, index, err, rolledBack, rollbackFailed)
 			}
 			return TransactionResult{}, err
 		}
@@ -146,40 +176,79 @@ func (s *Store) ApplyTransaction(mutations []Mutation) (TransactionResult, error
 
 	revisions := make(map[string]string, len(staged))
 	for _, item := range staged {
+		if item.mutation.Delete {
+			if _, err := os.Lstat(item.mutation.Path); !errors.Is(err, os.ErrNotExist) {
+				removeJournal = false
+				retainArtifacts = true
+				return TransactionResult{}, partialFailure(id, staged, len(staged), errors.New("deleted path still exists"), nil, nil)
+			}
+			revisions[item.mutation.Path] = ""
+			continue
+		}
 		after, err := ReadSnapshot(item.mutation.Path)
 		if err != nil || after.Revision != Revision(item.mutation.Data) {
 			removeJournal = false
 			retainArtifacts = true
-			return TransactionResult{}, fmt.Errorf("%w: transaction verification failed", ErrPartialFailure)
+			return TransactionResult{}, partialFailure(id, staged, len(staged), errors.New("transaction verification failed"), nil, nil)
 		}
 		revisions[item.mutation.Path] = after.Revision
 	}
 	return TransactionResult{ID: id, Revisions: revisions}, nil
 }
 
-func (s *Store) rollback(staged []stagedMutation, last int) error {
+func partialFailure(
+	id string,
+	staged []stagedMutation,
+	failedIndex int,
+	cause error,
+	rolledBack, rollbackFailed []string,
+) error {
+	completed := make([]string, 0)
+	for _, item := range staged {
+		if item.committed {
+			completed = append(completed, item.mutation.Path)
+		}
+	}
+	failed := []string{}
+	if failedIndex >= 0 && failedIndex < len(staged) {
+		failed = append(failed, staged[failedIndex].mutation.Path)
+	}
+	return &PartialFailureError{
+		TransactionID:   id,
+		Completed:       completed,
+		Failed:          failed,
+		RolledBack:      rolledBack,
+		RollbackFailed:  rollbackFailed,
+		RecoveryActions: []string{"inspect the retained transaction journal and recovery copies before retrying"},
+		Cause:           cause,
+	}
+}
+
+func (s *Store) rollback(staged []stagedMutation, last int) ([]string, []string, error) {
+	rolledBack := make([]string, 0)
 	for index := last; index >= 0; index-- {
 		item := staged[index]
 		if !item.committed {
 			continue
 		}
 		if err := s.checkpoint(fmt.Sprintf("transaction-rollback:%d:before", index+1)); err != nil {
-			return err
+			return rolledBack, []string{item.mutation.Path}, err
 		}
 		if item.existed {
 			temp, err := stageFile(item.mutation.Path, item.before.Data, item.before.Mode, Snapshot{}, false)
 			if err != nil {
-				return err
+				return rolledBack, []string{item.mutation.Path}, err
 			}
 			if err := replaceFile(temp, item.mutation.Path); err != nil {
 				_ = os.Remove(temp)
-				return err
+				return rolledBack, []string{item.mutation.Path}, err
 			}
 		} else if err := os.Remove(item.mutation.Path); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return err
+			return rolledBack, []string{item.mutation.Path}, err
 		}
+		rolledBack = append(rolledBack, item.mutation.Path)
 	}
-	return nil
+	return rolledBack, []string{}, nil
 }
 
 func stageFile(path string, data []byte, mode os.FileMode, before Snapshot, exists bool) (string, error) {

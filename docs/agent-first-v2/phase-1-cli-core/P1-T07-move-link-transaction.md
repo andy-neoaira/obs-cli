@@ -1,7 +1,7 @@
 # P1-T07：Move 与链接重写事务
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`已完成`
+- 负责人：`Codex`
 - 涉及项目：`obs-cli`
 - 依赖：P1-T03、P1-T06、P0-T05
 
@@ -28,11 +28,11 @@
 
 ## 验收标准
 
-- [ ] 目标文件不会被静默覆盖。
-- [ ] 计划后发生外部修改时 apply 被拒绝。
-- [ ] 不相关文本和代码块不会被误改。
-- [ ] 正常失败能完整恢复原状态。
-- [ ] `PARTIAL_FAILURE` 包含机器可读恢复步骤。
+- [x] 目标文件不会被静默覆盖。
+- [x] 计划后发生外部修改时 apply 被拒绝。
+- [x] 不相关文本和代码块不会被误改。
+- [x] 正常失败能完整恢复原状态。
+- [x] `PARTIAL_FAILURE` 包含机器可读恢复步骤。
 
 ## 验证
 
@@ -40,3 +40,13 @@
 go test ./... -run 'Move|Rewrite|Rollback|PartialFailure'
 ```
 
+## 完成记录
+
+- 新增 `note move <source> <target> --if-match <revision>` 与精确 dry-run plan。
+- plan 在写入前冻结源、目标和全部链接更新文件的 revision。
+- Wikilink/Markdown link 按结构解析，保留 alias、heading/block fragment，支持相对路径和单次 percent decode。
+- Frontmatter、fenced/inline code、HTML comment 与普通文本不会被无上下文替换。
+- 同 basename 不唯一时不重写短 Wikilink；目标存在时始终返回 `ALREADY_EXISTS`。
+- 事务内统一执行 target create、link updates、source delete；外部修改在提交前返回 `REVISION_CONFLICT`。
+- 故障注入验证普通失败完整回滚；回滚失败保留 journal/recovery，并返回逻辑路径化的机器恢复清单。
+- 协议细节见 `docs/spec/MOVE_TRANSACTIONS.md`。

@@ -41,6 +41,7 @@ func currentCapabilities() capabilitiesData {
 			{Name: "note.delete", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
 			{Name: "note.get", Version: 1, CommonFlags: []string{"output", "request-id", "vault"}},
 			{Name: "note.list", Version: 1, CommonFlags: []string{"output", "request-id", "vault"}},
+			{Name: "note.move", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
 			{Name: "note.patch", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
 			{Name: "note.replace", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "if-match", "output", "request-id", "vault"}},
 			{Name: "vault.add", Version: 1, Mutating: true, CommonFlags: []string{"dry-run", "output", "request-id"}},

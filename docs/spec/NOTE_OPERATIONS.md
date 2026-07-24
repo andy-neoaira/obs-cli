@@ -14,6 +14,7 @@ obs note append <path> --content-file <file|-> [--section <heading>] [--if-match
 obs note patch <path> --match-file <file|-> --content-file <file|-> --if-match <revision>
 obs note replace <path> --content-file <file|-> --if-match <revision>
 obs note delete <path> --if-match <revision>
+obs note move <source> <target> --if-match <revision>
 ```
 
 所有命令使用 `--output json`、`--request-id` 和 `--vault`。所有修改命令支持 `--dry-run`。路径是 Vault 内逻辑路径；省略 `.md` 时 CLI 自动补充。绝对路径、父目录跳转、隐藏路径和写入符号链接别名均被拒绝。
@@ -95,3 +96,5 @@ dry-run 会完成 Vault 选择、路径解析、内容读取、目标快照、re
 6. 再次 `note get`，用 `revision_after` 验证结果
 
 遇到 `REVISION_CONFLICT` 时必须重新读取和重新分析，不能去掉 `--if-match` 重试。
+
+Move 与链接重写的事务语义见 [MOVE_TRANSACTIONS.md](./MOVE_TRANSACTIONS.md)。

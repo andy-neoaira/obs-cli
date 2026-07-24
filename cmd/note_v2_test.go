@@ -193,6 +193,45 @@ func TestNoteV2DeleteRequiresMatchingRevision(t *testing.T) {
 	}
 }
 
+func TestNoteV2MoveDryRunAndApply(t *testing.T) {
+	registryFactory, serviceFactory, vaultRoot := noteCommandDependencies(t)
+	executeNoteCommand(t, registryFactory, serviceFactory, "source", "create", "Old", "--content-file", "-")
+	executeNoteCommand(t, registryFactory, serviceFactory, "[[Old|Alias]]", "create", "links", "--content-file", "-")
+	current := executeNoteCommand(t, registryFactory, serviceFactory, "", "get", "Old")
+	var getData struct {
+		Note noteops.Note `json:"note"`
+	}
+	if err := json.Unmarshal(current.Data, &getData); err != nil {
+		t.Fatal(err)
+	}
+	dry := executeNoteCommand(
+		t, registryFactory, serviceFactory, "",
+		"move", "Old", "Archive/New", "--if-match", getData.Note.Revision, "--dry-run",
+	)
+	var dryData struct {
+		DryRun bool          `json:"dry_run"`
+		Plan   protocol.Plan `json:"plan"`
+	}
+	if err := json.Unmarshal(dry.Data, &dryData); err != nil {
+		t.Fatal(err)
+	}
+	if !dryData.DryRun || len(dryData.Plan.Changes) != 2 {
+		t.Fatalf("move dry-run = %#v", dryData)
+	}
+	if _, err := os.Stat(filepath.Join(vaultRoot, "Archive", "New.md")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("dry-run created target: %v", err)
+	}
+	applied := executeNoteCommand(
+		t, registryFactory, serviceFactory, "",
+		"move", "Old", "Archive/New", "--if-match", getData.Note.Revision,
+	)
+	if !applied.OK {
+		t.Fatalf("move response = %#v", applied)
+	}
+	assertFileContent(t, filepath.Join(vaultRoot, "Archive", "New.md"), "source")
+	assertFileContent(t, filepath.Join(vaultRoot, "links.md"), "[[New|Alias]]")
+}
+
 type noteTestEnvelope struct {
 	OK        bool                  `json:"ok"`
 	Operation string                `json:"operation"`
@@ -240,4 +279,15 @@ func executeNoteCommandResult(
 		t.Fatalf("stdout is not JSON: %v\n%s", err, stdout.String())
 	}
 	return response, stderr.String(), executeErr
+}
+
+func assertFileContent(t *testing.T, path, want string) {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != want {
+		t.Fatalf("content = %q, want %q", data, want)
+	}
 }

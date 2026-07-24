@@ -25,6 +25,8 @@ type noteService interface {
 	Replace(string, []byte, string) (noteops.Mutation, error)
 	PlanDelete(string, string) (noteops.Mutation, error)
 	Delete(string, string) (noteops.Mutation, error)
+	PlanMove(string, string, string) (noteops.MovePlan, error)
+	ApplyMovePlan(noteops.MovePlan) (noteops.MoveResult, error)
 }
 
 type noteServiceFactory func(string) (noteService, error)
@@ -301,6 +303,60 @@ func newNoteV2Command(registryFactory vaultRegistryFactory, serviceFactory noteS
 	deleteCommand.Flags().BoolVar(&deleteUnsafe, "unsafe-no-if-match", false, "delete using the revision read immediately before this operation")
 	bindCommonFlags(deleteCommand, &deleteFlags, commonFlagSet{DryRun: true, IfMatch: true}, false)
 	command.AddCommand(deleteCommand)
+
+	var moveFlags commonFlags
+	move := &cobra.Command{
+		Use:   "move <source> <target>",
+		Short: "Move a note and transactionally rewrite affected links",
+		Args:  args("note.move", cobra.ExactArgs(2)),
+		RunE: func(cmd *cobra.Command, values []string) error {
+			return execute(cmd, "note.move", func() (any, error) {
+				service, vault, err := resolveService()
+				if err != nil {
+					return nil, err
+				}
+				plan, err := service.PlanMove(values[0], values[1], moveFlags.IfMatch)
+				if err != nil {
+					return nil, err
+				}
+				if moveFlags.DryRun {
+					changes := make([]protocol.PlanChange, 0, len(plan.Changes))
+					for _, change := range plan.Changes {
+						target := change.Path
+						if change.Target != "" {
+							target += " -> " + change.Target
+						}
+						changes = append(changes, protocol.PlanChange{
+							Action:   change.Action,
+							Resource: "note",
+							Target:   target,
+							Details: map[string]any{
+								"expected_revision": change.ExpectedRevision,
+								"revision_after":    change.RevisionAfter,
+								"link_edits":        change.LinkEdits,
+							},
+						})
+					}
+					dry := protocol.NewDryRunData(
+						changes,
+						plan.Risks,
+						[]string{"source and rewritten note revisions remain unchanged", "target remains absent"},
+					)
+					return map[string]any{
+						"vault":   vault,
+						"dry_run": dry.DryRun,
+						"applied": dry.Applied,
+						"changed": dry.Changed,
+						"plan":    dry.Plan,
+					}, nil
+				}
+				result, err := service.ApplyMovePlan(plan)
+				return map[string]any{"vault": vault, "move": result}, err
+			})
+		},
+	}
+	bindCommonFlags(move, &moveFlags, commonFlagSet{DryRun: true, IfMatch: true}, false)
+	command.AddCommand(move)
 
 	return command
 }
