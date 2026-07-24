@@ -25,12 +25,22 @@ var listVaultsCmd = &cobra.Command{
 	Short: "lists all registered Obsidian vaults",
 	Args:  cobra.ExactArgs(0), // 不接受任何参数
 	Run: func(cmd *cobra.Command, args []string) {
-		vaults, err := obsidian.ListVaults()
+		registry, err := obsidian.DefaultRegistry()
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		defaultName := resolveDefaultVaultName()
+		records, err := registry.List()
+		if err != nil {
+			log.Fatal(err)
+		}
+		vaults := make([]obsidian.VaultInfo, 0, len(records))
+		for _, record := range records {
+			vaults = append(vaults, obsidian.VaultInfo{Name: record.Name, Path: record.Path})
+		}
+		defaultName := ""
+		if selected, defaultErr := registry.Default(); defaultErr == nil {
+			defaultName = selected.Name
+		}
 
 		// 如果用户指定了 --default，只显示默认 vault 的信息
 		if listVaultsDefault {
@@ -134,12 +144,15 @@ func formatVaultsTable(w io.Writer, vaults []obsidian.VaultInfo, defaultName str
 // resolveDefaultVaultName 读取 CLI 配置，返回当前默认 vault 的名称。
 // 如果没有设置默认 vault，返回空字符串。
 func resolveDefaultVaultName() string {
-	vault := obsidian.Vault{}
-	name, err := vault.DefaultName()
+	registry, err := obsidian.DefaultRegistry()
 	if err != nil {
 		return ""
 	}
-	return name
+	vault, err := registry.Default()
+	if err != nil {
+		return ""
+	}
+	return vault.Name
 }
 
 func init() {

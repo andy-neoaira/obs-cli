@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -24,22 +23,16 @@ func runSetDefaultVault(cmd *cobra.Command, args []string) {
 
 	// 设置默认 vault 名称
 	if len(args) > 0 {
-		name, err := obsidian.ResolveVaultName(args[0])
+		registry, err := obsidian.DefaultRegistry()
 		if err != nil {
 			log.Fatal(err)
 		}
-		v := obsidian.Vault{Name: name}
-		if err := v.SetDefaultName(name); err != nil {
+		vault, err := registry.SetDefault(args[0])
+		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("Default vault set to:", name)
-		path, err := v.Path()
-		if err != nil {
-			// 路径解析是尽力而为：名称已保存，但 Obsidian 的配置文件中可能还没有该 vault
-			fmt.Fprintln(os.Stderr, "Note: could not resolve vault path:", err)
-		} else {
-			fmt.Println("Default vault path set to:", path)
-		}
+		fmt.Println("Default vault set to:", vault.Name)
+		fmt.Println("Default vault path set to:", vault.Path)
 	}
 
 	// 设置默认打开方式
@@ -47,8 +40,11 @@ func runSetDefaultVault(cmd *cobra.Command, args []string) {
 		if openType != "obsidian" && openType != "editor" {
 			log.Fatalf("Invalid open type %q: must be 'obsidian' or 'editor'", openType)
 		}
-		v := obsidian.Vault{}
-		if err := v.SetDefaultOpenType(openType); err != nil {
+		registry, err := obsidian.DefaultRegistry()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := registry.SetDefaultOpenType(openType); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println("Default open type set to:", openType)

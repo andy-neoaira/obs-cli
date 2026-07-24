@@ -23,3 +23,15 @@ func CliPath() (cliConfigDir string, cliConfigFile string, err error) {
 	cliConfigFile = filepath.Join(cliConfigDir, ObsCLIConfigFile)
 	return cliConfigDir, cliConfigFile, nil
 }
+
+// V2Path 返回 Agent-first V2 自有配置路径。
+// 该文件与 Obsidian 官方 obsidian.json 完全分离。
+func V2Path() (cliConfigDir string, cliConfigFile string, err error) {
+	userConfigDir, err := UserConfigDirectory()
+	if err != nil {
+		return "", "", errors.New(UserConfigDirectoryNotFoundErrorMessage)
+	}
+	cliConfigDir = filepath.Join(userConfigDir, ObsCLIConfigDirectory)
+	cliConfigFile = filepath.Join(cliConfigDir, ObsCLIV2ConfigFile)
+	return cliConfigDir, cliConfigFile, nil
+}

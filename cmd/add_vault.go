@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"path/filepath"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -15,26 +14,26 @@ import (
 var addVaultCmd = &cobra.Command{
 	Use:   "add-vault <path>",
 	Short: "Register a vault directory",
-	Long:  "Registers a directory as an Obsidian vault. Creates the Obsidian config file if it does not exist.",
+	Long:  "Registers a directory in obs-cli V2. It never modifies Obsidian's obsidian.json.",
 	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：vault 的本地路径
 	Run: func(cmd *cobra.Command, args []string) {
-		absPath, err := obsidian.AddVault(args[0])
+		registry, err := obsidian.DefaultRegistry()
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		// 使用路径的最后一个部分作为 vault 名称
-		name := filepath.Base(absPath)
-		fmt.Printf("Vault %q registered at: %s\n", name, absPath)
+		vault, err := registry.Add(args[0], "")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Vault %q registered at: %s\n", vault.Name, vault.Path)
 
 		// 如果用户传了 --set-default，则同时设为默认 vault
 		setDefault, _ := cmd.Flags().GetBool("set-default")
 		if setDefault {
-			v := obsidian.Vault{Name: name}
-			if err := v.SetDefaultName(name); err != nil {
+			if _, err := registry.SetDefault(vault.ID); err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println("Default vault set to:", name)
+			fmt.Println("Default vault set to:", vault.Name)
 		}
 	},
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/andy-neoaira/obs-cli/pkg/config"
-	"os"
 	"path"
 	"strings"
 )
@@ -17,26 +16,20 @@ var RunningInWSL = config.RunningInWSL
 // Path 返回当前 vault 的绝对路径。
 // Vault.Name 必须是已注册 vault 的名称；运行命令不再接受路径作为隐式 vault 标识。
 func (v *Vault) Path() (string, error) {
-	obsidianConfigFile, err := ObsidianConfigFile()
+	registry, err := DefaultRegistry()
 	if err != nil {
 		return "", err
 	}
-
-	content, err := os.ReadFile(obsidianConfigFile)
-	if err != nil {
-		return "", errors.New(ObsidianConfigReadError)
+	var record config.VaultRecord
+	if v.Name == "" {
+		record, err = registry.Default()
+	} else {
+		record, err = registry.Get(v.Name)
 	}
-
-	path, err := getPathForVault(content, v.Name)
 	if err != nil {
 		return "", err
 	}
-
-	// 如果在 WSL 环境中运行，自动转换 Windows 路径为 WSL 挂载路径
-	if RunningInWSL() {
-		return adjustForWslMount(path), nil
-	}
-	return path, nil
+	return record.Path, nil
 }
 
 // adjustForWslMount 将 Windows 绝对路径转换为 WSL 的 /mnt/ 挂载路径。

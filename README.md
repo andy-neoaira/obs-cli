@@ -55,7 +55,7 @@ The project is evolving toward an Agent-first V2: `obs-cli` will be the safe, ma
 - `obs-cli` does not depend on Neovim, and it only discovers or imports Obsidian-owned configuration without taking ownership of it.
 - The V2 core is non-interactive and avoids TTY prompts, built-in pickers, automatic editor launches, and implicit application opening.
 
-See [ADR-001: Agent-first Product Boundary and Three-client Architecture](./docs/architecture/ADR-001-agent-first-boundary.md) and the [V2 execution plan](./docs/agent-first-v2/README.md).
+See [ADR-001: Agent-first Product Boundary and Three-client Architecture](./docs/architecture/ADR-001-agent-first-boundary.md), the [V2 configuration boundary](./docs/spec/CONFIG_V2.md), and the [V2 execution plan](./docs/agent-first-v2/README.md).
 
 Shared contract status: `target_contract = vault-contract/v1`, `implemented_contract = null`. The target rules are defined in [Vault Conventions](./docs/spec/VAULT_CONVENTIONS.md); conformance will be declared only after the P1 shared fixtures pass.
 

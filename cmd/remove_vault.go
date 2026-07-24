@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -15,22 +14,20 @@ import (
 var removeVaultCmd = &cobra.Command{
 	Use:   "remove-vault <name>",
 	Short: "Unregister a vault",
-	Long:  "Removes a vault from the Obsidian config. Does not delete any files on disk.",
+	Long:  "Removes a vault from obs-cli V2. Does not modify Obsidian config or delete files.",
 	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：vault 名称
 	Run: func(cmd *cobra.Command, args []string) {
 		input := args[0]
 
-		name, err := obsidian.RemoveVault(input)
+		registry, err := obsidian.DefaultRegistry()
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		fmt.Printf("Vault %q removed\n", name)
-
-		// 如果被移除的 vault 是当前默认 vault，则清除默认设置，避免后续命令找不到 vault
-		if err := obsidian.ClearDefaultIfMatch(name); err != nil {
-			fmt.Fprintln(os.Stderr, "Warning: could not clear default vault:", err)
+		vault, err := registry.Remove(input)
+		if err != nil {
+			log.Fatal(err)
 		}
+		fmt.Printf("Vault %q removed\n", vault.Name)
 	},
 }
 

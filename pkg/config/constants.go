@@ -6,4 +6,5 @@ const (
 	ObsidianConfigFile                      = "obsidian.json"
 	ObsCLIConfigDirectory                   = "obs-cli"
 	ObsCLIConfigFile                        = "preferences.json"
+	ObsCLIV2ConfigFile                      = "config-v2.json"
 )
