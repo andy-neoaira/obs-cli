@@ -1,7 +1,7 @@
 # P1-T05：Capabilities、通用参数与 Dry-run
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`已完成`
+- 负责人：`Codex`
 - 涉及项目：`obs-cli`
 - 依赖：P1-T04
 
@@ -27,11 +27,11 @@
 
 ## 验收标准
 
-- [ ] Agent 无需解析 `--help` 即可发现能力。
-- [ ] dry-run 前后 Vault 内容摘要完全相同。
-- [ ] 不支持的 capability 返回 `CAPABILITY_UNSUPPORTED`。
-- [ ] capabilities 输出有 Schema 和黄金测试。
-- [ ] feature flag 名称稳定且有文档。
+- [x] Agent 无需解析 `--help` 即可发现能力。
+- [x] dry-run 前后 Vault 内容摘要完全相同。
+- [x] 不支持的 capability 返回 `CAPABILITY_UNSUPPORTED`。
+- [x] capabilities 输出有 Schema 和黄金测试。
+- [x] feature flag 名称稳定且有文档。
 
 ## 验证
 
@@ -40,3 +40,10 @@ go run . capabilities --output json
 go test ./... -run 'Capabilities|DryRun|CommonFlags'
 ```
 
+## 完成记录
+
+- 新增 `capabilities.get`、operation/feature flag 清单及 JSON Schema。
+- 建立 `--output`、`--request-id`、`--dry-run`、`--if-match`、`--vault` 公共参数绑定层。
+- `vault.add`、`vault.remove`、`vault.set-default`、`vault.migrate` 均提供结构化 dry-run plan。
+- 预演路径只读取注册表和 Vault；测试验证不会创建配置、锁或更改 Vault 摘要。
+- 稳定名称、演进策略和场景化 Skill 协商流程见 `docs/spec/CAPABILITIES.md`。

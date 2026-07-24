@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andy-neoaira/obs-cli/docs/spec/schema/capabilities-v2.schema.json",
+  "title": "obs-cli/v2 capabilities.get data",
+  "type": "object",
+  "required": [
+    "cli_version",
+    "protocol_versions",
+    "write_protocols",
+    "vault_contract",
+    "operations",
+    "feature_flags",
+    "platform"
+  ],
+  "properties": {
+    "cli_version": {"type": "string", "minLength": 1},
+    "protocol_versions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "contains": {"const": "obs-cli/v2"}
+    },
+    "write_protocols": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "vault_contract": {
+      "type": "object",
+      "required": ["target", "implemented"],
+      "properties": {
+        "target": {"const": "vault-contract/v1"},
+        "implemented": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "version", "mutating", "common_flags"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9-]*)+$"},
+          "version": {"type": "integer", "minimum": 1},
+          "mutating": {"type": "boolean"},
+          "common_flags": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "feature_flags": {
+      "type": "object",
+      "additionalProperties": {"type": "boolean"}
+    },
+    "platform": {
+      "type": "object",
+      "required": ["os", "arch", "limitations"],
+      "properties": {
+        "os": {"type": "string"},
+        "arch": {"type": "string"},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

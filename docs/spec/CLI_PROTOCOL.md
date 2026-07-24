@@ -6,6 +6,7 @@
 - Vault 规范：`vault-contract/v1`
 - 架构依据：[ADR-001](../architecture/ADR-001-agent-first-boundary.md)
 - JSON Schema：[response-v2.schema.json](./schema/response-v2.schema.json)
+- Capability 约定：[CAPABILITIES.md](./CAPABILITIES.md)
 
 ## 1. 设计目标
 
@@ -188,18 +189,22 @@ sha256:<64 lowercase hex characters>
     "changes": [
       {
         "action": "update",
-        "path": "Projects/demo.md",
-        "expected_revision": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        "resource": "note",
+        "target": "Projects/demo.md",
+        "details": {
+          "expected_revision": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
       }
     ],
-    "risks": []
+    "risks": [],
+    "preconditions": []
   }
 }
 ```
 
 允许的基础 action 为 `create`、`update`、`move`、`delete`。具体命令可以增加字段，但不得改变基础字段含义。
 
-计划中的路径必须是 Vault 逻辑路径。默认不得暴露 Vault 外绝对路径。
+Note 等 Vault 内资源的 `target` 必须是 Vault 逻辑路径。Vault 注册表操作可以在 `details.canonical_path` 返回待注册的 Vault 根路径；默认不得暴露其他 Vault 外绝对路径。
 
 ## 8. 稳定错误码
 

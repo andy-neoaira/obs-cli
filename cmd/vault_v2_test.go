@@ -2,14 +2,19 @@ package cmd
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	"github.com/andy-neoaira/obs-cli/pkg/config"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/andy-neoaira/obs-cli/pkg/protocol"
+	"github.com/spf13/cobra"
 )
 
 func TestVaultV2CommandLifecycleJSON(t *testing.T) {
@@ -120,6 +125,127 @@ func TestVaultV2SameDomainErrorUsesSameCodeAcrossCommands(t *testing.T) {
 	if get.Error.Code != protocol.VaultNotFound {
 		t.Fatalf("code = %s, want VAULT_NOT_FOUND", get.Error.Code)
 	}
+}
+
+func TestVaultV2AddDryRunDoesNotWriteConfigOrVault(t *testing.T) {
+	root := t.TempDir()
+	vaultPath := filepath.Join(root, "Notes")
+	if err := os.Mkdir(vaultPath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	notePath := filepath.Join(vaultPath, "existing.md")
+	if err := os.WriteFile(notePath, []byte("# Existing\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(root, "config", "config-v2.json")
+	registry := obsidian.NewRegistry(config.NewStore(configPath))
+	factory := func() (vaultRegistry, error) { return registry, nil }
+	discover := func() ([]obsidian.DiscoveredVault, error) { return nil, nil }
+	before := directoryDigest(t, vaultPath)
+
+	response := executeVaultCommand(t, factory, discover, "add", vaultPath, "--name", "Notes", "--dry-run")
+	if !response.OK {
+		t.Fatalf("unexpected response: %#v", response)
+	}
+	var data protocol.DryRunData
+	if err := json.Unmarshal(response.Data, &data); err != nil {
+		t.Fatal(err)
+	}
+	if !data.DryRun || data.Applied || !data.Changed || len(data.Plan.Changes) != 1 {
+		t.Fatalf("unexpected dry-run plan: %#v", data)
+	}
+	if _, err := os.Stat(configPath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("dry-run created config: %v", err)
+	}
+	if after := directoryDigest(t, vaultPath); after != before {
+		t.Fatalf("vault digest changed: before=%s after=%s", before, after)
+	}
+}
+
+func TestVaultV2RegistryMutationsDryRunDoNotWrite(t *testing.T) {
+	root := t.TempDir()
+	configPath := filepath.Join(root, "config-v2.json")
+	registry := obsidian.NewRegistry(config.NewStore(configPath))
+	vault, err := registry.Add(t.TempDir(), "Notes")
+	if err != nil {
+		t.Fatal(err)
+	}
+	factory := func() (vaultRegistry, error) { return registry, nil }
+	discover := func() ([]obsidian.DiscoveredVault, error) { return nil, nil }
+	before, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, args := range [][]string{
+		{"set-default", vault.ID, "--dry-run"},
+		{"remove", vault.ID, "--dry-run"},
+	} {
+		response := executeVaultCommand(t, factory, discover, args...)
+		if !response.OK {
+			t.Fatalf("%v response: %#v", args, response)
+		}
+		after, err := os.ReadFile(configPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(after, before) {
+			t.Fatalf("%v changed registry config", args)
+		}
+	}
+}
+
+func TestCommonFlagsRegistration(t *testing.T) {
+	command := &cobra.Command{Use: "test"}
+	var values commonFlags
+	bindCommonFlags(command, &values, commonFlagSet{
+		Output: true, RequestID: true, DryRun: true, IfMatch: true, Vault: true,
+	}, false)
+	command.SetArgs([]string{
+		"--output", "json",
+		"--request-id", "req-common",
+		"--dry-run",
+		"--if-match", "sha256:abc",
+		"--vault", "Personal",
+	})
+	if err := command.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if values.Output != "json" || values.RequestID != "req-common" || !values.DryRun ||
+		values.IfMatch != "sha256:abc" || values.Vault != "Personal" {
+		t.Fatalf("flags not bound: %#v", values)
+	}
+}
+
+func directoryDigest(t *testing.T, root string) string {
+	t.Helper()
+	var entries []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		relative, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			entries = append(entries, "d:"+relative)
+			return nil
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		sum := sha256.Sum256(content)
+		entries = append(entries, fmt.Sprintf("f:%s:%x", relative, sum))
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sort.Strings(entries)
+	sum := sha256.Sum256([]byte(fmt.Sprint(entries)))
+	return fmt.Sprintf("%x", sum)
 }
 
 type vaultTestEnvelope struct {

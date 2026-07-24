@@ -24,6 +24,11 @@ type Registry struct {
 	store *config.Store
 }
 
+type VaultRegistrationPlan struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
 func NewRegistry(store *config.Store) *Registry {
 	return &Registry{store: store}
 }
@@ -53,29 +58,20 @@ func (r *Registry) Get(reference string) (config.VaultRecord, error) {
 }
 
 func (r *Registry) Add(vaultPath, requestedName string) (config.VaultRecord, error) {
-	path, err := canonicalVaultPath(vaultPath)
+	plan, err := r.PlanAdd(vaultPath, requestedName)
 	if err != nil {
 		return config.VaultRecord{}, err
-	}
-	name := strings.TrimSpace(requestedName)
-	if name == "" {
-		name = vaultBaseName(path)
 	}
 
 	id, err := generateVaultID()
 	if err != nil {
 		return config.VaultRecord{}, fmt.Errorf("generate vault id: %w", err)
 	}
-	record := config.VaultRecord{ID: id, Name: name, Path: path}
+	record := config.VaultRecord{ID: id, Name: plan.Name, Path: plan.Path}
 
 	_, err = r.store.Update(func(cfg *config.V2Config) error {
-		for _, current := range cfg.Vaults {
-			if sameVaultPath(current.Path, path) {
-				return fmt.Errorf("%w: %s", ErrVaultAlreadyExists, path)
-			}
-			if strings.EqualFold(current.Name, name) {
-				return fmt.Errorf("%w: %s", ErrVaultNameConflict, name)
-			}
+		if err := validateVaultRegistration(*cfg, plan); err != nil {
+			return err
 		}
 		cfg.Vaults[id] = record
 		return nil
@@ -84,6 +80,26 @@ func (r *Registry) Add(vaultPath, requestedName string) (config.VaultRecord, err
 		return config.VaultRecord{}, err
 	}
 	return record, nil
+}
+
+func (r *Registry) PlanAdd(vaultPath, requestedName string) (VaultRegistrationPlan, error) {
+	path, err := canonicalVaultPath(vaultPath)
+	if err != nil {
+		return VaultRegistrationPlan{}, err
+	}
+	name := strings.TrimSpace(requestedName)
+	if name == "" {
+		name = vaultBaseName(path)
+	}
+	plan := VaultRegistrationPlan{Name: name, Path: path}
+	cfg, err := r.store.Load()
+	if err != nil {
+		return VaultRegistrationPlan{}, err
+	}
+	if err := validateVaultRegistration(cfg, plan); err != nil {
+		return VaultRegistrationPlan{}, err
+	}
+	return plan, nil
 }
 
 func (r *Registry) Remove(reference string) (config.VaultRecord, error) {
@@ -137,53 +153,104 @@ func (r *Registry) SetDefaultOpenType(openType string) error {
 }
 
 func (r *Registry) MigrateLegacy(legacyPath string, discovered []DiscoveredVault) (config.V2Config, error) {
-	legacy := CliConfig{}
-	if data, err := os.ReadFile(legacyPath); err == nil {
-		if err := json.Unmarshal(data, &legacy); err != nil {
-			return config.V2Config{}, fmt.Errorf("parse legacy obs-cli config %s: %w", legacyPath, err)
-		}
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return config.V2Config{}, fmt.Errorf("read legacy obs-cli config %s: %w", legacyPath, err)
+	legacy, err := readLegacyConfig(legacyPath)
+	if err != nil {
+		return config.V2Config{}, err
 	}
 
 	return r.store.Update(func(cfg *config.V2Config) error {
-		if len(cfg.Vaults) != 0 {
-			return errors.New("V2 config already contains vaults; migration refused")
-		}
-
-		defaultMatches := make([]string, 0, 1)
-		for _, item := range discovered {
-			if !item.Available {
-				continue
-			}
-			path, err := canonicalVaultPath(item.Path)
-			if err != nil {
-				return err
-			}
-			for _, current := range cfg.Vaults {
-				if strings.EqualFold(current.Name, item.Name) {
-					return fmt.Errorf("%w during migration: %s", ErrVaultNameConflict, item.Name)
-				}
-				if sameVaultPath(current.Path, path) {
-					return fmt.Errorf("%w during migration: %s", ErrVaultAlreadyExists, path)
-				}
-			}
-
-			id := deterministicVaultID(path)
-			cfg.Vaults[id] = config.VaultRecord{ID: id, Name: item.Name, Path: path}
-			if item.Name == legacy.DefaultVaultName {
-				defaultMatches = append(defaultMatches, id)
-			}
-		}
-		if len(defaultMatches) == 1 {
-			cfg.DefaultVaultID = defaultMatches[0]
-		} else if legacy.DefaultVaultName != "" {
-			cfg.MigrationWarning = fmt.Sprintf("legacy default vault %q could not be resolved uniquely", legacy.DefaultVaultName)
-		}
-		cfg.DefaultOpenType = legacy.DefaultOpenType
-		cfg.MigratedFrom = "preferences.json+obsidian.json"
-		return nil
+		return applyLegacyMigration(cfg, legacy, discovered)
 	})
+}
+
+func (r *Registry) PlanMigrate(legacyPath string, discovered []DiscoveredVault) (config.V2Config, error) {
+	legacy, err := readLegacyConfig(legacyPath)
+	if err != nil {
+		return config.V2Config{}, err
+	}
+	cfg, err := r.store.Load()
+	if err != nil {
+		return config.V2Config{}, err
+	}
+	planned := cloneV2Config(cfg)
+	if err := applyLegacyMigration(&planned, legacy, discovered); err != nil {
+		return config.V2Config{}, err
+	}
+	if err := config.ValidateV2Config(planned); err != nil {
+		return config.V2Config{}, err
+	}
+	return planned, nil
+}
+
+func validateVaultRegistration(cfg config.V2Config, plan VaultRegistrationPlan) error {
+	for _, current := range cfg.Vaults {
+		if sameVaultPath(current.Path, plan.Path) {
+			return fmt.Errorf("%w: %s", ErrVaultAlreadyExists, plan.Path)
+		}
+		if strings.EqualFold(current.Name, plan.Name) {
+			return fmt.Errorf("%w: %s", ErrVaultNameConflict, plan.Name)
+		}
+	}
+	return nil
+}
+
+func readLegacyConfig(legacyPath string) (CliConfig, error) {
+	legacy := CliConfig{}
+	data, err := os.ReadFile(legacyPath)
+	if err == nil {
+		if err := json.Unmarshal(data, &legacy); err != nil {
+			return CliConfig{}, fmt.Errorf("parse legacy obs-cli config %s: %w", legacyPath, err)
+		}
+		return legacy, nil
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return CliConfig{}, fmt.Errorf("read legacy obs-cli config %s: %w", legacyPath, err)
+	}
+	return legacy, nil
+}
+
+func applyLegacyMigration(cfg *config.V2Config, legacy CliConfig, discovered []DiscoveredVault) error {
+	if len(cfg.Vaults) != 0 {
+		return errors.New("V2 config already contains vaults; migration refused")
+	}
+
+	defaultMatches := make([]string, 0, 1)
+	for _, item := range discovered {
+		if !item.Available {
+			continue
+		}
+		path, err := canonicalVaultPath(item.Path)
+		if err != nil {
+			return err
+		}
+		plan := VaultRegistrationPlan{Name: item.Name, Path: path}
+		if err := validateVaultRegistration(*cfg, plan); err != nil {
+			return fmt.Errorf("%w during migration", err)
+		}
+
+		id := deterministicVaultID(path)
+		cfg.Vaults[id] = config.VaultRecord{ID: id, Name: item.Name, Path: path}
+		if item.Name == legacy.DefaultVaultName {
+			defaultMatches = append(defaultMatches, id)
+		}
+	}
+	if len(defaultMatches) == 1 {
+		cfg.DefaultVaultID = defaultMatches[0]
+	} else if legacy.DefaultVaultName != "" {
+		cfg.MigrationWarning = fmt.Sprintf("legacy default vault %q could not be resolved uniquely", legacy.DefaultVaultName)
+	}
+	cfg.DefaultOpenType = legacy.DefaultOpenType
+	cfg.MigratedFrom = "preferences.json+obsidian.json"
+	return nil
+}
+
+func cloneV2Config(cfg config.V2Config) config.V2Config {
+	cloned := cfg
+	cloned.Vaults = make(map[string]config.VaultRecord, len(cfg.Vaults))
+	for id, record := range cfg.Vaults {
+		cloned.Vaults[id] = record
+	}
+	return cloned
 }
 
 func resolveRegistryVault(cfg config.V2Config, reference string) (config.VaultRecord, error) {

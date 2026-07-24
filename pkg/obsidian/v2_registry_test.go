@@ -128,6 +128,36 @@ func TestV2RegistryMigratesLegacyConfigAndDiscovery(t *testing.T) {
 	}
 }
 
+func TestV2RegistryPlansMigrationWithoutWriting(t *testing.T) {
+	root := t.TempDir()
+	vaultPath := filepath.Join(root, "Notes")
+	if err := os.Mkdir(vaultPath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	legacyPath := filepath.Join(root, "preferences.json")
+	if err := os.WriteFile(legacyPath, []byte(`{"default_vault_name":"Notes"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(root, "config", "config-v2.json")
+	registry := obsidian.NewRegistry(config.NewStore(configPath))
+
+	planned, err := registry.PlanMigrate(legacyPath, []obsidian.DiscoveredVault{
+		{SourceID: "a", Name: "Notes", Path: vaultPath, Available: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(planned.Vaults) != 1 || planned.DefaultVaultID == "" {
+		t.Fatalf("unexpected migration plan: %#v", planned)
+	}
+	if _, err := os.Stat(configPath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("migration plan wrote config: %v", err)
+	}
+	if _, err := os.Stat(configPath + ".lock"); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("migration plan wrote lock: %v", err)
+	}
+}
+
 func TestV2RegistryRejectsMalformedLegacyConfig(t *testing.T) {
 	root := t.TempDir()
 	legacyPath := filepath.Join(root, "preferences.json")
