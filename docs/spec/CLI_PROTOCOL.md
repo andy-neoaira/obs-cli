@@ -217,6 +217,7 @@ sha256:<64 lowercase hex characters>
 | `PATH_OUTSIDE_VAULT` | 路径或符号链接逃逸 Vault | false | 5 |
 | `PARTIAL_FAILURE` | 多文件操作未能完整应用或回滚 | false | 7 |
 | `CAPABILITY_UNSUPPORTED` | 当前版本或平台不支持所需能力 | false | 8 |
+| `INTERNAL_ERROR` | 未分类内部错误或 I/O 失败 | false | 10 |
 
 `retryable: true` 表示调用方在改变前置状态后可以重试，不表示可以原参数立即无限重试。`REVISION_CONFLICT` 必须先重新读取和重新规划。
 
@@ -283,4 +284,3 @@ obs capabilities --output json
 - 诊断日志不得默认记录完整笔记正文。
 - dry-run 必须真正无写入副作用。
 - 任何绕过 revision 的危险操作必须是独立 capability，且不得被默认 Skill 使用。
-

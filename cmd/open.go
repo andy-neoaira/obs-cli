@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -17,7 +15,7 @@ var OpenVaultCmd = &cobra.Command{
 	Use:   "open",
 	Short: "Opens note in vault by note name",
 	Args:  cobra.ExactArgs(1), // 严格要求恰好 1 个参数：笔记名称
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// 构造 Vault 对象（Name 为空时业务层会从配置中读取默认值）
 		vault := obsidian.Vault{Name: vaultName}
 		uri := obsidian.Uri{}
@@ -25,10 +23,7 @@ var OpenVaultCmd = &cobra.Command{
 
 		// 组装参数并调用业务层函数 OpenNote
 		params := actions.OpenParams{NoteName: noteName, Section: sectionName, UseEditor: resolveUseEditor(cmd, &vault)}
-		err := actions.OpenNote(&vault, &uri, params)
-		if err != nil {
-			log.Fatal(err)
-		}
+		return actions.OpenNote(&vault, &uri, params)
 	},
 }
 

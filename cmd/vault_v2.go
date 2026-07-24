@@ -1,15 +1,12 @@
 package cmd
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/andy-neoaira/obs-cli/pkg/config"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/protocol"
 	"github.com/spf13/cobra"
 )
 
@@ -37,21 +34,56 @@ func newVaultV2Command(factory vaultRegistryFactory, discover vaultDiscoverFunc)
 	command := &cobra.Command{
 		Use:   "vault",
 		Short: "Manage obs-cli V2 vault registry",
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			operation := "vault." + cmd.Name()
 			if output != "json" {
-				return fmt.Errorf("unsupported output format %q: only json is supported", output)
+				err := protocol.NewError(
+					protocol.InvalidArgument,
+					fmt.Sprintf("unsupported output format %q: only json is supported", output),
+					map[string]any{"field": "output"},
+				)
+				resolved, resolveErr := protocol.ResolveRequestID(requestID)
+				if resolveErr != nil {
+					resolved, _ = protocol.ResolveRequestID("")
+				}
+				requestID = resolved
+				return renderV2(cmd, operation, requestID, func() (any, error) { return nil, err })
 			}
-			if requestID == "" {
-				requestID = newVaultRequestID()
+			resolved, err := protocol.ResolveRequestID(requestID)
+			if err != nil {
+				requestID, _ = protocol.ResolveRequestID("")
+				return renderV2(cmd, operation, requestID, func() (any, error) { return nil, err })
 			}
+			requestID = resolved
 			return nil
 		},
 	}
 	command.PersistentFlags().StringVar(&output, "output", "json", "output format (json)")
 	command.PersistentFlags().StringVar(&requestID, "request-id", "", "caller-provided request identifier")
 
-	write := func(cmd *cobra.Command, operation string, data any) error {
-		return writeVaultEnvelope(cmd.OutOrStdout(), operation, requestID, data)
+	execute := func(cmd *cobra.Command, operation string, run func() (any, error)) error {
+		return renderV2(cmd, operation, requestID, run)
+	}
+	args := func(operation string, validate cobra.PositionalArgs) cobra.PositionalArgs {
+		return func(cmd *cobra.Command, values []string) error {
+			if err := validate(cmd, values); err != nil {
+				resolved, resolveErr := protocol.ResolveRequestID(requestID)
+				if resolveErr != nil {
+					resolved, _ = protocol.ResolveRequestID("")
+				}
+				requestID = resolved
+				domain := protocol.Wrap(
+					protocol.InvalidArgument,
+					"invalid command arguments",
+					err,
+					map[string]any{"command": cmd.CommandPath()},
+				)
+				return renderV2(cmd, operation, requestID, func() (any, error) {
+					return nil, domain
+				})
+			}
+			return nil
+		}
 	}
 	registry := func() (vaultRegistry, error) {
 		return factory()
@@ -60,38 +92,39 @@ func newVaultV2Command(factory vaultRegistryFactory, discover vaultDiscoverFunc)
 	command.AddCommand(&cobra.Command{
 		Use:   "discover",
 		Short: "Read vaults from Obsidian configuration without modifying it",
-		Args:  cobra.NoArgs,
+		Args:  args("vault.discover", cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			vaults, err := discover()
-			if err != nil {
-				return err
-			}
-			return write(cmd, "vault.discover", map[string]any{"vaults": vaults})
+			return execute(cmd, "vault.discover", func() (any, error) {
+				vaults, err := discover()
+				return map[string]any{"vaults": vaults}, err
+			})
 		},
 	})
 
 	command.AddCommand(&cobra.Command{
 		Use:   "list",
 		Short: "List vaults registered in obs-cli V2",
-		Args:  cobra.NoArgs,
+		Args:  args("vault.list", cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			instance, err := registry()
-			if err != nil {
-				return err
-			}
-			vaults, err := instance.List()
-			if err != nil {
-				return err
-			}
-			var defaultID string
-			if selected, defaultErr := instance.Default(); defaultErr == nil {
-				defaultID = selected.ID
-			} else if !errors.Is(defaultErr, obsidian.ErrVaultNotFound) {
-				return defaultErr
-			}
-			return write(cmd, "vault.list", map[string]any{
-				"vaults":           vaults,
-				"default_vault_id": defaultID,
+			return execute(cmd, "vault.list", func() (any, error) {
+				instance, err := registry()
+				if err != nil {
+					return nil, err
+				}
+				vaults, err := instance.List()
+				if err != nil {
+					return nil, err
+				}
+				var defaultID string
+				if selected, defaultErr := instance.Default(); defaultErr == nil {
+					defaultID = selected.ID
+				} else if !errors.Is(defaultErr, obsidian.ErrVaultNotFound) {
+					return nil, defaultErr
+				}
+				return map[string]any{
+					"vaults":           vaults,
+					"default_vault_id": defaultID,
+				}, nil
 			})
 		},
 	})
@@ -99,17 +132,16 @@ func newVaultV2Command(factory vaultRegistryFactory, discover vaultDiscoverFunc)
 	command.AddCommand(&cobra.Command{
 		Use:   "get <id-or-name>",
 		Short: "Get one obs-cli V2 vault",
-		Args:  cobra.ExactArgs(1),
+		Args:  args("vault.get", cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			instance, err := registry()
-			if err != nil {
-				return err
-			}
-			vault, err := instance.Get(args[0])
-			if err != nil {
-				return err
-			}
-			return write(cmd, "vault.get", map[string]any{"vault": vault})
+			return execute(cmd, "vault.get", func() (any, error) {
+				instance, err := registry()
+				if err != nil {
+					return nil, err
+				}
+				vault, err := instance.Get(args[0])
+				return map[string]any{"vault": vault}, err
+			})
 		},
 	})
 
@@ -118,25 +150,24 @@ func newVaultV2Command(factory vaultRegistryFactory, discover vaultDiscoverFunc)
 	add := &cobra.Command{
 		Use:   "add <path>",
 		Short: "Register a directory in obs-cli V2",
-		Args:  cobra.ExactArgs(1),
+		Args:  args("vault.add", cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			instance, err := registry()
-			if err != nil {
-				return err
-			}
-			vault, err := instance.Add(args[0], addName)
-			if err != nil {
-				return err
-			}
-			if addDefault {
-				vault, err = instance.SetDefault(vault.ID)
+			return execute(cmd, "vault.add", func() (any, error) {
+				instance, err := registry()
 				if err != nil {
-					return err
+					return nil, err
 				}
-			}
-			return write(cmd, "vault.add", map[string]any{
-				"vault":       vault,
-				"set_default": addDefault,
+				vault, err := instance.Add(args[0], addName)
+				if err != nil {
+					return nil, err
+				}
+				if addDefault {
+					vault, err = instance.SetDefault(vault.ID)
+					if err != nil {
+						return nil, err
+					}
+				}
+				return map[string]any{"vault": vault, "set_default": addDefault}, nil
 			})
 		},
 	}
@@ -147,19 +178,15 @@ func newVaultV2Command(factory vaultRegistryFactory, discover vaultDiscoverFunc)
 	command.AddCommand(&cobra.Command{
 		Use:   "remove <id-or-name>",
 		Short: "Remove a vault from obs-cli V2 without deleting files",
-		Args:  cobra.ExactArgs(1),
+		Args:  args("vault.remove", cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			instance, err := registry()
-			if err != nil {
-				return err
-			}
-			vault, err := instance.Remove(args[0])
-			if err != nil {
-				return err
-			}
-			return write(cmd, "vault.remove", map[string]any{
-				"vault":         vault,
-				"files_deleted": false,
+			return execute(cmd, "vault.remove", func() (any, error) {
+				instance, err := registry()
+				if err != nil {
+					return nil, err
+				}
+				vault, err := instance.Remove(args[0])
+				return map[string]any{"vault": vault, "files_deleted": false}, err
 			})
 		},
 	})
@@ -167,73 +194,52 @@ func newVaultV2Command(factory vaultRegistryFactory, discover vaultDiscoverFunc)
 	command.AddCommand(&cobra.Command{
 		Use:   "set-default <id-or-name>",
 		Short: "Set the default obs-cli V2 vault",
-		Args:  cobra.ExactArgs(1),
+		Args:  args("vault.set-default", cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			instance, err := registry()
-			if err != nil {
-				return err
-			}
-			vault, err := instance.SetDefault(args[0])
-			if err != nil {
-				return err
-			}
-			return write(cmd, "vault.set-default", map[string]any{"vault": vault})
+			return execute(cmd, "vault.set-default", func() (any, error) {
+				instance, err := registry()
+				if err != nil {
+					return nil, err
+				}
+				vault, err := instance.SetDefault(args[0])
+				return map[string]any{"vault": vault}, err
+			})
 		},
 	})
 
 	command.AddCommand(&cobra.Command{
 		Use:   "migrate",
 		Short: "Import legacy obs-cli preferences and discovered Obsidian vaults once",
-		Args:  cobra.NoArgs,
+		Args:  args("vault.migrate", cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			instance, err := registry()
-			if err != nil {
-				return err
-			}
-			vaults, err := discover()
-			if err != nil {
-				return err
-			}
-			_, legacyPath, err := config.CliPath()
-			if err != nil {
-				return err
-			}
-			cfg, err := instance.MigrateLegacy(legacyPath, vaults)
-			if err != nil {
-				return err
-			}
-			return write(cmd, "vault.migrate", map[string]any{
-				"config_version":    cfg.Version,
-				"vaults":            config.SortedVaults(cfg),
-				"default_vault_id":  cfg.DefaultVaultID,
-				"migration_warning": cfg.MigrationWarning,
+			return execute(cmd, "vault.migrate", func() (any, error) {
+				instance, err := registry()
+				if err != nil {
+					return nil, err
+				}
+				vaults, err := discover()
+				if err != nil {
+					return nil, err
+				}
+				_, legacyPath, err := config.CliPath()
+				if err != nil {
+					return nil, err
+				}
+				cfg, err := instance.MigrateLegacy(legacyPath, vaults)
+				if err != nil {
+					return nil, err
+				}
+				return map[string]any{
+					"config_version":    cfg.Version,
+					"vaults":            config.SortedVaults(cfg),
+					"default_vault_id":  cfg.DefaultVaultID,
+					"migration_warning": cfg.MigrationWarning,
+				}, nil
 			})
 		},
 	})
 
 	return command
-}
-
-func writeVaultEnvelope(writer io.Writer, operation, requestID string, data any) error {
-	response := map[string]any{
-		"protocol_version": "obs-cli/v2",
-		"ok":               true,
-		"operation":        operation,
-		"request_id":       requestID,
-		"data":             data,
-		"warnings":         []any{},
-	}
-	encoder := json.NewEncoder(writer)
-	encoder.SetEscapeHTML(false)
-	return encoder.Encode(response)
-}
-
-func newVaultRequestID() string {
-	value := make([]byte, 12)
-	if _, err := rand.Read(value); err != nil {
-		return "req-unavailable"
-	}
-	return "req-" + hex.EncodeToString(value)
 }
 
 func init() {

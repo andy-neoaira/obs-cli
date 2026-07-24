@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
-	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +16,7 @@ var printCmd = &cobra.Command{
 	Use:   "print",
 	Short: "Print contents of note",
 	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：笔记名称或路径
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		noteName := args[0]
 		vault := obsidian.Vault{Name: vaultName}
 		note := obsidian.Note{}
@@ -27,9 +26,10 @@ var printCmd = &cobra.Command{
 		}
 		contents, err := actions.PrintNote(&vault, &note, params)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		fmt.Println(contents)
+		return nil
 	},
 }
 

@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -16,13 +14,13 @@ var createNoteCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates note in vault",
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		vault := obsidian.Vault{Name: vaultName}
 		uri := obsidian.Uri{}
 		noteName := args[0]
 		resolvedContent, err := resolveContentInput(content, contentFile)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		params := actions.CreateParams{
@@ -33,10 +31,7 @@ var createNoteCmd = &cobra.Command{
 			ShouldOpen:      shouldOpen,
 			UseEditor:       resolveUseEditor(cmd, &vault),
 		}
-		err = actions.CreateNote(&vault, &uri, params)
-		if err != nil {
-			log.Fatal(err)
-		}
+		return actions.CreateNote(&vault, &uri, params)
 	},
 }
 

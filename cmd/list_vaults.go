@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"sort"
 	"text/tabwriter"
@@ -24,14 +23,14 @@ var listVaultsCmd = &cobra.Command{
 	Use:   "list-vaults",
 	Short: "lists all registered Obsidian vaults",
 	Args:  cobra.ExactArgs(0), // 不接受任何参数
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		registry, err := obsidian.DefaultRegistry()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		records, err := registry.List()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		vaults := make([]obsidian.VaultInfo, 0, len(records))
 		for _, record := range records {
@@ -44,13 +43,12 @@ var listVaultsCmd = &cobra.Command{
 
 		// 如果用户指定了 --default，只显示默认 vault 的信息
 		if listVaultsDefault {
-			runListVaultsDefault(vaults, defaultName)
-			return
+			return runListVaultsDefault(vaults, defaultName)
 		}
 
 		if len(vaults) == 0 {
 			fmt.Println("No vaults registered. Use add-vault to register one.")
-			return
+			return nil
 		}
 
 		// 按 vault 名称字母顺序排序，保证输出稳定
@@ -62,10 +60,10 @@ var listVaultsCmd = &cobra.Command{
 		if listVaultsJSON {
 			output, err := json.MarshalIndent(vaults, "", "  ")
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 			fmt.Println(string(output))
-			return
+			return nil
 		}
 
 		if listVaultsPathOnly {
@@ -75,14 +73,15 @@ var listVaultsCmd = &cobra.Command{
 		} else {
 			formatVaultsTable(os.Stdout, vaults, defaultName)
 		}
+		return nil
 	},
 }
 
 // runListVaultsDefault 处理 --default flag 的逻辑，仅输出当前默认 vault 的信息。
-func runListVaultsDefault(vaults []obsidian.VaultInfo, defaultName string) {
+func runListVaultsDefault(vaults []obsidian.VaultInfo, defaultName string) error {
 	if defaultName == "" {
 		fmt.Println("No default vault set. Use set-default-vault to set one.")
-		return
+		return nil
 	}
 
 	// 在已注册列表中找到默认 vault
@@ -96,21 +95,21 @@ func runListVaultsDefault(vaults []obsidian.VaultInfo, defaultName string) {
 
 	if defaultVault == nil {
 		fmt.Printf("Default vault %q is set but not found in registered vaults.\n", defaultName)
-		return
+		return nil
 	}
 
 	if listVaultsJSON {
 		output, err := json.MarshalIndent(defaultVault, "", "  ")
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		fmt.Println(string(output))
-		return
+		return nil
 	}
 
 	if listVaultsPathOnly {
 		fmt.Println(defaultVault.Path)
-		return
+		return nil
 	}
 
 	vault := obsidian.Vault{Name: defaultName}
@@ -119,6 +118,7 @@ func runListVaultsDefault(vaults []obsidian.VaultInfo, defaultName string) {
 	fmt.Println("Default vault name:", defaultVault.Name)
 	fmt.Println("Default vault path:", defaultVault.Path)
 	fmt.Println("Default open type:", openType)
+	return nil
 }
 
 // formatVaultsTable 使用 tabwriter 将 vault 列表格式化为对齐的表格输出。

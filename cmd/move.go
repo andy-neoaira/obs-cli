@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
-	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +16,7 @@ var moveCmd = &cobra.Command{
 	Use:   "move",
 	Short: "Move or rename note in vault and updated corresponding links",
 	Args:  cobra.ExactArgs(2), // 需要 2 个参数：原路径 和 新路径
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		currentName := args[0]
 		newName := args[1]
 		vault := obsidian.Vault{Name: vaultName}
@@ -30,10 +29,7 @@ var moveCmd = &cobra.Command{
 			ShouldOpen:      shouldOpen,
 			UseEditor:       resolveUseEditor(cmd, &vault),
 		}
-		err := actions.MoveNote(&vault, &note, &linkRewriter, &uri, params)
-		if err != nil {
-			log.Fatal(err)
-		}
+		return actions.MoveNote(&vault, &note, &linkRewriter, &uri, params)
 	},
 }
 

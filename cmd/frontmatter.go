@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
@@ -30,7 +29,7 @@ Examples:
   obs-cli frontmatter "My Note" --edit --key "status" --value "done"
   obs-cli frontmatter "My Note" --delete --key "draft"`,
 	Args: cobra.ExactArgs(1), // 必须提供 1 个参数：笔记名称
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		noteName := args[0]
 		vault := obsidian.Vault{Name: vaultName}
 		note := obsidian.Note{}
@@ -46,12 +45,13 @@ Examples:
 
 		output, err := actions.Frontmatter(&vault, &note, params)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		if output != "" {
 			fmt.Print(output)
 		}
+		return nil
 	},
 }
 

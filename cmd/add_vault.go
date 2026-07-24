@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -16,14 +15,14 @@ var addVaultCmd = &cobra.Command{
 	Short: "Register a vault directory",
 	Long:  "Registers a directory in obs-cli V2. It never modifies Obsidian's obsidian.json.",
 	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：vault 的本地路径
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		registry, err := obsidian.DefaultRegistry()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		vault, err := registry.Add(args[0], "")
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		fmt.Printf("Vault %q registered at: %s\n", vault.Name, vault.Path)
 
@@ -31,10 +30,11 @@ var addVaultCmd = &cobra.Command{
 		setDefault, _ := cmd.Flags().GetBool("set-default")
 		if setDefault {
 			if _, err := registry.SetDefault(vault.ID); err != nil {
-				log.Fatal(err)
+				return err
 			}
 			fmt.Println("Default vault set to:", vault.Name)
 		}
+		return nil
 	},
 }
 

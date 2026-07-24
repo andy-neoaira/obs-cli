@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
-	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -13,15 +12,12 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete note in vault",
 	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：要删除的笔记路径
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		vault := obsidian.Vault{Name: vaultName}
 		note := obsidian.Note{}
 		notePath := args[0]
 		params := actions.DeleteParams{NotePath: notePath}
-		err := actions.DeleteNote(&vault, &note, params)
-		if err != nil {
-			log.Fatal(err)
-		}
+		return actions.DeleteNote(&vault, &note, params)
 	},
 }
 

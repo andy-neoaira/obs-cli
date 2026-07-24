@@ -92,7 +92,8 @@
             "REVISION_CONFLICT",
             "PATH_OUTSIDE_VAULT",
             "PARTIAL_FAILURE",
-            "CAPABILITY_UNSUPPORTED"
+            "CAPABILITY_UNSUPPORTED",
+            "INTERNAL_ERROR"
           ]
         },
         "message": {

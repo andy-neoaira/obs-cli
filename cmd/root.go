@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"runtime/debug"
 
 	"github.com/spf13/cobra"
@@ -29,17 +28,27 @@ func resolveVersion() string {
 // rootCmd 是 obs-cli 的根命令定义。
 // Cobra 框架会根据这里的定义自动生成帮助信息、版本号和子命令树。
 var rootCmd = &cobra.Command{
-	Use:     "obs-cli",
-	Short:   "Interact with Obsidian vaults from the terminal",
-	Version: resolveVersion(),
-	Long:    "Interact with Obsidian vaults from the terminal",
+	Use:           "obs-cli",
+	Short:         "Interact with Obsidian vaults from the terminal",
+	Version:       resolveVersion(),
+	Long:          "Interact with Obsidian vaults from the terminal",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 // Execute 是 CLI 的入口函数，由 main.go 调用。
 // 它会解析命令行参数并执行对应的子命令；如果出错则打印错误信息并退出程序。
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your CLI '%s'", err)
-		os.Exit(1)
+func Execute() int {
+	return executeRoot(rootCmd)
+}
+
+func executeRoot(command *cobra.Command) int {
+	if err := command.Execute(); err != nil {
+		if rendered, ok := err.(*renderedCommandError); ok {
+			return rendered.exit
+		}
+		fmt.Fprintf(command.ErrOrStderr(), "obs-cli: %s\n", err)
+		return 10
 	}
+	return 0
 }

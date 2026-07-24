@@ -1,7 +1,7 @@
 # P1-T04：JSON 响应与稳定错误码
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`已完成`
+- 负责人：`Codex`
 - 涉及项目：`obs-cli`
 - 依赖：P0-T03
 
@@ -27,11 +27,11 @@
 
 ## 验收标准
 
-- [ ] JSON 模式 stdout 可直接被 JSON parser 读取。
-- [ ] 失败响应也满足 Schema。
-- [ ] `log.Fatal` 不存在于可复用业务包。
-- [ ] 相同领域错误跨命令返回相同 code。
-- [ ] request ID 在响应和诊断日志中保持一致。
+- [x] JSON 模式 stdout 可直接被 JSON parser 读取。
+- [x] 失败响应也满足 Schema。
+- [x] `log.Fatal` 不存在于可复用业务包。
+- [x] 相同领域错误跨命令返回相同 code。
+- [x] request ID 在响应和诊断日志中保持一致。
 
 ## 验证
 
@@ -40,3 +40,13 @@ go test ./... -run 'JSON|Envelope|ErrorCode|ExitCode'
 rg -n 'log\\.Fatal|os\\.Exit' pkg cmd
 ```
 
+## 完成记录
+
+- 完成日期：`2026-07-24`
+- 新增 `pkg/protocol`，统一领域错误、成功/失败 envelope、warning、request ID、renderer 与退出码。
+- `vault` V2 命令的成功、领域失败、参数失败、非法 request ID 和非法 output 均只向 stdout 输出一个 JSON object。
+- 根执行器不再直接退出进程；已渲染的 V2 错误保持协议退出码，诊断日志携带相同 request ID。
+- 所有 Cobra handler 均返回 error，`pkg` 与 `cmd` 中已清除 `log.Fatal` 和 `os.Exit`。
+- 黄金成功/失败输出从 `response-v2.schema.json` 动态读取约束进行合同验证。
+- Schema 增加与退出码 10 对应的 `INTERNAL_ERROR`，避免未分类错误产生不符合 Schema 的失败响应。
+- 全量测试、全量 Race、Vet、license check 与协议专项测试通过。

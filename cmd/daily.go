@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -12,21 +10,18 @@ var DailyCmd = &cobra.Command{
 	Use:   "daily",
 	Short: "Creates or opens daily note in vault",
 	Args:  cobra.ExactArgs(0),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		vault := obsidian.Vault{Name: vaultName}
 		uri := obsidian.Uri{}
 		resolvedContent, err := resolveContentInput(dailyContent, dailyContentFile)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
-		err = actions.DailyNote(&vault, &uri, actions.DailyParams{
+		return actions.DailyNote(&vault, &uri, actions.DailyParams{
 			Content:   resolvedContent,
 			UseEditor: resolveUseEditor(cmd, &vault),
 		})
-		if err != nil {
-			log.Fatal(err)
-		}
 	},
 }
 

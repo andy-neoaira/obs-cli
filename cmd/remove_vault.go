@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
@@ -16,18 +15,19 @@ var removeVaultCmd = &cobra.Command{
 	Short: "Unregister a vault",
 	Long:  "Removes a vault from obs-cli V2. Does not modify Obsidian config or delete files.",
 	Args:  cobra.ExactArgs(1), // 必须提供 1 个参数：vault 名称
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		input := args[0]
 
 		registry, err := obsidian.DefaultRegistry()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		vault, err := registry.Remove(input)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		fmt.Printf("Vault %q removed\n", vault.Name)
+		return nil
 	},
 }
 

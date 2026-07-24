@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"log"
 	"os"
 
 	"github.com/andy-neoaira/obs-cli/pkg/actions"
@@ -14,7 +13,7 @@ var searchContentCmd = &cobra.Command{
 	Use:   "search-content [search term]",
 	Short: "Search note content for search term",
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		vault := obsidian.Vault{Name: vaultName}
 		note := obsidian.Note{}
 		uri := obsidian.Uri{}
@@ -23,13 +22,10 @@ var searchContentCmd = &cobra.Command{
 		searchTerm := args[0]
 		options, err := buildSearchContentOptions(cmd, &vault, isInteractiveTerminal())
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
-		err = actions.SearchNotesContentWithOptions(&vault, &note, &uri, &fuzzyFinder, searchTerm, options)
-		if err != nil {
-			log.Fatal(err)
-		}
+		return actions.SearchNotesContentWithOptions(&vault, &note, &uri, &fuzzyFinder, searchTerm, options)
 	},
 }
 
