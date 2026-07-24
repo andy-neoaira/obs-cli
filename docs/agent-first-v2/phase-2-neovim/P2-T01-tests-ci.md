@@ -1,7 +1,7 @@
 # P2-T01：测试框架、格式化与 CI
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`已完成`
+- 负责人：`Codex`
 - 涉及项目：`miniobsidian.nvim`
 - 依赖：P0-T05
 
@@ -28,18 +28,29 @@
 
 ## 验收标准
 
-- [ ] 测试可在干净环境运行。
-- [ ] 测试不会访问用户 Obsidian 配置和真实 Vault。
-- [ ] Stylua 检查无差异。
-- [ ] 最低支持版和稳定版 Neovim CI 通过。
-- [ ] CI 能在共享 fixture 版本或内容未同步时失败。
-- [ ] 测试失败时 CI 返回非零状态。
+- [x] 测试可在干净环境运行。
+- [x] 测试不会访问用户 Obsidian 配置和真实 Vault。
+- [x] Stylua 检查无差异。
+- [x] 最低支持版和稳定版 Neovim CI 通过。
+- [x] CI 能在共享 fixture 版本或内容未同步时失败。
+- [x] 测试失败时 CI 返回非零状态。
 
 ## 验证
 
 ```bash
 cd /Users/andy/github/miniobsidian.nvim
-stylua --check .
-selene lua
-nvim --headless -u tests/minimal_init.lua -c "PlenaryBustedDirectory tests" -c qa
+make ci
+make test NVIM=/path/to/nvim-v0.10.4/bin/nvim
 ```
+
+## 完成记录
+
+- 完成日期：2026-07-25
+- 实现提交：`miniobsidian.nvim@f44c02c`
+- 建立 Plenary headless 测试，覆盖 `init`、`vault`、`note`、`link`、`daily`、`template` 和共享 fixture。
+- 所有写入测试仅使用临时 Vault；`setup` smoke test 显式关闭自动发现与 Obsidian 配置同步。
+- CI 固定 Stylua 2.5.2、Selene 0.28.0，并覆盖 Neovim v0.10.4 与 stable。
+- 增加共享 fixture SHA-256 校验，内容或同步状态漂移时返回非零状态。
+- 修复 Selene Neovim 标准库配置并清理全部 Stylua 差异。
+- 本地 `make ci` 通过：Stylua、Selene、fixture 校验及 9 个测试全部成功。
+- 官方 Neovim v0.10.4 arm64 发布包经 SHA-256 校验后补跑测试，9 个测试全部成功。
