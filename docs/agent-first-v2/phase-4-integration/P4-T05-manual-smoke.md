@@ -15,7 +15,7 @@
 
 ## 前置门禁
 
-- [ ] `./scripts/run-three-client-e2e.sh` 输出 `6/6`。
+- [x] `./scripts/run-three-client-e2e.sh` 输出 `6/6`。
 - [ ] 测试 Vault 已备份或可随时丢弃。
 - [ ] 桌面端、移动端、CLI 和 Neovim 指向同一份同步数据。
 - [ ] 已记录同步服务的冲突副本、延迟与离线策略。
