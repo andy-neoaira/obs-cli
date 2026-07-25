@@ -11,10 +11,10 @@
 
 ## 任务进度
 
-阶段进度：`1 / 6`
+阶段进度：`2 / 6`
 
 - [x] [P4-T01 miniobsidian 可选 CLI Adapter](./P4-T01-optional-cli-adapter.md)
-- [ ] [P4-T02 Neovim 安全移动与批量操作入口](./P4-T02-safe-move-ui.md)
+- [x] [P4-T02 Neovim 安全移动与批量操作入口](./P4-T02-safe-move-ui.md)
 - [ ] [P4-T03 当前笔记与选区交给 Agent](./P4-T03-agent-handoff.md)
 - [ ] [P4-T04 Agent 修改后的 Diff 与冲突 UX](./P4-T04-diff-conflict-ux.md)
 - [ ] [P4-T05 三入口端到端测试](./P4-T05-three-client-e2e.md)
