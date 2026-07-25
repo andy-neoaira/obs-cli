@@ -22,7 +22,8 @@ func newMetadataV2Command(registryFactory vaultRegistryFactory, serviceFactory n
 			}
 			note, err := service.Get(values[0])
 			return map[string]any{"vault": vault, "note": map[string]any{
-				"path": note.Path, "revision": note.Revision, "frontmatter": note.Frontmatter,
+				"path": note.Path, "revision": note.Revision, "body_revision": note.BodyRevision,
+				"frontmatter": note.Frontmatter,
 			}}, err
 		})
 	}
@@ -57,7 +58,7 @@ func newMetadataV2Command(registryFactory vaultRegistryFactory, serviceFactory n
 			} else {
 				mutation, err = service.Replace(values[0], []byte(updated), setFlags.IfMatch)
 			}
-			return map[string]any{"key": key, "value": value,
+			return map[string]any{"key": key, "value": value, "body_revision": note.BodyRevision,
 				"result": mutationResponse(vault, mutation, setFlags.DryRun, nil)}, err
 		})
 	}

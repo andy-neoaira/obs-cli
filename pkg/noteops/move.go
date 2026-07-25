@@ -2,11 +2,15 @@ package noteops
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/andy-neoaira/obs-cli/pkg/frontmatter"
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/andy-neoaira/obs-cli/pkg/pathpolicy"
 	"github.com/andy-neoaira/obs-cli/pkg/storage"
@@ -22,20 +26,24 @@ type MoveChange struct {
 }
 
 type MovePlan struct {
-	Source     string       `json:"source"`
-	Target     string       `json:"target"`
-	Changes    []MoveChange `json:"changes"`
-	Risks      []string     `json:"risks"`
-	mutations  []storage.Mutation
-	targetPath string
+	PlanHash           string       `json:"plan_hash"`
+	Source             string       `json:"source"`
+	Target             string       `json:"target"`
+	TargetBodyRevision string       `json:"target_body_revision"`
+	Changes            []MoveChange `json:"changes"`
+	Risks              []string     `json:"risks"`
+	mutations          []storage.Mutation
+	targetPath         string
 }
 
 type MoveResult struct {
-	TransactionID string       `json:"transaction_id"`
-	Source        string       `json:"source"`
-	Target        string       `json:"target"`
-	Changes       []MoveChange `json:"changes"`
-	RevisionAfter string       `json:"revision_after"`
+	TransactionID      string       `json:"transaction_id"`
+	PlanHash           string       `json:"plan_hash"`
+	Source             string       `json:"source"`
+	Target             string       `json:"target"`
+	TargetBodyRevision string       `json:"target_body_revision"`
+	Changes            []MoveChange `json:"changes"`
+	RevisionAfter      string       `json:"revision_after"`
 }
 
 type MovePartialFailure struct {
@@ -156,14 +164,17 @@ func (s *Service) PlanMove(sourceInput, targetInput, expectedRevision string) (M
 		Delete:       true,
 		Precondition: storage.Preconditions{ExpectedRevision: sourceSnapshot.Revision},
 	})
-	return MovePlan{
-		Source:     source.Logical,
-		Target:     target.Logical,
-		Changes:    changes,
-		Risks:      []string{"external applications do not participate in obs-cli cooperative locks"},
-		mutations:  mutations,
-		targetPath: target.Path,
-	}, nil
+	plan := MovePlan{
+		Source:             source.Logical,
+		Target:             target.Logical,
+		TargetBodyRevision: contentBodyRevision(targetContent),
+		Changes:            changes,
+		Risks:              []string{"external applications do not participate in obs-cli cooperative locks"},
+		mutations:          mutations,
+		targetPath:         target.Path,
+	}
+	plan.PlanHash = hashMovePlan(plan)
+	return plan, nil
 }
 
 func (s *Service) ApplyMovePlan(plan MovePlan) (MoveResult, error) {
@@ -196,12 +207,25 @@ func (s *Service) ApplyMovePlan(plan MovePlan) (MoveResult, error) {
 		return MoveResult{}, err
 	}
 	return MoveResult{
-		TransactionID: result.ID,
-		Source:        plan.Source,
-		Target:        plan.Target,
-		Changes:       plan.Changes,
-		RevisionAfter: result.Revisions[plan.targetPath],
+		TransactionID:      result.ID,
+		PlanHash:           plan.PlanHash,
+		Source:             plan.Source,
+		Target:             plan.Target,
+		TargetBodyRevision: plan.TargetBodyRevision,
+		Changes:            plan.Changes,
+		RevisionAfter:      result.Revisions[plan.targetPath],
 	}, nil
+}
+
+func contentBodyRevision(content []byte) string {
+	body := string(content)
+	if frontmatter.HasFrontmatter(body) {
+		_, parsedBody, err := frontmatter.Parse(body)
+		if err == nil {
+			body = parsedBody
+		}
+	}
+	return storage.Revision([]byte(body))
 }
 
 func (s *Service) logicalPaths(paths []string) []string {
@@ -223,4 +247,23 @@ func (s *Service) Move(source, target, expectedRevision string) (MoveResult, err
 		return MoveResult{}, err
 	}
 	return s.ApplyMovePlan(plan)
+}
+
+func hashMovePlan(plan MovePlan) string {
+	payload := struct {
+		Version string       `json:"version"`
+		Source  string       `json:"source"`
+		Target  string       `json:"target"`
+		Changes []MoveChange `json:"changes"`
+		Risks   []string     `json:"risks"`
+	}{
+		Version: "note.move/plan-v1",
+		Source:  plan.Source,
+		Target:  plan.Target,
+		Changes: plan.Changes,
+		Risks:   plan.Risks,
+	}
+	encoded, _ := json.Marshal(payload)
+	sum := sha256.Sum256(encoded)
+	return "sha256:" + hex.EncodeToString(sum[:])
 }

@@ -55,10 +55,11 @@ func (e *CreateConflict) Unwrap() error {
 }
 
 type Note struct {
-	Path        string         `json:"path"`
-	Revision    string         `json:"revision"`
-	Content     string         `json:"content"`
-	Frontmatter map[string]any `json:"frontmatter"`
+	Path         string         `json:"path"`
+	Revision     string         `json:"revision"`
+	BodyRevision string         `json:"body_revision"`
+	Content      string         `json:"content"`
+	Frontmatter  map[string]any `json:"frontmatter"`
 }
 
 type Mutation struct {
@@ -134,22 +135,25 @@ func (s *Service) Get(input string) (Note, error) {
 		return Note{}, mapNotFound(err)
 	}
 	fm := map[string]any{}
+	body := string(snapshot.Data)
 	if frontmatter.HasFrontmatter(string(snapshot.Data)) {
-		parsed, _, err := frontmatter.Parse(string(snapshot.Data))
+		parsed, parsedBody, err := frontmatter.Parse(string(snapshot.Data))
 		if err != nil {
 			return Note{}, &InvalidFrontmatterError{
 				Path: resolved.Logical, Revision: snapshot.Revision, Cause: err,
 			}
 		}
+		body = parsedBody
 		if parsed != nil {
 			fm = parsed
 		}
 	}
 	return Note{
-		Path:        resolved.Logical,
-		Revision:    snapshot.Revision,
-		Content:     string(snapshot.Data),
-		Frontmatter: fm,
+		Path:         resolved.Logical,
+		Revision:     snapshot.Revision,
+		BodyRevision: storage.Revision([]byte(body)),
+		Content:      string(snapshot.Data),
+		Frontmatter:  fm,
 	}, nil
 }
 

@@ -122,7 +122,8 @@ func TestMetadataV2PreservesUnknownFieldsAndBody(t *testing.T) {
 		t.Fatal(err)
 	}
 	if after.Frontmatter["owner"] != "andy" || after.Frontmatter["custom"] != "keep" ||
-		after.Frontmatter["status"] != "active" || !strings.HasSuffix(after.Content, "# Demo\nBody\n") {
+		after.Frontmatter["status"] != "active" || !strings.HasSuffix(after.Content, "# Demo\nBody\n") ||
+		after.BodyRevision != before.BodyRevision {
 		t.Fatalf("metadata update damaged note: %#v", after)
 	}
 	conflict, _, err := executeV2TestCommandResult(command(), "",

@@ -26,6 +26,13 @@ func TestMoveRewritesStructuredLinksAndPreservesUnrelatedText(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	replanned, err := service.PlanMove("Folder/Old", "Archive/New", source.RevisionAfter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !storage.IsRevision(plan.PlanHash) || replanned.PlanHash != plan.PlanHash {
+		t.Fatalf("move plan hash is not stable: first=%q second=%q", plan.PlanHash, replanned.PlanHash)
+	}
 	if len(plan.Changes) != 2 || len(plan.Changes[1].LinkEdits) != 2 {
 		t.Fatalf("unexpected plan: %#v", plan)
 	}
@@ -33,7 +40,7 @@ func TestMoveRewritesStructuredLinksAndPreservesUnrelatedText(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.TransactionID == "" || result.RevisionAfter == "" {
+	if result.TransactionID == "" || result.RevisionAfter == "" || result.PlanHash != plan.PlanHash {
 		t.Fatalf("unexpected result: %#v", result)
 	}
 	if _, err := os.Stat(filepath.Join(root, "Folder", "Old.md")); !errors.Is(err, os.ErrNotExist) {

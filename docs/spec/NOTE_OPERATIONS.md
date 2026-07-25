@@ -14,7 +14,7 @@ obs note append <path> --content-file <file|-> [--section <heading>] [--if-match
 obs note patch <path> --match-file <file|-> --content-file <file|-> --if-match <revision>
 obs note replace <path> --content-file <file|-> --if-match <revision>
 obs note delete <path> --if-match <revision>
-obs note move <source> <target> --if-match <revision>
+obs note move <source> <target> --if-match <revision> [--if-plan-hash <hash>]
 ```
 
 所有命令使用 `--output json`、`--request-id` 和 `--vault`。所有修改命令支持 `--dry-run`。路径是 Vault 内逻辑路径；省略 `.md` 时 CLI 自动补充。绝对路径、父目录跳转、隐藏路径和写入符号链接别名均被拒绝。
@@ -27,6 +27,8 @@ obs note move <source> <target> --if-match <revision>
 - 解析后的 `frontmatter` object；没有 Frontmatter 时为空 object；
 - Vault 逻辑 `path`；
 - 基于原始字节的 `revision`。
+- 排除 YAML frontmatter 后正文原始字节的 `body_revision`，用于识别仅 metadata
+  变化与正文变化。
 
 Frontmatter 存在但 YAML 无效时返回 `INVALID_FRONTMATTER`。`note.list` 返回按逻辑路径排序的 Markdown 文件，不遍历隐藏目录。
 
@@ -85,6 +87,10 @@ dry-run 会完成 Vault 选择、路径解析、内容读取、目标快照、re
 - `plan.preconditions[]`
 
 它不会创建 Note 目录、Note、锁、临时文件或恢复副本。apply 是独立请求，必须重新校验所有前置条件。
+
+`note.move --dry-run` 还返回 `plan_hash`。Agent 在用户授权后应将它作为
+`--if-plan-hash` 传给 apply，从而把授权绑定到 source、target、链接改写集合及其
+revision；计划发生任何变化时 apply 返回 `REVISION_CONFLICT`。
 
 ## 6. Agent 推荐闭环
 

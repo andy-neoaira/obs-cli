@@ -44,10 +44,10 @@ obs capabilities --output json \
 | `daily.get` | 否 | 返回官方配置解析后的路径、存在状态、note 与 revision |
 | `daily.create` | 是 | 按官方 folder/format/template 创建，不覆盖现有 Daily |
 | `daily.append` | 是 | 携带 revision 向整篇或唯一 section 追加 |
-| `metadata.get` | 否 | 返回目标路径、revision 和解析后的 frontmatter |
-| `metadata.set` | 是 | 只设置一个键，保留正文和未知字段，要求 revision |
+| `metadata.get` | 否 | 返回目标路径、revision、body_revision 和解析后的 frontmatter |
+| `metadata.set` | 是 | 只设置一个键，保留正文和未知字段，要求 revision 并回显 body_revision |
 | `search.content` | 否 | 仅扫描 Markdown，限制页大小和读取文件数 |
-| `link.backlinks` | 否 | 有界扫描 Wikilink/Markdown link，返回来源证据 |
+| `link.backlinks` | 否 | 有界扫描 Wikilink/Markdown link，返回来源证据；允许检查不存在的 target |
 
 operation 名称和 feature flag 只增不改。新增名称属于兼容变更；删除、改名或改变已有名称的语义需要升级协议主版本。弃用项至少保留一个 V2 发布周期，并通过新增的可选 deprecation 元数据公告；调用方必须忽略未知可选字段。
 
@@ -61,6 +61,7 @@ CLI 通过同一绑定层注册以下通用参数，具体 operation 是否支�
 - `--request-id`
 - `--dry-run`
 - `--if-match`
+- `--if-plan-hash`（当前仅 `note.move`）
 - `--vault`
 
 调用方不得仅因为参数存在于其他命令就假定当前 operation 支持它。
@@ -85,6 +86,7 @@ CLI 通过同一绑定层注册以下通用参数，具体 operation 是否支�
 `changes` 使用 `create`、`update`、`move` 或 `delete`，同时标识 `resource` 和 `target`。dry-run 会完成适用的解析、存在性、冲突和安全前置检查，但不会创建配置目录、配置文件、锁、临时文件或审计记录。
 
 Skill 在 dry-run 成功后仍需将 apply 当作独立请求；并发状态可能在两次调用之间改变。
+`note.move` 可用 `--if-plan-hash` 把 apply 绑定到已审查的 dry-run 链接集合。
 
 ## 5. Skill 场景示例
 

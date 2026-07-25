@@ -307,12 +307,20 @@ func newNoteV2Command(registryFactory vaultRegistryFactory, serviceFactory noteS
 	command.AddCommand(deleteCommand)
 
 	var moveFlags commonFlags
+	var movePlanHash string
 	move := &cobra.Command{
 		Use:   "move <source> <target>",
 		Short: "Move a note and transactionally rewrite affected links",
 		Args:  args("note.move", cobra.ExactArgs(2)),
 		RunE: func(cmd *cobra.Command, values []string) error {
 			return execute(cmd, "note.move", func() (any, error) {
+				if movePlanHash != "" && !storage.IsRevision(movePlanHash) {
+					return nil, protocol.NewError(
+						protocol.InvalidArgument,
+						"--if-plan-hash must use sha256:<64-lowercase-hex>",
+						map[string]any{"field": "if-plan-hash"},
+					)
+				}
 				service, vault, err := resolveService()
 				if err != nil {
 					return nil, err
@@ -345,18 +353,50 @@ func newNoteV2Command(registryFactory vaultRegistryFactory, serviceFactory noteS
 						[]string{"source and rewritten note revisions remain unchanged", "target remains absent"},
 					)
 					return map[string]any{
-						"vault":   vault,
-						"dry_run": dry.DryRun,
-						"applied": dry.Applied,
-						"changed": dry.Changed,
-						"plan":    dry.Plan,
+						"vault":     vault,
+						"dry_run":   dry.DryRun,
+						"applied":   dry.Applied,
+						"changed":   dry.Changed,
+						"plan_hash": plan.PlanHash,
+						"plan":      dry.Plan,
 					}, nil
 				}
+				if movePlanHash != "" && movePlanHash != plan.PlanHash {
+					return nil, protocol.NewError(
+						protocol.RevisionConflict,
+						"the move plan changed after authorization",
+						map[string]any{
+							"expected_plan_hash": movePlanHash,
+							"actual_plan_hash":   plan.PlanHash,
+						},
+					)
+				}
 				result, err := service.ApplyMovePlan(plan)
-				return map[string]any{"vault": vault, "move": result}, err
+				if err != nil {
+					return nil, err
+				}
+				sourceRevision := ""
+				if len(plan.Changes) != 0 {
+					sourceRevision = plan.Changes[0].ExpectedRevision
+				}
+				receipt := map[string]any{
+					"operation":            "note.move",
+					"request_id":           common.RequestID,
+					"transaction_id":       result.TransactionID,
+					"plan_hash":            result.PlanHash,
+					"vault_id":             vault.ID,
+					"source":               result.Source,
+					"source_revision":      sourceRevision,
+					"source_digest":        sourceRevision,
+					"target":               result.Target,
+					"target_revision":      result.RevisionAfter,
+					"target_body_revision": result.TargetBodyRevision,
+				}
+				return map[string]any{"vault": vault, "move": result, "receipt": receipt}, nil
 			})
 		},
 	}
+	move.Flags().StringVar(&movePlanHash, "if-plan-hash", "", "apply only if the current move plan matches this dry-run hash")
 	bindCommonFlags(move, &moveFlags, commonFlagSet{DryRun: true, IfMatch: true}, false)
 	command.AddCommand(move)
 

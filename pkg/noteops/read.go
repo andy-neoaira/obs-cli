@@ -45,6 +45,7 @@ type Backlink struct {
 
 type BacklinkReport struct {
 	Target       string     `json:"target"`
+	TargetExists bool       `json:"target_exists"`
 	Scope        string     `json:"scope"`
 	ScannedFiles int        `json:"scanned_files"`
 	Truncated    bool       `json:"truncated"`
@@ -121,7 +122,7 @@ func (s *Service) Search(query, scope string, pageNumber, pageSize, maxFiles int
 }
 
 func (s *Service) Backlinks(target, scope string, maxFiles int) (BacklinkReport, error) {
-	resolved, err := s.resolve(target, false)
+	resolved, err := s.resolve(target, true)
 	if err != nil {
 		return BacklinkReport{}, err
 	}
@@ -135,7 +136,8 @@ func (s *Service) Backlinks(target, scope string, maxFiles int) (BacklinkReport,
 		return BacklinkReport{}, err
 	}
 	report := BacklinkReport{
-		Target: resolved.Logical, Scope: strings.TrimSuffix(prefix, "/"), Results: []Backlink{},
+		Target: resolved.Logical, TargetExists: resolved.Exists,
+		Scope: strings.TrimSuffix(prefix, "/"), Results: []Backlink{},
 	}
 	for _, logical := range notes {
 		if prefix != "" && logical != strings.TrimSuffix(prefix, "/") && !strings.HasPrefix(logical, prefix) {

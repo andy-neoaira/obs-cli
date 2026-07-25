@@ -109,6 +109,22 @@ func TestSkillV2Audit(t *testing.T) {
 	)
 }
 
+func TestSkillV2Inbox(t *testing.T) {
+	content := readSkill(t, "../skills/obsidian-inbox-triage/SKILL.md")
+	requireSkillText(t, content,
+		"note.list", "note.get", "note.move", "metadata.get", "metadata.set", "link.backlinks",
+		"obs-cli note move", "obs-cli metadata set",
+		"--dry-run", "--if-match", "--if-plan-hash", "plan_hash", "receipt", "REVISION_CONFLICT",
+		"任何推断目标必须确认", "不得声称两者整体原子",
+		"未保存缓冲区", "metadata_pending:", "rollback/recovery actions",
+		"静默窗口", "target_body_revision", "metadata_steps:",
+		"partial/concurrent_external_change", "重复执行已完成工作流返回 `no_change`",
+	)
+	forbidSkillText(t, content,
+		"obs-cli move ", "obs-cli frontmatter ", "obs-cli delete ",
+	)
+}
+
 func readSkill(t *testing.T, path string) string {
 	t.Helper()
 	content, err := os.ReadFile(path)

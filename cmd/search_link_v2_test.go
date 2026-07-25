@@ -110,12 +110,25 @@ func TestLinkBacklinksReturnsSourceRevision(t *testing.T) {
 	if err := json.Unmarshal(response.Data, &data); err != nil {
 		t.Fatal(err)
 	}
-	if len(data.Backlinks.Results) != 2 {
+	if !data.Backlinks.TargetExists || len(data.Backlinks.Results) != 2 {
 		t.Fatalf("backlinks = %#v", data.Backlinks)
 	}
 	for _, result := range data.Backlinks.Results {
 		if result.Path == "" || result.Revision == "" || result.Line != 1 {
 			t.Fatalf("missing backlink evidence: %#v", result)
 		}
+	}
+	if err := os.Remove(filepath.Join(vaultRoot, "Knowledge", "Target.md")); err != nil {
+		t.Fatal(err)
+	}
+	missing := executeV2TestCommand(t,
+		newLinkV2Command(registryFactory, serviceFactory), "",
+		"backlinks", "Knowledge/Target", "--scope", "Sources", "--max-files", "20",
+	)
+	if err := json.Unmarshal(missing.Data, &data); err != nil {
+		t.Fatal(err)
+	}
+	if data.Backlinks.TargetExists || len(data.Backlinks.Results) != 2 {
+		t.Fatalf("missing-target backlinks = %#v", data.Backlinks)
 	}
 }

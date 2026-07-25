@@ -26,10 +26,33 @@ func TestCapabilitiesGoldenJSON(t *testing.T) {
 	}
 	if !data.FeatureFlags["note_operations_v2"] || !data.FeatureFlags["daily_notes_v2"] ||
 		!data.FeatureFlags["metadata_v2"] || !data.FeatureFlags["search_v2"] ||
-		!data.FeatureFlags["link_inspection_v2"] || !data.FeatureFlags["dry_run_plans"] {
+		!data.FeatureFlags["link_inspection_v2"] || !data.FeatureFlags["dry_run_plans"] ||
+		!data.FeatureFlags["move_plan_preconditions"] {
 		t.Fatalf("capabilities feature flags are incorrect: %#v", data.FeatureFlags)
 	}
+	moveFound := false
+	for _, operation := range data.Operations {
+		if operation.Name != "note.move" {
+			continue
+		}
+		moveFound = true
+		if !containsCapabilityFlag(operation.CommonFlags, "if-plan-hash") {
+			t.Fatalf("note.move does not advertise if-plan-hash: %#v", operation)
+		}
+	}
+	if !moveFound {
+		t.Fatal("note.move capability is missing")
+	}
 	assertCapabilitiesSchema(t, data)
+}
+
+func containsCapabilityFlag(flags []string, expected string) bool {
+	for _, flag := range flags {
+		if flag == expected {
+			return true
+		}
+	}
+	return false
 }
 
 func assertCapabilitiesSchema(t *testing.T, data capabilitiesData) {
