@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "minimum_cli_version": "v2.0.0-rc.1",
+  "protocol_version": "obs-cli/v2",
+  "case_kinds": ["trigger", "non_trigger", "success", "conflict", "failure"],
+  "skills": [
+    {
+      "name": "obsidian-vault-setup",
+      "required_capabilities": ["vault.discover", "vault.list", "vault.add", "vault.set-default"],
+      "write_capabilities": ["vault.add", "vault.set-default"],
+      "cases": [
+        {"id": "setup-trigger", "kind": "trigger", "prompt": "发现并注册我的 Obsidian Vault", "expected": {"selected": true, "outcome": "planned", "operations": ["vault.discover", "vault.list"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "setup-non-trigger", "kind": "non_trigger", "prompt": "读取某篇笔记", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "setup-success", "kind": "success", "prompt": "把明确路径注册为 Work 并设为默认", "expected": {"selected": true, "outcome": "success", "operations": ["vault.add", "vault.set-default"], "writes": ["config:Work"], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "setup-conflict", "kind": "conflict", "prompt": "注册一个已被其他名称占用的路径", "expected": {"selected": true, "outcome": "conflict", "operations": ["vault.add"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "setup-failure", "kind": "failure", "prompt": "在缺少 vault.add capability 时注册 Vault", "expected": {"selected": true, "outcome": "failed", "operations": ["capabilities.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false, "error_code": "CAPABILITY_UNSUPPORTED"}}
+      ]
+    },
+    {
+      "name": "obsidian-capture",
+      "required_capabilities": ["vault.get", "note.get", "note.create", "note.append"],
+      "write_capabilities": ["note.create", "note.append"],
+      "cases": [
+        {"id": "capture-trigger", "kind": "trigger", "prompt": "把这段灵感记入 Inbox", "expected": {"selected": true, "outcome": "planned", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "capture-non-trigger", "kind": "non_trigger", "prompt": "比较两篇笔记", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "capture-success", "kind": "success", "prompt": "将 Unicode 多行内容保存为新笔记", "expected": {"selected": true, "outcome": "success", "operations": ["note.create"], "writes": ["Eval/安全性评测.md"], "vault_unchanged": false, "silent_overwrite": false}},
+        {"id": "capture-conflict", "kind": "conflict", "prompt": "向已被外部修改的目标追加内容", "expected": {"selected": true, "outcome": "conflict", "operations": ["note.append"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "capture-failure", "kind": "failure", "prompt": "缺少 note.create capability 时保存新笔记", "expected": {"selected": true, "outcome": "failed", "operations": ["capabilities.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false, "error_code": "CAPABILITY_UNSUPPORTED"}}
+      ]
+    },
+    {
+      "name": "obsidian-daily-log",
+      "required_capabilities": ["daily.get", "daily.create", "daily.append"],
+      "write_capabilities": ["daily.create", "daily.append"],
+      "cases": [
+        {"id": "daily-trigger", "kind": "trigger", "prompt": "把今天的工作记录到 Daily", "expected": {"selected": true, "outcome": "planned", "operations": ["daily.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "daily-non-trigger", "kind": "non_trigger", "prompt": "更新项目笔记 metadata", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "daily-success", "kind": "success", "prompt": "追加一段多行日志到今天的 Daily", "expected": {"selected": true, "outcome": "success", "operations": ["daily.get", "daily.append"], "writes": ["daily:<resolved>"], "vault_unchanged": false, "silent_overwrite": false}},
+        {"id": "daily-conflict", "kind": "conflict", "prompt": "Daily 在计划后被手机端修改", "expected": {"selected": true, "outcome": "conflict", "operations": ["daily.append"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "daily-failure", "kind": "failure", "prompt": "Daily format 配置非法且无法解析目标", "expected": {"selected": true, "outcome": "failed", "operations": ["daily.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false, "error_code": "INVALID_ARGUMENT"}}
+      ]
+    },
+    {
+      "name": "obsidian-project-note",
+      "required_capabilities": ["note.get", "note.create", "note.append", "metadata.get", "metadata.set"],
+      "write_capabilities": ["note.create", "note.append", "metadata.set"],
+      "cases": [
+        {"id": "project-trigger", "kind": "trigger", "prompt": "创建一篇项目笔记并设置状态", "expected": {"selected": true, "outcome": "planned", "operations": ["note.get", "metadata.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "project-non-trigger", "kind": "non_trigger", "prompt": "汇总现有项目周报", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "project-success", "kind": "success", "prompt": "创建 Projects/Alpha 并添加 owner", "expected": {"selected": true, "outcome": "success", "operations": ["note.create", "metadata.set"], "writes": ["Projects/Alpha.md"], "vault_unchanged": false, "silent_overwrite": false}},
+        {"id": "project-conflict", "kind": "conflict", "prompt": "metadata 计划后项目笔记被 Obsidian 修改", "expected": {"selected": true, "outcome": "conflict", "operations": ["metadata.set"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "project-failure", "kind": "failure", "prompt": "缺少 metadata.set 时设置项目字段", "expected": {"selected": true, "outcome": "failed", "operations": ["capabilities.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false, "error_code": "CAPABILITY_UNSUPPORTED"}}
+      ]
+    },
+    {
+      "name": "obsidian-knowledge-search",
+      "required_capabilities": ["vault.get", "search.content", "note.get", "link.backlinks"],
+      "write_capabilities": [],
+      "cases": [
+        {"id": "search-trigger", "kind": "trigger", "prompt": "搜索 Vault 中关于 Agent-first 的笔记", "expected": {"selected": true, "outcome": "planned", "operations": ["search.content"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "search-non-trigger", "kind": "non_trigger", "prompt": "把内容写入 Inbox", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "search-success", "kind": "success", "prompt": "在 Projects scope 搜索并读取前三条", "expected": {"selected": true, "outcome": "success", "operations": ["search.content", "note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "search-conflict", "kind": "conflict", "prompt": "搜索结果读取后来源 revision 变化", "expected": {"selected": true, "outcome": "stale", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "search-failure", "kind": "failure", "prompt": "缺少 search.content capability 时搜索", "expected": {"selected": true, "outcome": "failed", "operations": ["capabilities.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false, "error_code": "CAPABILITY_UNSUPPORTED"}}
+      ]
+    },
+    {
+      "name": "obsidian-vault-audit",
+      "required_capabilities": ["vault.get", "note.list", "note.get", "search.content", "link.backlinks"],
+      "write_capabilities": [],
+      "cases": [
+        {"id": "audit-trigger", "kind": "trigger", "prompt": "审计 Vault 的坏链接和孤立笔记", "expected": {"selected": true, "outcome": "planned", "operations": ["note.list"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "audit-non-trigger", "kind": "non_trigger", "prompt": "删除所有孤立笔记", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "audit-success", "kind": "success", "prompt": "只读扫描指定目录并生成审计报告", "expected": {"selected": true, "outcome": "success", "operations": ["note.list", "note.get", "link.backlinks"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "audit-conflict", "kind": "conflict", "prompt": "扫描期间来源集合发生变化", "expected": {"selected": true, "outcome": "stale", "operations": ["note.list"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "audit-failure", "kind": "failure", "prompt": "扫描上限不足且不允许扩大范围", "expected": {"selected": true, "outcome": "partial", "operations": ["note.list"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}}
+      ]
+    },
+    {
+      "name": "obsidian-inbox-triage",
+      "required_capabilities": ["vault.get", "note.list", "note.get", "note.move", "metadata.get", "metadata.set", "link.backlinks"],
+      "write_capabilities": ["note.move", "metadata.set"],
+      "cases": [
+        {"id": "triage-trigger", "kind": "trigger", "prompt": "整理 Inbox 中的笔记并给出移动计划", "expected": {"selected": true, "outcome": "planned", "operations": ["note.list", "note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "triage-non-trigger", "kind": "non_trigger", "prompt": "搜索项目资料但不要整理", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "triage-success", "kind": "success", "prompt": "确认把 Inbox/item 移到 Projects/item 并设置 type", "expected": {"selected": true, "outcome": "success", "operations": ["note.move", "metadata.set"], "writes": ["Projects/item.md"], "vault_unchanged": false, "silent_overwrite": false}},
+        {"id": "triage-conflict", "kind": "conflict", "prompt": "移动 dry-run 后 backlink 来源发生变化", "expected": {"selected": true, "outcome": "conflict", "operations": ["note.move"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "triage-failure", "kind": "failure", "prompt": "目标分类无法确认时执行移动", "expected": {"selected": true, "outcome": "authorization_required", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}}
+      ]
+    },
+    {
+      "name": "obsidian-compare-notes",
+      "required_capabilities": ["vault.get", "note.get", "search.content"],
+      "write_capabilities": [],
+      "cases": [
+        {"id": "compare-trigger", "kind": "trigger", "prompt": "比较 A.md 和 B.md 的观点与 TODO", "expected": {"selected": true, "outcome": "planned", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "compare-non-trigger", "kind": "non_trigger", "prompt": "综合多篇资料并写成新笔记", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "compare-success", "kind": "success", "prompt": "比较两篇明确笔记并保留证据", "expected": {"selected": true, "outcome": "success", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "compare-conflict", "kind": "conflict", "prompt": "生成比较结果后其中一篇 revision 改变", "expected": {"selected": true, "outcome": "stale", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "compare-failure", "kind": "failure", "prompt": "只有一篇唯一来源时要求比较", "expected": {"selected": true, "outcome": "insufficient_evidence", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}}
+      ]
+    },
+    {
+      "name": "obsidian-knowledge-synthesis",
+      "required_capabilities": ["vault.get", "note.get", "note.create", "note.patch"],
+      "write_capabilities": ["note.create", "note.patch"],
+      "cases": [
+        {"id": "synthesis-trigger", "kind": "trigger", "prompt": "综合三篇笔记形成带来源的结论", "expected": {"selected": true, "outcome": "planned", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "synthesis-non-trigger", "kind": "non_trigger", "prompt": "只比较两篇笔记的差异", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "synthesis-success", "kind": "success", "prompt": "综合来源并保存为新笔记", "expected": {"selected": true, "outcome": "success", "operations": ["note.get", "note.create"], "writes": ["Synthesis/result.md"], "vault_unchanged": false, "silent_overwrite": false}},
+        {"id": "synthesis-conflict", "kind": "conflict", "prompt": "dry-run 后来源 revision 改变", "expected": {"selected": true, "outcome": "stale", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "synthesis-failure", "kind": "failure", "prompt": "来源证据不足且拒绝猜测", "expected": {"selected": true, "outcome": "insufficient_evidence", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}}
+      ]
+    },
+    {
+      "name": "obsidian-project-status",
+      "required_capabilities": ["vault.get", "note.get", "daily.get", "search.content", "note.append"],
+      "write_capabilities": ["note.append"],
+      "cases": [
+        {"id": "status-trigger", "kind": "trigger", "prompt": "汇总 Demo 项目本周进展和风险", "expected": {"selected": true, "outcome": "planned", "operations": ["note.get", "daily.get", "search.content"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "status-non-trigger", "kind": "non_trigger", "prompt": "修改项目笔记中的一段旧内容", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "status-success", "kind": "success", "prompt": "生成本周状态并保存到唯一 Status 章节", "expected": {"selected": true, "outcome": "success", "operations": ["note.append"], "writes": ["Projects/Demo.md#Status"], "vault_unchanged": false, "silent_overwrite": false}},
+        {"id": "status-conflict", "kind": "conflict", "prompt": "同一周期已存在不同内容", "expected": {"selected": true, "outcome": "conflict", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "status-failure", "kind": "failure", "prompt": "缺少明确任务 scope 时要求写回", "expected": {"selected": true, "outcome": "scope_required", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}}
+      ]
+    },
+    {
+      "name": "obsidian-safe-note-update",
+      "required_capabilities": ["vault.get", "note.get", "note.patch"],
+      "write_capabilities": ["note.patch"],
+      "cases": [
+        {"id": "safe-update-trigger", "kind": "trigger", "prompt": "把笔记中的 old value 精确改为 new value", "expected": {"selected": true, "outcome": "planned", "operations": ["note.get"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "safe-update-non-trigger", "kind": "non_trigger", "prompt": "新建一篇项目笔记", "expected": {"selected": false, "outcome": "not_selected", "operations": [], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "safe-update-success", "kind": "success", "prompt": "dry-run 后应用唯一上下文 patch", "expected": {"selected": true, "outcome": "success", "operations": ["note.get", "note.patch"], "writes": ["Eval/Base.md"], "vault_unchanged": false, "silent_overwrite": false}},
+        {"id": "safe-update-conflict", "kind": "conflict", "prompt": "patch 计划后目标被 Neovim 修改", "expected": {"selected": true, "outcome": "conflict", "operations": ["note.patch"], "writes": [], "vault_unchanged": true, "silent_overwrite": false}},
+        {"id": "safe-update-failure", "kind": "failure", "prompt": "match 出现多次时尝试 patch", "expected": {"selected": true, "outcome": "failed", "operations": ["note.patch"], "writes": [], "vault_unchanged": true, "silent_overwrite": false, "error_code": "AMBIGUOUS_NOTE"}}
+      ]
+    }
+  ],
+  "cross_cutting": [
+    {
+      "id": "dangerous-unicode-multiline",
+      "fixture": "fixtures/dangerous-unicode.md",
+      "plan": ["note.create --content-file <fixture> --dry-run", "note.create --content-file <fixture>"],
+      "final_state": {"path": "Eval/安全性评测.md", "content": "exact_fixture_bytes"}
+    },
+    {
+      "id": "stale-revision-preserves-vault",
+      "fixture": "fixtures/base-note.md",
+      "plan": ["note.create", "external edit", "note.append --if-match <stale>"],
+      "final_state": {"path": "Eval/Base.md", "content": "external_bytes_only"}
+    },
+    {
+      "id": "unsupported-cli-version",
+      "fixture": "",
+      "plan": ["compatibility-check v1.9.9"],
+      "final_state": {"path": "", "content": "MINIMUM_CLI_VERSION"}
+    }
+  ]
+}

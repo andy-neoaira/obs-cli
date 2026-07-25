@@ -52,6 +52,9 @@ license-check:
 skill-lint:
 	./scripts/lint-skills.sh
 
+skill-evals:
+	./scripts/run-skill-evals.sh
+
 release-check: format-check
 	go vet ./...
 	go test ./...
@@ -61,6 +64,7 @@ release-check: format-check
 	$(MAKE) build-check
 	$(MAKE) license-check
 	$(MAKE) skill-lint
+	$(MAKE) skill-evals
 	$(MAKE) rc-smoke
 
 	# Release automation
@@ -69,6 +73,7 @@ release:
 ifndef VERSION
 	$(error VERSION is not set. Usage: make release VERSION=v0.2.2)
 endif
+	@SKILL_EVAL_CLI_VERSION="$(VERSION)" $(MAKE) release-check
 	@echo "Starting release process for $(VERSION)..."
 	@# Update version in root.go
 	@perl -pi -e 's/Version: "v[0-9]+\.[0-9]+\.[0-9]+"/Version: "$(VERSION)"/' cmd/root.go

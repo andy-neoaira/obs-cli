@@ -25,6 +25,8 @@ jobs:
           cache: true
       - name: Run complete V2 release gate
         run: make release-check
+        env:
+          SKILL_EVAL_CLI_VERSION: ${{ github.ref_name }}
 
   release:
     name: Release

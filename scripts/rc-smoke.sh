@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-version="${RC_VERSION:-v2.0.0-rc.1}"
+version="${RC_VERSION:-${SKILL_EVAL_CLI_VERSION:-v2.0.0-rc.1}}"
 output_dir="$(mktemp -d "${TMPDIR:-/tmp}/obs-cli-rc.XXXXXX")"
 trap 'rm -rf "$output_dir"' EXIT
 binary="$output_dir/obs-cli"

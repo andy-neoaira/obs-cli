@@ -29,6 +29,8 @@ jobs:
           make build-check
       - name: Verify licenses and release notices
         run: make license-check
+      - name: Run deterministic Skill scenario gate
+        run: make skill-evals
 
   lint:
     name: Lint

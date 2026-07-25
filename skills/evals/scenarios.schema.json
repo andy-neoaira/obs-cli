@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andy-neoaira/obs-cli/skills/evals/scenarios.schema.json",
+  "type": "object",
+  "required": ["schema_version", "minimum_cli_version", "protocol_version", "case_kinds", "skills", "cross_cutting"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "minimum_cli_version": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+(?:-rc\\.[0-9]+)?$"},
+    "protocol_version": {"const": "obs-cli/v2"},
+    "case_kinds": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {"enum": ["trigger", "non_trigger", "success", "conflict", "failure"]}
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/skill"}
+    },
+    "cross_cutting": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/cross_case"}
+    }
+  },
+  "$defs": {
+    "skill": {
+      "type": "object",
+      "required": ["name", "required_capabilities", "write_capabilities", "cases"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^obsidian-[a-z0-9-]+$"},
+        "required_capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z]+\\.[a-z-]+$"}
+        },
+        "write_capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z]+\\.[a-z-]+$"}
+        },
+        "cases": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {"$ref": "#/$defs/case"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "type": "object",
+      "required": ["id", "kind", "prompt", "expected"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "kind": {"enum": ["trigger", "non_trigger", "success", "conflict", "failure"]},
+        "prompt": {"type": "string", "minLength": 1},
+        "expected": {"$ref": "#/$defs/expected"}
+      },
+      "additionalProperties": false
+    },
+    "expected": {
+      "type": "object",
+      "required": ["selected", "outcome", "operations", "writes", "vault_unchanged", "silent_overwrite"],
+      "properties": {
+        "selected": {"type": "boolean"},
+        "outcome": {"enum": ["not_selected", "planned", "success", "conflict", "stale", "partial", "insufficient_evidence", "authorization_required", "scope_required", "failed"]},
+        "operations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z]+\\.[a-z-]+$"}
+        },
+        "writes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string"}
+        },
+        "vault_unchanged": {"type": "boolean"},
+        "silent_overwrite": {"const": false},
+        "error_code": {
+          "enum": [
+            "INVALID_ARGUMENT",
+            "INVALID_FRONTMATTER",
+            "VAULT_NOT_FOUND",
+            "NOTE_NOT_FOUND",
+            "ALREADY_EXISTS",
+            "AMBIGUOUS_NOTE",
+            "REVISION_CONFLICT",
+            "PATH_OUTSIDE_VAULT",
+            "PARTIAL_FAILURE",
+            "CAPABILITY_UNSUPPORTED",
+            "INTERNAL_ERROR"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "cross_case": {
+      "type": "object",
+      "required": ["id", "fixture", "plan", "final_state"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "fixture": {"type": "string"},
+        "plan": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "final_state": {
+          "type": "object",
+          "required": ["path", "content"],
+          "properties": {
+            "path": {"type": "string"},
+            "content": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
