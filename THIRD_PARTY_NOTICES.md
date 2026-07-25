@@ -11,6 +11,7 @@ The project also vendors the Go modules below. This file is a summary; the compl
 | `github.com/davecgh/go-spew` | v1.1.1 | ISC | `vendor/github.com/davecgh/go-spew/LICENSE` |
 | `github.com/gdamore/encoding` | v1.0.1 | Apache-2.0 | `vendor/github.com/gdamore/encoding/LICENSE` |
 | `github.com/gdamore/tcell/v2` | v2.7.4 | Apache-2.0 | `vendor/github.com/gdamore/tcell/v2/LICENSE` |
+| `github.com/google/jsonschema-go` | v0.4.2 | MIT | `vendor/github.com/google/jsonschema-go/LICENSE` |
 | `github.com/inconshreveable/mousetrap` | v1.1.0 | Apache-2.0 | `vendor/github.com/inconshreveable/mousetrap/LICENSE` |
 | `github.com/ktr0731/go-ansisgr` | v0.1.0 | MIT | `vendor/github.com/ktr0731/go-ansisgr/LICENSE` |
 | `github.com/ktr0731/go-fuzzyfinder` | v0.9.0 | MIT | `vendor/github.com/ktr0731/go-fuzzyfinder/LICENSE` |

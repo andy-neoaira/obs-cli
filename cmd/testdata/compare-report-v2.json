@@ -1,0 +1,23 @@
+{
+  "kind": "compare",
+  "status": "success",
+  "vault": "vault-demo",
+  "selection": {"mode": "explicit", "queries": [], "rule": "user_order", "confirmed": true, "duplicates": []},
+  "sources": [
+    {"id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "body_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "modified_at": "2026-07-25T10:00:00Z", "role": "explicit"},
+    {"id": "S2", "path": "B.md", "revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "body_revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "modified_at": "2026-07-25T10:01:00Z", "role": "explicit"}
+  ],
+  "evidence": [
+    {"id": "E1", "source_id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "kind": "content", "location": "## Status", "excerpt": "active"},
+    {"id": "E2", "source_id": "S2", "path": "B.md", "revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "kind": "content", "location": "## Status", "excerpt": "paused"}
+  ],
+  "claims": [
+    {"id": "C1", "type": "comparison", "epistemic_status": "conflicting", "statement": "两篇笔记记录了不同状态。", "evidence_ids": ["E1", "E2"]}
+  ],
+  "conflicts": [{"summary": "状态不一致", "evidence_ids": ["E1", "E2"]}],
+  "gaps": [],
+  "staleness": {"verified_at": "2026-07-25T10:05:00Z", "sources_current": true, "changed_sources": []},
+  "writeback": {"requested": false, "operation": "none", "status": "not_requested"},
+  "warnings": [],
+  "errors": []
+}

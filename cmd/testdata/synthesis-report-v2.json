@@ -1,0 +1,35 @@
+{
+  "kind": "synthesis",
+  "status": "success",
+  "vault": "vault-demo",
+  "selection": {"mode": "explicit", "queries": [], "rule": "user_order", "confirmed": true, "duplicates": []},
+  "sources": [
+    {"id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "body_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "modified_at": "2026-07-25T10:00:00Z", "role": "explicit"},
+    {"id": "S2", "path": "B.md", "revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "body_revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "modified_at": "2026-07-25T10:01:00Z", "role": "explicit"}
+  ],
+  "evidence": [
+    {"id": "E1", "source_id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "kind": "content", "location": "## Decision", "excerpt": "Use V2"},
+    {"id": "E2", "source_id": "S2", "path": "B.md", "revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "kind": "content", "location": "## Decision", "excerpt": "Keep revisions"}
+  ],
+  "claims": [
+    {"id": "C1", "type": "synthesis", "epistemic_status": "supported", "statement": "来源共同支持 revision-aware V2。", "evidence_ids": ["E1", "E2"]}
+  ],
+  "conflicts": [],
+  "gaps": ["尚无移动端并发样本"],
+  "staleness": {"verified_at": "2026-07-25T10:05:00Z", "sources_current": true, "changed_sources": []},
+  "writeback": {
+    "requested": true,
+    "target": "Synthesis/V2.md",
+    "operation": "create",
+    "status": "applied",
+    "source_manifest_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "content_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "plan_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "request_id": "synthesis-ffffffffffffffffffffffff",
+    "planned_revision_after": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "revision_before": "",
+    "revision_after": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "warnings": [],
+  "errors": []
+}

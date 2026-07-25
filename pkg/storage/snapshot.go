@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 )
 
 const stableReadAttempts = 3
@@ -12,10 +13,11 @@ const stableReadAttempts = 3
 var ErrUnstableRead = errors.New("file changed while reading stable snapshot")
 
 type Snapshot struct {
-	Data     []byte
-	Revision string
-	Mode     os.FileMode
-	Size     int64
+	Data       []byte
+	Revision   string
+	Mode       os.FileMode
+	Size       int64
+	ModifiedAt time.Time
 }
 
 func ReadSnapshot(path string) (Snapshot, error) {
@@ -76,9 +78,10 @@ func readSnapshotOnce(path string) (Snapshot, bool, error) {
 		openedBefore.ModTime() == openedAfter.ModTime() &&
 		int64(len(data)) == openedAfter.Size()
 	return Snapshot{
-		Data:     data,
-		Revision: Revision(data),
-		Mode:     openedAfter.Mode().Perm(),
-		Size:     openedAfter.Size(),
+		Data:       data,
+		Revision:   Revision(data),
+		Mode:       openedAfter.Mode().Perm(),
+		Size:       openedAfter.Size(),
+		ModifiedAt: openedAfter.ModTime().UTC(),
 	}, stable, nil
 }

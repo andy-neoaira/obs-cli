@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andy-neoaira/obs-cli/docs/spec/schema/compare-synthesis-report-v2.schema.json",
+  "title": "obs-cli Skill compare/synthesis report",
+  "type": "object",
+  "required": ["kind", "status", "vault", "selection", "sources", "evidence", "claims", "conflicts", "gaps", "staleness", "writeback", "warnings", "errors"],
+  "properties": {
+    "kind": {"enum": ["compare", "synthesis"]},
+    "status": {"enum": ["success", "no_change", "insufficient_evidence", "stale", "conflict", "partial", "failed"]},
+    "vault": {"type": "string", "minLength": 1},
+    "selection": {
+      "type": "object",
+      "required": ["mode", "queries", "rule", "confirmed", "duplicates"],
+      "properties": {
+        "mode": {"enum": ["explicit", "search"]},
+        "queries": {"type": "array", "maxItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "rule": {"type": "string", "minLength": 1},
+        "confirmed": {"type": "boolean"},
+        "duplicates": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "\\.md$"}}
+      },
+      "additionalProperties": false
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "revision", "body_revision", "modified_at", "role"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^S[1-9][0-9]*$"},
+          "path": {"type": "string", "pattern": "\\.md$"},
+          "revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+          "body_revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+          "modified_at": {"type": "string", "format": "date-time"},
+          "role": {"enum": ["explicit", "search_result"]},
+          "query": {"type": "string"},
+          "selection_reason": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "source_id", "path", "revision", "kind", "location", "excerpt"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^E[1-9][0-9]*$"},
+          "source_id": {"type": "string", "pattern": "^S[1-9][0-9]*$"},
+          "path": {"type": "string", "pattern": "\\.md$"},
+          "revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+          "kind": {"enum": ["content", "frontmatter", "modified_at"]},
+          "location": {"type": "string"},
+          "excerpt": {"type": "string", "maxLength": 500}
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {"properties": {"kind": {"const": "modified_at"}}},
+            "then": {
+              "properties": {
+                "location": {"const": "modified_at"},
+                "excerpt": {"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"}
+              }
+            }
+          }
+        ]
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "epistemic_status", "statement", "evidence_ids"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^C[1-9][0-9]*$"},
+          "type": {"enum": ["source_statement", "comparison", "synthesis", "inference", "unknown"]},
+          "epistemic_status": {"enum": ["supported", "conflicting", "inferred", "unknown"]},
+          "statement": {"type": "string"},
+          "evidence_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^E[1-9][0-9]*$"}}
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {"properties": {"type": {"const": "inference"}}},
+            "then": {
+              "properties": {
+                "epistemic_status": {"const": "inferred"},
+                "evidence_ids": {"minItems": 1}
+              }
+            }
+          },
+          {
+            "if": {"properties": {"type": {"enum": ["source_statement", "comparison", "synthesis"]}}},
+            "then": {
+              "properties": {
+                "epistemic_status": {"enum": ["supported", "conflicting"]},
+                "evidence_ids": {"minItems": 1}
+              }
+            }
+          },
+          {
+            "if": {"properties": {"type": {"const": "unknown"}}},
+            "then": {"properties": {"epistemic_status": {"const": "unknown"}}}
+          }
+        ]
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["summary", "evidence_ids"],
+        "properties": {
+          "summary": {"type": "string"},
+          "evidence_ids": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "pattern": "^E[1-9][0-9]*$"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "gaps": {"type": "array", "items": {"type": "string"}},
+    "staleness": {
+      "type": "object",
+      "required": ["verified_at", "sources_current", "changed_sources"],
+      "properties": {
+        "verified_at": {"type": "string", "format": "date-time"},
+        "sources_current": {"type": "boolean"},
+        "changed_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "revision_before", "revision_after", "modified_at_before", "modified_at_after"],
+            "properties": {
+              "path": {"type": "string", "pattern": "\\.md$"},
+              "revision_before": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+              "revision_after": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+              "modified_at_before": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"},
+              "modified_at_after": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "writeback": {
+      "type": "object",
+      "required": ["requested", "operation", "status"],
+      "properties": {
+        "requested": {"type": "boolean"},
+        "target": {"type": "string"},
+        "operation": {"enum": ["none", "create", "patch"]},
+        "status": {"enum": ["not_requested", "planned", "applied", "no_change", "conflict", "failed"]},
+        "anchor": {"type": "string"},
+        "expected_revision": {"type": "string"},
+        "source_manifest_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "content_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "plan_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "request_id": {"type": "string"},
+        "planned_revision_after": {"type": "string"},
+        "revision_before": {"type": "string"},
+        "revision_after": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {"type": "string"},
+          "message": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"const": "compare"}}},
+      "then": {
+        "properties": {
+          "writeback": {
+            "properties": {
+              "requested": {"const": false},
+              "operation": {"const": "none"},
+              "status": {"const": "not_requested"}
+            }
+          },
+          "status": {"enum": ["success", "insufficient_evidence", "stale", "partial", "failed"]},
+          "claims": {
+            "items": {
+              "properties": {
+                "type": {"enum": ["source_statement", "comparison", "inference", "unknown"]}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "success"}}},
+      "then": {
+        "properties": {
+          "sources": {"minItems": 2},
+          "staleness": {"properties": {"sources_current": {"const": true}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"staleness": {"properties": {"sources_current": {"const": true}}}}},
+      "then": {"properties": {"staleness": {"properties": {"changed_sources": {"maxItems": 0}}}}}
+    },
+    {
+      "if": {"properties": {"staleness": {"properties": {"sources_current": {"const": false}}}}},
+      "then": {
+        "properties": {
+          "status": {"const": "stale"},
+          "evidence": {"maxItems": 0},
+          "claims": {"maxItems": 0},
+          "conflicts": {"maxItems": 0},
+          "gaps": {"maxItems": 0},
+          "staleness": {"properties": {"changed_sources": {"minItems": 1}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"selection": {"properties": {"mode": {"const": "search"}}}}},
+      "then": {
+        "properties": {
+          "selection": {
+            "properties": {
+              "queries": {"minItems": 1},
+              "confirmed": {"const": true}
+            }
+          },
+          "sources": {
+            "items": {
+              "required": ["query", "selection_reason"],
+              "properties": {
+                "role": {"const": "search_result"},
+                "query": {"minLength": 1},
+                "selection_reason": {"minLength": 1}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"selection": {"properties": {"mode": {"const": "explicit"}}}}},
+      "then": {
+        "properties": {
+          "selection": {"properties": {"queries": {"maxItems": 0}}},
+          "sources": {"items": {"properties": {"role": {"const": "explicit"}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "stale"}}},
+      "then": {
+        "properties": {
+          "sources": {"minItems": 2},
+          "evidence": {"maxItems": 0},
+          "claims": {"maxItems": 0},
+          "conflicts": {"maxItems": 0},
+          "gaps": {"maxItems": 0},
+          "staleness": {
+            "properties": {
+              "sources_current": {"const": false},
+              "changed_sources": {"minItems": 1}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "no_change"}}},
+      "then": {"properties": {"sources": {"minItems": 2}}}
+    },
+    {
+      "if": {"properties": {"writeback": {"properties": {"requested": {"const": false}}}}},
+      "then": {
+        "properties": {
+          "writeback": {
+            "properties": {
+              "operation": {"const": "none"},
+              "status": {"const": "not_requested"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"writeback": {"properties": {"requested": {"const": true}}}}},
+      "then": {
+        "properties": {
+          "writeback": {
+            "required": ["target", "source_manifest_digest", "content_digest", "plan_digest", "request_id"],
+            "properties": {
+              "operation": {"enum": ["create", "patch"]},
+              "status": {"enum": ["planned", "applied", "no_change", "conflict", "failed"]}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"writeback": {"properties": {"operation": {"const": "patch"}}}}},
+      "then": {
+        "properties": {
+          "writeback": {"required": ["anchor", "expected_revision"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"writeback": {"properties": {"status": {"const": "applied"}}}}},
+      "then": {
+        "properties": {
+          "writeback": {"required": ["target", "revision_after", "planned_revision_after", "source_manifest_digest", "content_digest", "plan_digest", "request_id"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"writeback": {"properties": {"status": {"enum": ["planned", "applied", "no_change"]}}}}},
+      "then": {
+        "properties": {
+          "writeback": {"required": ["planned_revision_after"]}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

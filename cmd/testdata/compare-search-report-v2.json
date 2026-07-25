@@ -1,0 +1,23 @@
+{
+  "kind": "compare",
+  "status": "success",
+  "vault": "vault-demo",
+  "selection": {"mode": "search", "queries": ["agent"], "rule": "coverage_filename_path_line", "confirmed": true, "duplicates": []},
+  "sources": [
+    {"id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "body_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "modified_at": "2026-07-25T10:00:00Z", "role": "search_result", "query": "agent", "selection_reason": "filename match"},
+    {"id": "S2", "path": "B.md", "revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "body_revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "modified_at": "2026-07-25T10:01:00Z", "role": "search_result", "query": "agent", "selection_reason": "content match"}
+  ],
+  "evidence": [
+    {"id": "E1", "source_id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "kind": "modified_at", "location": "modified_at", "excerpt": "2026-07-25T10:00:00Z"},
+    {"id": "E2", "source_id": "S2", "path": "B.md", "revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "kind": "modified_at", "location": "modified_at", "excerpt": "2026-07-25T10:01:00Z"}
+  ],
+  "claims": [
+    {"id": "C1", "type": "comparison", "epistemic_status": "supported", "statement": "B 的文件修改时间更晚。", "evidence_ids": ["E1", "E2"]}
+  ],
+  "conflicts": [],
+  "gaps": [],
+  "staleness": {"verified_at": "2026-07-25T10:05:00Z", "sources_current": true, "changed_sources": []},
+  "writeback": {"requested": false, "operation": "none", "status": "not_requested"},
+  "warnings": [],
+  "errors": []
+}

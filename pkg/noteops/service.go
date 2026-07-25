@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/andy-neoaira/obs-cli/pkg/frontmatter"
 	"github.com/andy-neoaira/obs-cli/pkg/pathpolicy"
@@ -58,6 +59,7 @@ type Note struct {
 	Path         string         `json:"path"`
 	Revision     string         `json:"revision"`
 	BodyRevision string         `json:"body_revision"`
+	ModifiedAt   string         `json:"modified_at"`
 	Content      string         `json:"content"`
 	Frontmatter  map[string]any `json:"frontmatter"`
 }
@@ -152,6 +154,7 @@ func (s *Service) Get(input string) (Note, error) {
 		Path:         resolved.Logical,
 		Revision:     snapshot.Revision,
 		BodyRevision: storage.Revision([]byte(body)),
+		ModifiedAt:   snapshot.ModifiedAt.Format(time.RFC3339Nano),
 		Content:      string(snapshot.Data),
 		Frontmatter:  fm,
 	}, nil

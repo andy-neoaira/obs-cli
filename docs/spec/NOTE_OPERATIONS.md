@@ -29,6 +29,8 @@ obs note move <source> <target> --if-match <revision> [--if-plan-hash <hash>]
 - 基于原始字节的 `revision`。
 - 排除 YAML frontmatter 后正文原始字节的 `body_revision`，用于识别仅 metadata
   变化与正文变化。
+- 稳定快照的文件系统 `modified_at`（UTC RFC 3339）；它是文件修改时间，不代表
+  笔记中事实发生或生效的时间。
 
 Frontmatter 存在但 YAML 无效时返回 `INVALID_FRONTMATTER`。`note.list` 返回按逻辑路径排序的 Markdown 文件，不遍历隐藏目录。
 

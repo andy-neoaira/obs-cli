@@ -44,6 +44,7 @@ obs capabilities --output json \
 | `daily.get` | 否 | 返回官方配置解析后的路径、存在状态、note 与 revision |
 | `daily.create` | 是 | 按官方 folder/format/template 创建，不覆盖现有 Daily |
 | `daily.append` | 是 | 携带 revision 向整篇或唯一 section 追加 |
+| `note.get` | 否 | 返回正文、Frontmatter、路径、revision、body_revision 和 modified_at |
 | `metadata.get` | 否 | 返回目标路径、revision、body_revision 和解析后的 frontmatter |
 | `metadata.set` | 是 | 只设置一个键，保留正文和未知字段，要求 revision 并回显 body_revision |
 | `search.content` | 否 | 仅扫描 Markdown，限制页大小和读取文件数 |

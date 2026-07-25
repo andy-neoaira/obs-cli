@@ -1,0 +1,30 @@
+{
+  "kind": "compare",
+  "status": "stale",
+  "vault": "vault-demo",
+  "selection": {"mode": "explicit", "queries": [], "rule": "user_order", "confirmed": true, "duplicates": []},
+  "sources": [
+    {"id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "body_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "modified_at": "2026-07-25T10:00:00Z", "role": "explicit"},
+    {"id": "S2", "path": "B.md", "revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "body_revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "modified_at": "2026-07-25T10:01:00Z", "role": "explicit"}
+  ],
+  "evidence": [],
+  "claims": [],
+  "conflicts": [],
+  "gaps": [],
+  "staleness": {
+    "verified_at": "2026-07-25T10:05:00Z",
+    "sources_current": false,
+    "changed_sources": [
+      {
+        "path": "A.md",
+        "revision_before": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "revision_after": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "modified_at_before": "2026-07-25T10:00:00Z",
+        "modified_at_after": "2026-07-25T10:04:00Z"
+      }
+    ]
+  },
+  "writeback": {"requested": false, "operation": "none", "status": "not_requested"},
+  "warnings": ["来源在第二次 verify 时再次变化，旧结论已清空"],
+  "errors": []
+}

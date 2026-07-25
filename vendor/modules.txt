@@ -49,6 +49,9 @@ github.com/gdamore/tcell/v2/terminfo/w/wy99_ansi
 github.com/gdamore/tcell/v2/terminfo/x/xfce
 github.com/gdamore/tcell/v2/terminfo/x/xterm
 github.com/gdamore/tcell/v2/terminfo/x/xterm_kitty
+# github.com/google/jsonschema-go v0.4.2
+## explicit; go 1.23.0
+github.com/google/jsonschema-go/jsonschema
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap

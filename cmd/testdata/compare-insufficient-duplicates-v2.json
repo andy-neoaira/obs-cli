@@ -1,0 +1,17 @@
+{
+  "kind": "compare",
+  "status": "insufficient_evidence",
+  "vault": "vault-demo",
+  "selection": {"mode": "explicit", "queries": [], "rule": "user_order", "confirmed": true, "duplicates": ["A.md"]},
+  "sources": [
+    {"id": "S1", "path": "A.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "body_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "modified_at": "2026-07-25T10:00:00Z", "role": "explicit"}
+  ],
+  "evidence": [],
+  "claims": [],
+  "conflicts": [],
+  "gaps": ["去重后只有一个独立来源"],
+  "staleness": {"verified_at": "2026-07-25T10:05:00Z", "sources_current": true, "changed_sources": []},
+  "writeback": {"requested": false, "operation": "none", "status": "not_requested"},
+  "warnings": ["重复来源 A.md 已按规范 path 去重"],
+  "errors": []
+}
