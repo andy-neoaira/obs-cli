@@ -25,6 +25,9 @@ clean-all:
 test:
 	go test ./...
 
+compatibility-check:
+	./scripts/compatibility-check.sh
+
 test-search-content:
 	go test ./pkg/actions -run TestSearchNotesContentWithOptions -v
 
@@ -55,7 +58,7 @@ skill-lint:
 skill-evals:
 	./scripts/run-skill-evals.sh
 
-release-check: format-check
+release-check: format-check compatibility-check
 	go vet ./...
 	go test ./...
 	go test -race ./...

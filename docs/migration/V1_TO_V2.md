@@ -20,9 +20,9 @@ V2 是破坏性升级。V1 命令实现仍保留在当前源码历史中用于�
 | `delete <note>` | `note delete <path> --if-match <revision>` | 需要条件删除并保留私有恢复副本 |
 | `move <old> <new>` | `note move <old> <new> --if-match <revision>` | 链接重写纳入事务 |
 | `frontmatter` | `note get` + `note patch/replace` | 使用 revision 与上下文条件 |
-| `search` | 尚未实现 | `search` 命名空间返回 `CAPABILITY_UNSUPPORTED` |
-| `search-content` | 尚未实现 | 等待 capabilities 声明 `search.*` |
-| `daily` | 尚未实现 | `daily` 命名空间已预留 |
+| `search` | `search content <query>` | 有界分页并返回 path/revision/line/snippet 证据 |
+| `search-content` | `search content <query>` | 使用统一 V2 JSON envelope |
+| `daily` | `daily get/create/append` | 遵循 Obsidian folder/format/template |
 | `open` | 无 V2 替代 | GUI/编辑器启动移出 Agent 核心 |
 
 V1 的 `--editor`、模糊 picker、Obsidian URI 启动和自然语言 stdout 没有 V2 兼容模式。
@@ -52,7 +52,8 @@ obs-cli vault list
 
 ## 5. 已知限制
 
-- `search/metadata/link/daily/template/batch/doctor` 是预留命名空间，当前没有稳定 operation。
+- CLI 不负责模板交互 UI、批量自由编辑或 GUI doctor；模板渲染由 Daily operation
+  和独立客户端按共同规范处理。
 - 外部 Obsidian、Neovim 和同步服务不遵守 CLI 协作锁；提交前 revision 复核会缩小但不能消除最终原子替换前的极短竞态窗口。
 - 网络文件系统和云盘虚拟文件系统可能不提供本地 rename/flush 的同等持久性。
 - move 重写支持 V2 规范中的 Wikilink 与普通 Markdown 文件链接；Vault 绝对风格链接和外部 scheme 不重写。

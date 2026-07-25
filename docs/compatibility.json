@@ -1,0 +1,83 @@
+{
+  "schema_version": "obsidian-joint-compatibility/v1",
+  "status": "release-candidate",
+  "content_format_migration_required": false,
+  "products": {
+    "obs-cli": {
+      "candidate_version": "v2.0.0-rc.1",
+      "released": false,
+      "protocol": "obs-cli/v2",
+      "write_protocol": "obs-write/v1",
+      "vault_contract": "vault-contract/v1"
+    },
+    "miniobsidian.nvim": {
+      "release_selector": {
+        "kind": "feature-line",
+        "value": "agent-first-v2-p4"
+      },
+      "released": false,
+      "minimum_neovim": "0.11.2",
+      "cli_optional": true,
+      "required_protocol": "obs-cli/v2",
+      "required_vault_contract": "vault-contract/v1"
+    },
+    "skills": {
+      "bundle": "agent-first-v2",
+      "scenario_skills": 11,
+      "minimum_cli_version": "v2.0.0-rc.1",
+      "required_protocol": "obs-cli/v2"
+    }
+  },
+  "compatible_sets": [
+    {
+      "id": "agent-first-v2-rc1",
+      "cli_version_range": ">=v2.0.0-rc.1 <v3.0.0",
+      "plugin_release_selector": "agent-first-v2-p4",
+      "protocol": "obs-cli/v2",
+      "vault_contract": "vault-contract/v1",
+      "required_plugin_operations": [
+        "note.get",
+        "note.list",
+        "note.move",
+        "note.patch"
+      ],
+      "skill_manifest": "skills/evals/scenarios.json"
+    }
+  ],
+  "adapter_modes": [
+    {
+      "mode": "standalone",
+      "condition": "cli.disabled_or_missing",
+      "plugin_local_features": "available",
+      "cli_features": "disabled",
+      "severity": "info"
+    },
+    {
+      "mode": "compatible",
+      "condition": "protocol.vault_contract.operations_match",
+      "plugin_local_features": "available",
+      "cli_features": "capability_gated",
+      "severity": "ok"
+    },
+    {
+      "mode": "incompatible",
+      "condition": "protocol_or_vault_contract_mismatch",
+      "plugin_local_features": "available",
+      "cli_features": "disabled",
+      "severity": "warning"
+    }
+  ],
+  "release_gates": {
+    "automated": [
+      "obs-cli.release-check",
+      "skills.evals",
+      "miniobsidian.ci",
+      "three-client-e2e.6-of-6",
+      "license-check"
+    ],
+    "manual_pending": [
+      "obsidian-desktop-smoke",
+      "obsidian-mobile-sync-observation"
+    ]
+  }
+}

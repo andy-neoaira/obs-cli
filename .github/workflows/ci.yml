@@ -24,6 +24,7 @@ jobs:
       - name: Verify formatting, schemas, coverage, and cross-platform builds
         run: |
           make format-check
+          make compatibility-check
           make schema-check
           make coverage-check
           make build-check

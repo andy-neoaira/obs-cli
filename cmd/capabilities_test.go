@@ -24,6 +24,10 @@ func TestCapabilitiesGoldenJSON(t *testing.T) {
 	if data.CLIVersion == "" || len(data.ProtocolVersions) == 0 || len(data.Operations) == 0 {
 		t.Fatalf("incomplete capabilities: %#v", data)
 	}
+	if data.VaultContract["target"] != "vault-contract/v1" ||
+		data.VaultContract["implemented"] != "vault-contract/v1" {
+		t.Fatalf("vault contract is not implemented: %#v", data.VaultContract)
+	}
 	if !data.FeatureFlags["note_operations_v2"] || !data.FeatureFlags["daily_notes_v2"] ||
 		!data.FeatureFlags["metadata_v2"] || !data.FeatureFlags["search_v2"] ||
 		!data.FeatureFlags["link_inspection_v2"] || !data.FeatureFlags["dry_run_plans"] ||
@@ -100,6 +104,71 @@ func TestCapabilitiesUnsupportedRequirement(t *testing.T) {
 	}
 	if response.RequestID != "req-unsupported" || !bytes.Contains([]byte(diagnostic), []byte("req-unsupported")) {
 		t.Fatalf("request ID mismatch response=%q diagnostic=%q", response.RequestID, diagnostic)
+	}
+}
+
+func TestJointCompatibilityMatrixMatchesCapabilitiesAndSkills(t *testing.T) {
+	type compatibleSet struct {
+		Protocol                 string   `json:"protocol"`
+		VaultContract            string   `json:"vault_contract"`
+		RequiredPluginOperations []string `json:"required_plugin_operations"`
+	}
+	type product struct {
+		MinimumCLIVersion string `json:"minimum_cli_version"`
+	}
+	type matrix struct {
+		SchemaVersion  string             `json:"schema_version"`
+		Products       map[string]product `json:"products"`
+		CompatibleSets []compatibleSet    `json:"compatible_sets"`
+	}
+	type skillManifest struct {
+		MinimumCLIVersion string `json:"minimum_cli_version"`
+	}
+
+	raw, err := os.ReadFile("../docs/compatibility.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var compatibility matrix
+	if err := json.Unmarshal(raw, &compatibility); err != nil {
+		t.Fatal(err)
+	}
+	if compatibility.SchemaVersion != "obsidian-joint-compatibility/v1" ||
+		len(compatibility.CompatibleSets) == 0 {
+		t.Fatalf("invalid compatibility matrix: %#v", compatibility)
+	}
+
+	skillRaw, err := os.ReadFile("../skills/evals/scenarios.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var skills skillManifest
+	if err := json.Unmarshal(skillRaw, &skills); err != nil {
+		t.Fatal(err)
+	}
+	if compatibility.Products["skills"].MinimumCLIVersion != skills.MinimumCLIVersion {
+		t.Fatalf(
+			"Skill minimum mismatch matrix=%q manifest=%q",
+			compatibility.Products["skills"].MinimumCLIVersion,
+			skills.MinimumCLIVersion,
+		)
+	}
+
+	capabilities := currentCapabilities()
+	operations := make(map[string]bool, len(capabilities.Operations))
+	for _, operation := range capabilities.Operations {
+		operations[operation.Name] = true
+	}
+	for _, set := range compatibility.CompatibleSets {
+		if set.Protocol != protocol.Version ||
+			set.VaultContract != capabilities.VaultContract["implemented"] {
+			t.Fatalf("compatible set does not match runtime capabilities: %#v", set)
+		}
+		for _, operation := range set.RequiredPluginOperations {
+			if !operations[operation] {
+				t.Fatalf("compatible set requires unavailable operation %q", operation)
+			}
+		}
 	}
 }
 

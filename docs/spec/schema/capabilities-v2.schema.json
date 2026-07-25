@@ -28,7 +28,7 @@
       "required": ["target", "implemented"],
       "properties": {
         "target": {"const": "vault-contract/v1"},
-        "implemented": {"type": ["string", "null"]}
+        "implemented": {"const": "vault-contract/v1"}
       },
       "additionalProperties": false
     },

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andy-neoaira/obs-cli/docs/spec/schema/compatibility-v1.schema.json",
+  "title": "obs-cli and miniobsidian.nvim joint compatibility",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "content_format_migration_required",
+    "products",
+    "compatible_sets",
+    "adapter_modes",
+    "release_gates"
+  ],
+  "properties": {
+    "schema_version": {"const": "obsidian-joint-compatibility/v1"},
+    "status": {"enum": ["release-candidate", "stable", "deprecated"]},
+    "content_format_migration_required": {"type": "boolean"},
+    "products": {
+      "type": "object",
+      "required": ["obs-cli", "miniobsidian.nvim", "skills"]
+    },
+    "compatible_sets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "cli_version_range",
+          "plugin_release_selector",
+          "protocol",
+          "vault_contract",
+          "required_plugin_operations",
+          "skill_manifest"
+        ]
+      }
+    },
+    "adapter_modes": {
+      "type": "array",
+      "minItems": 3
+    },
+    "release_gates": {
+      "type": "object",
+      "required": ["automated", "manual_pending"]
+    }
+  }
+}

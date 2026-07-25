@@ -18,6 +18,10 @@ obs capabilities --output json \
 
 调用方只依赖 operation 名称、版本、声明的通用参数和 feature flag，不解析 `--help` 或自然语言描述。
 
+当前 `vault_contract.target` 与 `vault_contract.implemented` 均为
+`vault-contract/v1`。编辑器 Adapter 必须同时检查 `obs-cli/v2`、该共同规范和场景
+所需 operation；任一不匹配时只禁用 CLI 高级集成，不影响编辑器自身功能。
+
 ## 2. 稳定名称
 
 当前稳定 feature flag：

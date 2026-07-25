@@ -32,7 +32,7 @@ func currentCapabilities() capabilitiesData {
 		WriteProtocols:   []string{"obs-write/v1"},
 		VaultContract: map[string]any{
 			"target":      "vault-contract/v1",
-			"implemented": nil,
+			"implemented": "vault-contract/v1",
 		},
 		Operations: []capabilityOperation{
 			{Name: "capabilities.get", Version: 1, CommonFlags: []string{"output", "request-id"}},
