@@ -131,6 +131,13 @@ func MapError(err error) *DomainError {
 			"same_content":       createConflict.ExistingRevision == createConflict.RequestedRevision,
 		})
 	}
+	var invalidFrontmatter *noteops.InvalidFrontmatterError
+	if errors.As(err, &invalidFrontmatter) {
+		return Wrap(InvalidFrontmatter, "The note contains invalid frontmatter.", err, map[string]any{
+			"path":     invalidFrontmatter.Path,
+			"revision": invalidFrontmatter.Revision,
+		})
+	}
 	var partial *storage.PartialFailureError
 	if errors.As(err, &partial) {
 		return Wrap(PartialFailure, "The operation requires manual recovery.", err, map[string]any{

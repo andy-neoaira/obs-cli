@@ -27,6 +27,8 @@ type noteService interface {
 	Delete(string, string) (noteops.Mutation, error)
 	PlanMove(string, string, string) (noteops.MovePlan, error)
 	ApplyMovePlan(noteops.MovePlan) (noteops.MoveResult, error)
+	Search(string, string, int, int, int) (noteops.SearchPage, error)
+	Backlinks(string, string, int) (noteops.BacklinkReport, error)
 }
 
 type noteServiceFactory func(string) (noteService, error)

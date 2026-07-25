@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andy-neoaira/obs-cli/docs/spec/schema/search-audit-report-v2.schema.json",
+  "title": "obs-cli Skill search/audit report",
+  "type": "object",
+  "required": ["status", "vault", "scope", "queries", "evidence", "checks", "findings", "plan", "coverage", "pagination", "errors"],
+  "properties": {
+    "status": {"enum": ["success", "no_results", "partial", "failed"]},
+    "vault": {"type": "string", "minLength": 1},
+    "scope": {"type": "string"},
+    "queries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["value", "origin", "pages_read", "status", "stop_reason"],
+        "properties": {
+          "value": {"type": "string"},
+          "origin": {"enum": ["original", "variant"]},
+          "pages_read": {"type": "integer", "minimum": 0},
+          "status": {"enum": ["complete", "partial", "failed"]},
+          "stop_reason": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["operation", "target", "scope", "observed_at", "status", "pagination_complete", "scan_truncated"],
+        "properties": {
+          "operation": {"type": "string"},
+          "target": {"type": "string"},
+          "scope": {"type": "string"},
+          "observed_at": {"type": "string", "format": "date-time"},
+          "status": {"enum": ["present", "absent", "complete_zero", "partial", "failed"]},
+          "pagination_complete": {"type": "boolean"},
+          "scan_truncated": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "revision", "line", "snippet"],
+        "properties": {
+          "path": {"type": "string", "pattern": "\\.md$"},
+          "revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+          "size": {"type": "integer", "minimum": 0},
+          "line": {"type": "integer", "minimum": 0},
+          "snippet": {"type": "string"},
+          "kind": {"enum": ["search", "note", "backlink", "error"]},
+          "query": {"type": "string"},
+          "target": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "severity", "summary", "evidence_indexes"],
+        "properties": {
+          "category": {"enum": ["match", "todo", "broken_link", "unverified_attachment_target", "orphan", "orphan_candidate", "duplicate_basename", "invalid_frontmatter", "other"]},
+          "severity": {"enum": ["info", "warning", "error"]},
+          "summary": {"type": "string"},
+          "evidence_indexes": {"type": "array", "items": {"type": "integer", "minimum": 0}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "plan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action", "targets", "requires_skill", "execution_status"],
+        "properties": {
+          "action": {"type": "string"},
+          "targets": {"type": "array", "items": {"type": "string"}},
+          "requires_skill": {"type": "string"},
+          "execution_status": {"const": "not_executed"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "status", "eligible", "processed", "scan_truncated", "findings_truncated", "stop_reason"],
+        "properties": {
+          "type": {"type": "string"},
+          "status": {"enum": ["complete", "partial", "failed", "not_requested"]},
+          "eligible": {"type": "integer", "minimum": 0},
+          "processed": {"type": "integer", "minimum": 0},
+          "scan_truncated": {"type": "boolean"},
+          "findings_truncated": {"type": "boolean"},
+          "stop_reason": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "required": ["pages_read", "files_scanned", "full_notes_read", "truncated", "stop_reason"],
+      "properties": {
+        "pages_read": {"type": "integer", "minimum": 0},
+        "files_scanned": {"type": "integer", "minimum": 0},
+        "full_notes_read": {"type": "integer", "minimum": 0},
+        "truncated": {"type": "boolean"},
+        "stop_reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {"type": "string"},
+          "message": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -34,6 +34,8 @@ obs capabilities --output json \
 | `note_operations_v2` | V2 Note 原子操作命令是否可用；命令语义见 [NOTE_OPERATIONS.md](./NOTE_OPERATIONS.md) |
 | `daily_notes_v2` | `daily.get/create/append` 按 Obsidian Daily Notes 配置安全操作日记 |
 | `metadata_v2` | `metadata.get/set` 提供 revision-aware frontmatter 字段更新 |
+| `search_v2` | `search.content` 提供有界分页及 path/revision/line/snippet 证据 |
+| `link_inspection_v2` | `link.backlinks` 只读返回反向链接及来源 revision |
 
 当前 Daily 与 Metadata operation：
 
@@ -44,6 +46,8 @@ obs capabilities --output json \
 | `daily.append` | 是 | 携带 revision 向整篇或唯一 section 追加 |
 | `metadata.get` | 否 | 返回目标路径、revision 和解析后的 frontmatter |
 | `metadata.set` | 是 | 只设置一个键，保留正文和未知字段，要求 revision |
+| `search.content` | 否 | 仅扫描 Markdown，限制页大小和读取文件数 |
+| `link.backlinks` | 否 | 有界扫描 Wikilink/Markdown link，返回来源证据 |
 
 operation 名称和 feature flag 只增不改。新增名称属于兼容变更；删除、改名或改变已有名称的语义需要升级协议主版本。弃用项至少保留一个 V2 发布周期，并通过新增的可选 deprecation 元数据公告；调用方必须忽略未知可选字段。
 

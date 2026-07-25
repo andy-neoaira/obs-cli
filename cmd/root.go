@@ -45,8 +45,10 @@ func newRootCommand() *cobra.Command {
 		newNoteV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
 		newDailyV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory, nil),
 		newMetadataV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+		newSearchV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+		newLinkV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
 	)
-	for _, namespace := range []string{"search", "link", "template", "batch", "doctor"} {
+	for _, namespace := range []string{"template", "batch", "doctor"} {
 		command.AddCommand(newReservedNamespaceCommand(namespace))
 	}
 	return command

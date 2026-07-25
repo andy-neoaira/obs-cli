@@ -86,6 +86,29 @@ func TestSkillV2Project(t *testing.T) {
 	)
 }
 
+func TestSkillV2Search(t *testing.T) {
+	content := readSkill(t, "../skills/obsidian-knowledge-search/SKILL.md")
+	requireSkillText(t, content,
+		"search.content", "note.get", "link.backlinks",
+		"obs-cli search content", "obs-cli note get", "obs-cli link backlinks",
+		"revision", "--page-size 10", "--max-files 1000",
+		"no_results", "total_results=0", "search-audit-report-v2.schema.json",
+	)
+	forbidSkillText(t, content, "obs-cli search-content", "obs-cli print ", "obs-cli open ")
+}
+
+func TestSkillV2Audit(t *testing.T) {
+	content := readSkill(t, "../skills/obsidian-vault-audit/SKILL.md")
+	requireSkillText(t, content,
+		"note.list", "note.get", "search.content", "link.backlinks",
+		"broken_link", "orphan", "duplicate_title", "INVALID_FRONTMATTER",
+		"只返回 Markdown 路径", "不得自动扩大扫描", "search-audit-report-v2.schema.json",
+	)
+	forbidSkillText(t, content,
+		"obs-cli list ", "obs-cli search-content", "frontmatter --edit",
+	)
+}
+
 func readSkill(t *testing.T, path string) string {
 	t.Helper()
 	content, err := os.ReadFile(path)

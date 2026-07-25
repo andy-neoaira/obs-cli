@@ -32,6 +32,20 @@ type CreateConflict struct {
 	RequestedRevision string
 }
 
+type InvalidFrontmatterError struct {
+	Path     string
+	Revision string
+	Cause    error
+}
+
+func (e *InvalidFrontmatterError) Error() string {
+	return fmt.Sprintf("invalid frontmatter in %s: %v", e.Path, e.Cause)
+}
+
+func (e *InvalidFrontmatterError) Unwrap() error {
+	return ErrInvalidFrontmatter
+}
+
 func (e *CreateConflict) Error() string {
 	return fmt.Sprintf("note already exists: %s", e.Path)
 }
@@ -123,7 +137,9 @@ func (s *Service) Get(input string) (Note, error) {
 	if frontmatter.HasFrontmatter(string(snapshot.Data)) {
 		parsed, _, err := frontmatter.Parse(string(snapshot.Data))
 		if err != nil {
-			return Note{}, fmt.Errorf("%w: %v", ErrInvalidFrontmatter, err)
+			return Note{}, &InvalidFrontmatterError{
+				Path: resolved.Logical, Revision: snapshot.Revision, Cause: err,
+			}
 		}
 		if parsed != nil {
 			fm = parsed

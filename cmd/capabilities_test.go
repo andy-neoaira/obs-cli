@@ -25,7 +25,8 @@ func TestCapabilitiesGoldenJSON(t *testing.T) {
 		t.Fatalf("incomplete capabilities: %#v", data)
 	}
 	if !data.FeatureFlags["note_operations_v2"] || !data.FeatureFlags["daily_notes_v2"] ||
-		!data.FeatureFlags["metadata_v2"] || !data.FeatureFlags["dry_run_plans"] {
+		!data.FeatureFlags["metadata_v2"] || !data.FeatureFlags["search_v2"] ||
+		!data.FeatureFlags["link_inspection_v2"] || !data.FeatureFlags["dry_run_plans"] {
 		t.Fatalf("capabilities feature flags are incorrect: %#v", data.FeatureFlags)
 	}
 	assertCapabilitiesSchema(t, data)
