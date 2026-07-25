@@ -11,12 +11,12 @@
 
 ## 任务进度
 
-阶段进度：`3 / 6`
+阶段进度：`4 / 6`
 
 - [x] [P4-T01 miniobsidian 可选 CLI Adapter](./P4-T01-optional-cli-adapter.md)
 - [x] [P4-T02 Neovim 安全移动与批量操作入口](./P4-T02-safe-move-ui.md)
 - [x] [P4-T03 当前笔记与选区交给 Agent](./P4-T03-agent-handoff.md)
-- [ ] [P4-T04 Agent 修改后的 Diff 与冲突 UX](./P4-T04-diff-conflict-ux.md)
+- [x] [P4-T04 Agent 修改后的 Diff 与冲突 UX](./P4-T04-diff-conflict-ux.md)
 - [ ] [P4-T05 三入口端到端测试](./P4-T05-three-client-e2e.md)
 - [ ] [P4-T06 联合发布、兼容矩阵与运维文档](./P4-T06-release-docs.md)
 
@@ -26,9 +26,9 @@
 
 - [ ] 无 CLI 时插件功能与 P2 完成态一致。
 - [ ] 有 CLI 时插件只通过 capabilities 决定高级功能。
-- [ ] Neovim 未保存内容不会被 Agent 覆盖。
+- [x] Neovim 未保存内容不会被 Agent 覆盖。
 - [ ] 三入口 E2E 覆盖同步、冲突、移动和 Daily Note。
-- [ ] 用户能清晰判断每次 Agent 修改的目标、差异和结果。
+- [x] 用户能清晰判断每次 Agent 修改的目标、差异和结果。
 - [ ] 联合版本兼容关系有机器可读记录。
 
 ## 阶段验证
