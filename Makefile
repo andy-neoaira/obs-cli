@@ -49,6 +49,9 @@ rc-smoke:
 license-check:
 	./scripts/license-check.sh
 
+skill-lint:
+	./scripts/lint-skills.sh
+
 release-check: format-check
 	go vet ./...
 	go test ./...
@@ -57,6 +60,7 @@ release-check: format-check
 	$(MAKE) schema-check
 	$(MAKE) build-check
 	$(MAKE) license-check
+	$(MAKE) skill-lint
 	$(MAKE) rc-smoke
 
 	# Release automation

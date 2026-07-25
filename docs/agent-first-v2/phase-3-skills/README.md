@@ -11,9 +11,9 @@
 
 ## 任务进度
 
-阶段进度：`0 / 8`
+阶段进度：`1 / 8`
 
-- [ ] [P3-T01 Skill 契约、模板与安全基线](./P3-T01-skill-contract.md)
+- [x] [P3-T01 Skill 契约、模板与安全基线](./P3-T01-skill-contract.md)
 - [ ] [P3-T02 迁移 Vault Setup 与 Capture](./P3-T02-setup-capture.md)
 - [ ] [P3-T03 迁移 Daily Log 与 Project Note](./P3-T03-daily-project.md)
 - [ ] [P3-T04 迁移 Knowledge Search 与 Vault Audit](./P3-T04-search-audit.md)
