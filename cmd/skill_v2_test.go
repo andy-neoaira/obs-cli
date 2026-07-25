@@ -62,6 +62,30 @@ func TestSkillV2Capture(t *testing.T) {
 	)
 }
 
+func TestSkillV2Daily(t *testing.T) {
+	content := readSkill(t, "../skills/obsidian-daily-log/SKILL.md")
+	requireSkillText(t, content,
+		"daily.get", "daily.create", "daily.append",
+		"obs-cli daily get", "obs-cli daily create", "obs-cli daily append",
+		"--dry-run", "--if-match", "REVISION_CONFLICT",
+		"不硬编码 `Dailies/`", "禁止重复创建章节", "payload_added_once:",
+	)
+	forbidSkillText(t, content, "printf ", "--overwrite")
+}
+
+func TestSkillV2Project(t *testing.T) {
+	content := readSkill(t, "../skills/obsidian-project-note/SKILL.md")
+	requireSkillText(t, content,
+		"note.get", "note.create", "note.append", "metadata.get", "metadata.set",
+		"obs-cli metadata get", "obs-cli metadata set",
+		"--dry-run", "--if-match", "REVISION_CONFLICT",
+		"保留未知字段", "unknown_metadata_preserved:",
+	)
+	forbidSkillText(t, content,
+		"obs-cli create ", "obs-cli frontmatter ",
+	)
+}
+
 func readSkill(t *testing.T, path string) string {
 	t.Helper()
 	content, err := os.ReadFile(path)

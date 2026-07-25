@@ -24,7 +24,8 @@ func TestCapabilitiesGoldenJSON(t *testing.T) {
 	if data.CLIVersion == "" || len(data.ProtocolVersions) == 0 || len(data.Operations) == 0 {
 		t.Fatalf("incomplete capabilities: %#v", data)
 	}
-	if !data.FeatureFlags["note_operations_v2"] || !data.FeatureFlags["dry_run_plans"] {
+	if !data.FeatureFlags["note_operations_v2"] || !data.FeatureFlags["daily_notes_v2"] ||
+		!data.FeatureFlags["metadata_v2"] || !data.FeatureFlags["dry_run_plans"] {
 		t.Fatalf("capabilities feature flags are incorrect: %#v", data.FeatureFlags)
 	}
 	assertCapabilitiesSchema(t, data)

@@ -15,7 +15,7 @@ capabilities  vault  note  search  metadata
 link          daily  template  batch  doctor
 ```
 
-Implemented operations are discovered through `capabilities`. Reserved namespaces return `CAPABILITY_UNSUPPORTED`; they never fall back to V1 interactive behavior.
+Implemented operations are discovered through `capabilities`. `vault`, `note`, `daily`, and `metadata` currently expose implemented V2 operations. Other reserved namespaces return `CAPABILITY_UNSUPPORTED`; they never fall back to V1 interactive behavior.
 
 ## Build
 

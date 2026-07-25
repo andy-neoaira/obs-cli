@@ -1,7 +1,7 @@
 # P3-T03：迁移 Daily Log 与 Project Note
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`已完成`
+- 负责人：`Codex`
 - 涉及项目：`obs-cli Skills`
 - 依赖：P3-T01、P1-T06、P2-T04
 
@@ -27,16 +27,26 @@
 
 ## 验收标准
 
-- [ ] Daily Note 路径与插件/Obsidian 一致。
-- [ ] 重复执行不会重复创建同一章节。
-- [ ] Project metadata 不破坏未知 Frontmatter 字段。
-- [ ] revision 冲突可被正确报告。
-- [ ] 修改后验证目标章节和字段。
+- [x] Daily Note 路径与插件/Obsidian 一致。
+- [x] 重复执行不会重复创建同一章节。
+- [x] Project metadata 不破坏未知 Frontmatter 字段。
+- [x] revision 冲突可被正确报告。
+- [x] 修改后验证目标章节和字段。
 
 ## 验证
 
 ```bash
 ./scripts/lint-skills.sh
 go test ./... -run 'Skill.*(Daily|Project)'
+GOCACHE=/private/tmp/easyskill-go-cache make release-check
 ```
 
+## 完成记录
+
+- 补齐任务依赖的 `daily.get/create/append` 与 `metadata.get/set` V2 operation。
+- Daily 读取官方 folder/format/template，create 不覆盖其他入口已创建的日记，append 强制 revision。
+- Metadata 单字段更新复用原子写入，只改变目标键并语义保留其他字段和正文。
+- capabilities、feature flags、命令树与协议文档已同步。
+- Daily/Project Skills 已迁移到分支化 capability、逐步 dry-run、冲突停止、partial 恢复和写后 delta 验证。
+- 增加模板渲染、嵌套日期路径、section append、stale revision、未知 metadata 保留及跨入口创建测试。
+- 两个 Skill 通过 lint、结构校验和独立前向测试。

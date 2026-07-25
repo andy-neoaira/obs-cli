@@ -43,8 +43,10 @@ func newRootCommand() *cobra.Command {
 		newCapabilitiesCommand(),
 		newVaultV2Command(defaultVaultRegistryFactory, obsidian.DiscoverObsidianVaults),
 		newNoteV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+		newDailyV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory, nil),
+		newMetadataV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
 	)
-	for _, namespace := range []string{"search", "metadata", "link", "daily", "template", "batch", "doctor"} {
+	for _, namespace := range []string{"search", "link", "template", "batch", "doctor"} {
 		command.AddCommand(newReservedNamespaceCommand(namespace))
 	}
 	return command
