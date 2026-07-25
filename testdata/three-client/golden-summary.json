@@ -1,0 +1,55 @@
+{
+  "schema_version": "three-client-e2e/v1",
+  "scenarios": [
+    {
+      "id": "A",
+      "status": "passed",
+      "invariants": [
+        "frontmatter_preserved",
+        "agent_patch_visible_in_neovim"
+      ]
+    },
+    {
+      "id": "B",
+      "status": "passed",
+      "invariants": [
+        "neovim_note_visible_to_agent",
+        "revision_guarded_status_update"
+      ]
+    },
+    {
+      "id": "C",
+      "status": "passed",
+      "invariants": [
+        "dry_run_precedes_apply",
+        "stale_apply_rejected_without_overwrite"
+      ]
+    },
+    {
+      "id": "D",
+      "status": "passed",
+      "invariants": [
+        "move_plan_confirmed",
+        "links_rewritten",
+        "buffer_tracks_target"
+      ]
+    },
+    {
+      "id": "E",
+      "status": "passed",
+      "invariants": [
+        "shared_daily_path",
+        "frontmatter_consistent"
+      ]
+    },
+    {
+      "id": "F",
+      "status": "passed",
+      "invariants": [
+        "three_way_view_created",
+        "dirty_buffer_preserved",
+        "stale_write_blocked"
+      ]
+    }
+  ]
+}

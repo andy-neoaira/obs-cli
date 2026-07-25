@@ -9,12 +9,12 @@
 
 ```bash
 obs note move <source> <target> \
-  --vault <id-or-name> \
+  --vault <id-or-name-or-registered-path> \
   --if-match sha256:<64-lowercase-hex> \
   --dry-run
 
 obs note move <source> <target> \
-  --vault <id-or-name> \
+  --vault <id-or-name-or-registered-path> \
   --if-match sha256:<64-lowercase-hex> \
   --if-plan-hash sha256:<64-lowercase-hex>
 ```

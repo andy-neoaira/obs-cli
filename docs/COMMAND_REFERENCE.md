@@ -8,7 +8,7 @@
 |---|---|
 | `--output json` | 所有 V2 operation |
 | `--request-id <id>` | 所有 V2 operation |
-| `--vault <id-or-name>` | Note operation |
+| `--vault <id-or-name-or-registered-path>` | Vault-scoped operation |
 | `--dry-run` | 修改 operation |
 | `--if-match <revision>` | 条件修改 operation |
 

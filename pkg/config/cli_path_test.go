@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/andy-neoaira/obs-cli/pkg/config"
 	"github.com/stretchr/testify/assert"
+	"path/filepath"
 	"testing"
 )
 
@@ -37,4 +38,31 @@ func TestConfigCliPath(t *testing.T) {
 		assert.Equal(t, "", obsConfigFile)
 	})
 
+}
+
+func TestConfigCliPathEnvironmentOverride(t *testing.T) {
+	originalUserConfigDirectory := config.UserConfigDirectory
+	t.Cleanup(func() { config.UserConfigDirectory = originalUserConfigDirectory })
+	config.UserConfigDirectory = originalUserConfigDirectory
+
+	t.Run("uses an isolated absolute config root", func(t *testing.T) {
+		root := filepath.Join(t.TempDir(), "config-root")
+		t.Setenv("OBS_CLI_CONFIG_HOME", root)
+
+		configDir, configFile, err := config.V2Path()
+
+		assert.NoError(t, err)
+		assert.Equal(t, filepath.Join(root, "obs-cli"), configDir)
+		assert.Equal(t, filepath.Join(root, "obs-cli", "config-v2.json"), configFile)
+	})
+
+	t.Run("rejects a relative override", func(t *testing.T) {
+		t.Setenv("OBS_CLI_CONFIG_HOME", "relative/config-root")
+
+		configDir, configFile, err := config.V2Path()
+
+		assert.EqualError(t, err, config.UserConfigDirectoryNotFoundErrorMessage)
+		assert.Empty(t, configDir)
+		assert.Empty(t, configFile)
+	})
 }

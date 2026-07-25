@@ -17,7 +17,7 @@
 - [x] [P4-T02 Neovim 安全移动与批量操作入口](./P4-T02-safe-move-ui.md)
 - [x] [P4-T03 当前笔记与选区交给 Agent](./P4-T03-agent-handoff.md)
 - [x] [P4-T04 Agent 修改后的 Diff 与冲突 UX](./P4-T04-diff-conflict-ux.md)
-- [ ] [P4-T05 三入口端到端测试](./P4-T05-three-client-e2e.md)
+- [ ] [P4-T05 三入口端到端测试](./P4-T05-three-client-e2e.md)（自动化 6/6；待桌面端/移动端人工冒烟）
 - [ ] [P4-T06 联合发布、兼容矩阵与运维文档](./P4-T06-release-docs.md)
 
 推荐顺序：P4-T01 → P4-T02/P4-T03 → P4-T04 → P4-T05 → P4-T06。

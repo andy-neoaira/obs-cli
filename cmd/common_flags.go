@@ -36,6 +36,6 @@ func bindCommonFlags(command *cobra.Command, values *commonFlags, enabled common
 		flags.StringVar(&values.IfMatch, "if-match", "", "required current revision")
 	}
 	if enabled.Vault {
-		flags.StringVar(&values.Vault, "vault", "", "vault id or name")
+		flags.StringVar(&values.Vault, "vault", "", "vault id, name, or registered absolute path")
 	}
 }

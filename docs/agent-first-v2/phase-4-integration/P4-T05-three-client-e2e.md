@@ -1,7 +1,7 @@
 # P4-T05：三入口端到端测试
 
-- 状态：`未开始`
-- 负责人：`待分配`
+- 状态：`进行中（自动化 6/6 已完成，待真实 Obsidian 人工冒烟）`
+- 负责人：`Codex（自动化）/ 待分配（人工冒烟）`
 - 涉及项目：`obs-cli`、`miniobsidian.nvim`、Obsidian 兼容语义
 - 依赖：P4-T01 至 P4-T04
 
@@ -23,15 +23,25 @@
 ## 交付物
 
 - `scripts/run-three-client-e2e.sh`
-- E2E fixture 和黄金摘要
-- 人工 smoke test 清单与记录
+- `testdata/three-client/` E2E fixture 和黄金摘要
+- `miniobsidian.nvim/tests/three_client_e2e_spec.lua`
+- [人工 smoke test 清单与记录](./P4-T05-manual-smoke.md)
+
+## 自动化实施记录
+
+- CLI 使用 `OBS_CLI_CONFIG_HOME` 指向临时配置根，Vault registry 不读取个人配置。
+- 每次执行复制合成 fixture 到 `mktemp` Vault，结束后清理。
+- 使用当前源码构建真实 `obs-cli`，并通过真实 `miniobsidian.nvim` Adapter
+  运行搜索、条件更新、冲突、移动、Daily Note 和 dirty buffer 三方比较。
+- `--vault` 支持 ID、名称或已注册绝对路径；绝对路径不会注册或信任任意目录。
+- 输出只比较稳定场景与不变量，排除 Vault ID、临时路径、时间戳和 revision。
 
 ## 验收标准
 
-- [ ] 所有自动场景可重复运行且不依赖个人配置。
-- [ ] 任何冲突都不会静默覆盖。
-- [ ] Daily Note、链接和 Frontmatter 在三个入口一致。
-- [ ] 移动后不存在新增坏链接。
+- [x] 所有自动场景可重复运行且不依赖个人配置。
+- [x] 任何冲突都不会静默覆盖。
+- [x] Daily Note、链接和 Frontmatter 在三个入口一致。
+- [x] 移动后不存在新增坏链接。
 - [ ] 人工 Obsidian 桌面端 smoke test 通过。
 - [ ] 移动端同步限制和观察结果有记录。
 
@@ -42,3 +52,10 @@ cd /Users/andy/github/obs-cli
 ./scripts/run-three-client-e2e.sh
 ```
 
+2026-07-25 自动验证结果：
+
+- `./scripts/run-three-client-e2e.sh`：`6/6` 通过，黄金摘要一致。
+- `GOCACHE=/private/tmp/obs-cli-p4-go-cache make release-check`：通过。
+- `miniobsidian.nvim make ci`：format、Selene、fixture 与完整 Plenary 回归通过。
+
+人工结果尚未填写，因此本任务和 P4 阶段均不能标记完成。

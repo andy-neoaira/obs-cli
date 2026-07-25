@@ -1,0 +1,3 @@
+# Conflict
+
+Agent plan base.

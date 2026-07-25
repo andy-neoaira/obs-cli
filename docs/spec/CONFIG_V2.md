@@ -5,6 +5,11 @@
 - 所有者：`obs-cli`
 - Obsidian 官方配置：只读发现来源
 
+测试、沙箱或多实例运行可通过绝对路径环境变量
+`OBS_CLI_CONFIG_HOME` 覆盖“用户配置目录”这一层。最终文件仍位于
+`$OBS_CLI_CONFIG_HOME/obs-cli/config-v2.json`。相对路径会被拒绝，生产环境
+未设置该变量时行为不变。
+
 ## 配置边界
 
 `obs-cli` 不再将 Vault 注册写入 Obsidian 的 `obsidian.json`。两类文件的职责如下：

@@ -150,7 +150,10 @@ Agent 核心命令必须支持 JSON。V2 是否将 JSON 设为默认由 P1 命�
 
 ### 6.2 `--vault`
 
-`--vault` 接受稳定 Vault ID 或已注册名称。机器协议不得根据 cwd 隐式选择写入 Vault。未提供时只有存在明确默认 Vault 才可继续，并必须在响应中返回最终 Vault 身份。
+`--vault` 接受稳定 Vault ID、已注册名称或与 registry 精确匹配的已注册绝对路径。
+绝对路径形式服务于编辑器 Adapter；它不会临时注册或信任任意目录。机器协议不得
+根据 cwd 隐式选择写入 Vault。未提供时只有存在明确默认 Vault 才可继续，并必须在
+响应中返回最终 Vault 身份。
 
 ### 6.3 `--dry-run`
 

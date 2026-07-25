@@ -262,6 +262,17 @@ func resolveRegistryVault(cfg config.V2Config, reference string) (config.VaultRe
 			return record, nil
 		}
 	}
+	if filepath.IsAbs(reference) {
+		candidate := filepath.Clean(reference)
+		if realPath, err := filepath.EvalSymlinks(candidate); err == nil {
+			candidate = filepath.Clean(realPath)
+		}
+		for _, record := range cfg.Vaults {
+			if sameVaultPath(record.Path, candidate) {
+				return record, nil
+			}
+		}
+	}
 	return config.VaultRecord{}, fmt.Errorf("%w: %s", ErrVaultNotFound, reference)
 }
 

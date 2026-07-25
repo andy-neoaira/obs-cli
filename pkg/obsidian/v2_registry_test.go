@@ -31,6 +31,14 @@ func TestV2RegistryLifecycle(t *testing.T) {
 	if err != nil || byName != added {
 		t.Fatalf("get by name = %#v, %v", byName, err)
 	}
+	byPath, err := registry.Get(added.Path)
+	if err != nil || byPath != added {
+		t.Fatalf("get by registered path = %#v, %v", byPath, err)
+	}
+	unregisteredPath := t.TempDir()
+	if _, err := registry.Get(unregisteredPath); !errors.Is(err, obsidian.ErrVaultNotFound) {
+		t.Fatalf("get by unregistered path error = %v", err)
+	}
 
 	selected, err := registry.SetDefault(added.ID)
 	if err != nil || selected != added {
@@ -90,6 +98,10 @@ func TestV2RegistryCanonicalizesSymlink(t *testing.T) {
 	}
 	if added.Path != canonicalTarget {
 		t.Fatalf("canonical path = %q, want %q", added.Path, canonicalTarget)
+	}
+	byLink, err := registry.Get(link)
+	if err != nil || byLink != added {
+		t.Fatalf("get by registered symlink alias = %#v, %v", byLink, err)
 	}
 }
 
