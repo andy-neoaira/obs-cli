@@ -11,7 +11,7 @@
 
 ## 任务进度
 
-阶段进度：`6 / 8`
+阶段进度：`7 / 8`
 
 - [x] [P3-T01 Skill 契约、模板与安全基线](./P3-T01-skill-contract.md)
 - [x] [P3-T02 迁移 Vault Setup 与 Capture](./P3-T02-setup-capture.md)
@@ -19,7 +19,7 @@
 - [x] [P3-T04 迁移 Knowledge Search 与 Vault Audit](./P3-T04-search-audit.md)
 - [x] [P3-T05 迁移 Inbox Triage](./P3-T05-inbox-triage.md)
 - [x] [P3-T06 新增 Compare 与 Knowledge Synthesis](./P3-T06-compare-synthesis.md)
-- [ ] [P3-T07 新增 Project Status 与 Safe Note Update](./P3-T07-project-safe-update.md)
+- [x] [P3-T07 新增 Project Status 与 Safe Note Update](./P3-T07-project-safe-update.md)
 - [ ] [P3-T08 Skill 场景评测与发布门禁](./P3-T08-skill-evals.md)
 
 推荐顺序：P3-T01 → P3-T02/P3-T03/P3-T04/P3-T05 → P3-T06 → P3-T07 → P3-T08。

@@ -1,0 +1,25 @@
+{
+  "status": "conflict",
+  "vault": "vault-demo",
+  "project": "Projects/Demo.md",
+  "period_id": "2026-W30",
+  "window": {"timezone": "Asia/Shanghai", "start": "2026-07-20", "end": "2026-07-26", "inclusive": true},
+  "baseline": null,
+  "sources": [
+    {"id": "S1", "role": "project", "path": "Projects/Demo.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "date": "", "query": "", "scope": "", "selection_reason": "explicit"}
+  ],
+  "evidence": [
+    {"id": "E1", "source_id": "S1", "path": "Projects/Demo.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "location": "### 2026-W30", "excerpt": "人工编辑后的不同内容"}
+  ],
+  "progress": [
+    {"id": "I1", "category": "progress", "statement": "计划内容与现存周期块不同", "epistemic_status": "source_statement", "evidence_ids": ["E1"]}
+  ],
+  "risks": [],
+  "decisions": [],
+  "next_steps": [],
+  "writeback": {"requested": true, "status": "conflict", "revision_before": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "revision_after": ""},
+  "writeback_plan": {"section": "Status", "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "expected_digest": "", "planned_revision_after": "", "request_id": "project-status-demo", "sources_verified_at": "2026-07-25T10:00:00Z"},
+  "verified": {"period_heading_count": 1, "payload_count": 0, "sources_current": true},
+  "warnings": ["同一周期已存在不同内容，未写入"],
+  "errors": []
+}
