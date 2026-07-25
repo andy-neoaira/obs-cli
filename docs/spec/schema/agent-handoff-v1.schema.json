@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andy-neoaira/obs-cli/docs/spec/schema/agent-handoff-v1.schema.json",
+  "title": "miniobsidian Agent handoff v1",
+  "type": "object",
+  "required": ["schema_version", "request_id", "mode", "intent", "vault", "source", "context", "permissions", "agent"],
+  "properties": {
+    "schema_version": {"const": "miniobsidian.agent-handoff/v1"},
+    "request_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "mode": {"enum": ["analyze", "update"]},
+    "intent": {"type": "string", "minLength": 1},
+    "vault": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["path", "revision", "buffer_modified"],
+      "properties": {
+        "path": {"type": "string", "pattern": "\\.md$"},
+        "revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "buffer_modified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "required": ["scope", "start_line", "end_line", "text", "line_count"],
+      "properties": {
+        "scope": {"enum": ["none", "selection", "buffer"]},
+        "start_line": {"type": ["integer", "null"], "minimum": 1},
+        "end_line": {"type": ["integer", "null"], "minimum": 1},
+        "text": {"type": ["string", "null"]},
+        "line_count": {"type": "integer", "minimum": 0}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"scope": {"const": "none"}}},
+          "then": {
+            "properties": {
+              "start_line": {"type": "null"},
+              "end_line": {"type": "null"},
+              "text": {"type": "null"},
+              "line_count": {"const": 0}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"scope": {"enum": ["selection", "buffer"]}}},
+          "then": {
+            "properties": {
+              "start_line": {"type": "integer", "minimum": 1},
+              "end_line": {"type": "integer", "minimum": 1},
+              "text": {"type": "string"}
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "permissions": {
+      "type": "object",
+      "required": ["allow_vault_scan", "read_paths", "write_paths"],
+      "properties": {
+        "allow_vault_scan": {"const": false},
+        "read_paths": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {"type": "string", "pattern": "\\.md$"}
+        },
+        "write_paths": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {"type": "string", "pattern": "\\.md$"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent": {
+      "type": "object",
+      "required": ["skill", "required_capabilities"],
+      "properties": {
+        "skill": {"enum": ["obsidian-knowledge-synthesis", "obsidian-safe-note-update"]},
+        "required_capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"enum": ["note.get", "note.patch"]},
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"mode": {"const": "analyze"}}},
+      "then": {
+        "properties": {
+          "permissions": {
+            "properties": {
+              "write_paths": {"maxItems": 0}
+            }
+          },
+          "agent": {
+            "properties": {
+              "skill": {"const": "obsidian-knowledge-synthesis"},
+              "required_capabilities": {"const": ["note.get"]}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"mode": {"const": "update"}}},
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "buffer_modified": {"const": false}
+            }
+          },
+          "permissions": {
+            "properties": {
+              "write_paths": {"minItems": 1, "maxItems": 1}
+            }
+          },
+          "agent": {
+            "properties": {
+              "skill": {"const": "obsidian-safe-note-update"},
+              "required_capabilities": {"const": ["note.get", "note.patch"]}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}
