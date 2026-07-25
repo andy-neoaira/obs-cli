@@ -76,6 +76,64 @@ func TestDailyNote(t *testing.T) {
 		assert.Equal(t, "# Daily Note\n- [ ] Task", string(content))
 	})
 
+	t.Run("Renders shared template variables", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		obsDir := filepath.Join(tmpDir, ".obsidian")
+		assert.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "Templates"), 0755))
+		assert.NoError(t, os.MkdirAll(obsDir, 0755))
+		assert.NoError(t, os.WriteFile(filepath.Join(obsDir, "daily-notes.json"), []byte(`{
+			"folder": "Journal/YYYY",
+			"format": "YYYY-MM-DD",
+			"template": "Templates/Daily"
+		}`), 0644))
+		assert.NoError(t, os.WriteFile(
+			filepath.Join(tmpDir, "Templates", "Daily.md"),
+			[]byte("{{date}} {{yesterday}} {{tomorrow}} {{date:YYYY/MM/DD}} {{unsupported}}"),
+			0644,
+		))
+		location, err := time.LoadLocation("Asia/Shanghai")
+		assert.NoError(t, err)
+		now := time.Date(2026, 7, 24, 9, 30, 0, 0, location)
+
+		vault := mocks.MockVaultOperator{Name: "myVault", PathValue: tmpDir}
+		err = actions.DailyNote(&vault, &mocks.MockUriManager{}, actions.DailyParams{Now: now})
+		assert.NoError(t, err)
+		data, err := os.ReadFile(filepath.Join(tmpDir, "Journal", "YYYY", "2026-07-24.md"))
+		assert.NoError(t, err)
+		assert.Equal(t, "2026-07-24 2026-07-23 2026-07-25 2026/07/24 {{unsupported}}", string(data))
+	})
+
+	t.Run("Fails when configured template is missing", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		assert.NoError(t, os.MkdirAll(filepath.Join(tmpDir, ".obsidian"), 0755))
+		assert.NoError(t, os.WriteFile(
+			filepath.Join(tmpDir, ".obsidian", "daily-notes.json"),
+			[]byte(`{"template":"Templates/Missing"}`),
+			0644,
+		))
+		vault := mocks.MockVaultOperator{Name: "myVault", PathValue: tmpDir}
+		err := actions.DailyNote(&vault, &mocks.MockUriManager{}, actions.DailyParams{})
+		assert.Error(t, err)
+	})
+
+	t.Run("Fails when configured template basename is ambiguous", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		assert.NoError(t, os.MkdirAll(filepath.Join(tmpDir, ".obsidian"), 0755))
+		assert.NoError(t, os.WriteFile(
+			filepath.Join(tmpDir, ".obsidian", "daily-notes.json"),
+			[]byte(`{"template":"Daily"}`),
+			0644,
+		))
+		for _, folder := range []string{"Templates/A", "Templates/B"} {
+			assert.NoError(t, os.MkdirAll(filepath.Join(tmpDir, folder), 0755))
+			assert.NoError(t, os.WriteFile(filepath.Join(tmpDir, folder, "Daily.md"), []byte(folder), 0644))
+		}
+		vault := mocks.MockVaultOperator{Name: "myVault", PathValue: tmpDir}
+		err := actions.DailyNote(&vault, &mocks.MockUriManager{}, actions.DailyParams{})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "ambiguous note id")
+	})
+
 	t.Run("Rejects template path outside vault", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		obsDir := filepath.Join(tmpDir, ".obsidian")

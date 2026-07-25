@@ -95,6 +95,10 @@ func ApplyDefaultFolder(noteName, vaultPath string) string {
 //
 // 注意：Moment.js 的 "dd" 标记（两位星期缩写，如 "Mo"）在 Go 中没有对应物，不支持。
 func MomentToGoFormat(momentFmt string) string {
+	if result, err := ParseMomentToGoFormat(momentFmt); err == nil {
+		return result
+	}
+
 	// 顺序很重要：必须先替换长标记，再替换短标记，否则会发生冲突
 	replacements := []struct {
 		moment string

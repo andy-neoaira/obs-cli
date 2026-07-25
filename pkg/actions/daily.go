@@ -13,6 +13,7 @@ import (
 type DailyParams struct {
 	Content   string // 要追加到日记的内容
 	UseEditor bool   // 是否使用编辑器打开
+	Now       time.Time
 }
 
 // DailyNote 是 "daily" 命令的业务核心。
@@ -37,7 +38,15 @@ func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Dail
 	if format == "" {
 		format = "YYYY-MM-DD" // 默认格式，与 Obsidian 官方插件一致
 	}
-	noteName := time.Now().Format(obsidian.MomentToGoFormat(format))
+	now := params.Now
+	if now.IsZero() {
+		now = time.Now()
+	}
+	layout, err := obsidian.ParseMomentToGoFormat(format)
+	if err != nil {
+		return err
+	}
+	noteName := now.Format(layout)
 
 	// 如果配置了专门的日记文件夹，将文件名放在该文件夹下
 	if config.Folder != "" {
@@ -55,23 +64,27 @@ func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Dail
 		return fmt.Errorf("failed to create daily note directory: %w", err)
 	}
 
-	// 如果配置了模板，尝试读取模板内容
+	// 已存在的 Daily Note 在纯打开场景下不再依赖历史模板。
+	_, statErr := os.Stat(notePath)
+	fileExists := statErr == nil
+
 	templateContent := ""
-	if config.Template != "" {
+	if !fileExists && config.Template != "" {
 		// 模板路径来自 vault 内的 .obsidian 配置文件，同样必须经过 ValidatePath。
 		// 这样即使配置被误写成 "../../secret"，也不会读取 vault 外部文件。
-		templatePath, err := obsidian.ValidatePath(vaultPath, obsidian.AddMdSuffix(config.Template))
+		templatePath, err := obsidian.ResolveNoteIDPath(vaultPath, config.Template)
 		if err != nil {
 			return err
 		}
-		if data, readErr := os.ReadFile(templatePath); readErr == nil {
-			templateContent = string(data)
+		data, readErr := os.ReadFile(templatePath)
+		if readErr != nil {
+			return fmt.Errorf("failed to read configured daily template: %w", readErr)
+		}
+		templateContent, _, err = obsidian.RenderDailyTemplate(string(data), now, format, filepath.Base(noteName))
+		if err != nil {
+			return fmt.Errorf("failed to render configured daily template: %w", err)
 		}
 	}
-
-	// 检查日记文件是否已存在
-	_, statErr := os.Stat(notePath)
-	fileExists := statErr == nil
 
 	if fileExists && params.Content != "" {
 		// 日记已存在且有新内容：追加到末尾

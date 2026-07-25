@@ -61,6 +61,74 @@ func ResolveNotePath(vaultPath, noteName string) (string, error) {
 	return notePath, nil
 }
 
+// ResolveNoteIDPath resolves a Vault-relative Note ID using the shared
+// exact/case-insensitive and ambiguity rules. A basename is accepted only when
+// it identifies one Markdown file in the Vault.
+func ResolveNoteIDPath(vaultPath, noteID string) (string, error) {
+	target := strings.TrimSuffix(filepath.ToSlash(noteID), ".md")
+	if _, err := ValidatePath(vaultPath, AddMdSuffix(target)); err != nil {
+		return "", err
+	}
+
+	type candidate struct {
+		id   string
+		path string
+	}
+	exact := make([]candidate, 0)
+	folded := make([]candidate, 0)
+	qualified := strings.Contains(target, "/")
+	err := filepath.WalkDir(vaultPath, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if isHiddenDir(entry) {
+			return filepath.SkipDir
+		}
+		if entry.IsDir() || !strings.HasSuffix(strings.ToLower(entry.Name()), ".md") {
+			return nil
+		}
+		relative, err := filepath.Rel(vaultPath, path)
+		if err != nil {
+			return err
+		}
+		safePath, err := ValidatePath(vaultPath, relative)
+		if err != nil {
+			return err
+		}
+		id := strings.TrimSuffix(filepath.ToSlash(relative), filepath.Ext(relative))
+		comparable := id
+		if !qualified {
+			comparable = strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+		}
+		item := candidate{id: id, path: safePath}
+		if comparable == target {
+			exact = append(exact, item)
+		} else if strings.EqualFold(comparable, target) {
+			folded = append(folded, item)
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	selected := folded
+	if len(exact) > 0 {
+		selected = exact
+	}
+	if len(selected) == 0 {
+		return "", errors.New(NoteDoesNotExistError)
+	}
+	if len(selected) > 1 {
+		ids := make([]string, 0, len(selected))
+		for _, item := range selected {
+			ids = append(ids, item.id)
+		}
+		sort.Strings(ids)
+		return "", fmt.Errorf("ambiguous note id %q: %s", noteID, strings.Join(ids, ", "))
+	}
+	return selected[0].path, nil
+}
+
 // Move 将笔记从原路径移动到新路径，会自动补充 .md 后缀。
 func (m *Note) Move(originalPath string, newPath string) error {
 	o := AddMdSuffix(originalPath)
