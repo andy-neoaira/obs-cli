@@ -1,7 +1,7 @@
 # Agent-first V2 联合验收报告
 
 - 报告日期：2026-07-25
-- 状态：`有条件通过（自动化完成，人工门禁待执行）`
+- 状态：`有条件通过（自动化与桌面端完成，移动端门禁待执行）`
 - 产品：`obs-cli`、`miniobsidian.nvim`、Agent Skills
 - 兼容事实源：[compatibility.json](../compatibility.json)
 
@@ -16,15 +16,17 @@
   `vault-contract/v1` 和所需 operation。
 - 两项目许可证边界、派生来源和发布归档要求已记录。
 - 插件在 CLI 缺失、关闭或不兼容时保留全部本地核心功能。
+- Obsidian Desktop `1.12.7` 在专用临时 Vault 完成真实 UI smoke：
+  CLI/Neovim 读写闭环、revision 冲突保护、移动改链和 Daily Note 均通过。
 
 ## 未完成门禁
 
-- Obsidian 桌面端真实 smoke test。
 - 移动端同步延迟、离线冲突和冲突副本观察记录。
 
 执行清单见
 [P4-T05 人工 Obsidian 冒烟清单](../agent-first-v2/phase-4-integration/P4-T05-manual-smoke.md)。
-在这两项完成前，不创建正式联合发布结论，不把 P4-T05/P4-T06/P4 阶段标为完成。
+在移动端门禁完成前，不创建正式联合发布结论，不把
+P4-T05/P4-T06/P4 阶段标为完成。
 
 ## 发布决策
 

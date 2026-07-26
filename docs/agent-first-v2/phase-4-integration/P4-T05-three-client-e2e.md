@@ -1,7 +1,7 @@
 # P4-T05：三入口端到端测试
 
-- 状态：`进行中（自动化 6/6 已完成，待真实 Obsidian 人工冒烟）`
-- 负责人：`Codex（自动化）/ 待分配（人工冒烟）`
+- 状态：`进行中（自动化 6/6 与桌面端已通过，待移动端同步观察）`
+- 负责人：`Codex（自动化与桌面端）/ 待分配（移动端）`
 - 涉及项目：`obs-cli`、`miniobsidian.nvim`、Obsidian 兼容语义
 - 依赖：P4-T01 至 P4-T04
 
@@ -42,7 +42,7 @@
 - [x] 任何冲突都不会静默覆盖。
 - [x] Daily Note、链接和 Frontmatter 在三个入口一致。
 - [x] 移动后不存在新增坏链接。
-- [ ] 人工 Obsidian 桌面端 smoke test 通过。
+- [x] 人工 Obsidian 桌面端 smoke test 通过。
 - [ ] 移动端同步限制和观察结果有记录。
 
 ## 验证
@@ -57,5 +57,8 @@ cd /Users/andy/github/obs-cli
 - `./scripts/run-three-client-e2e.sh`：`6/6` 通过，黄金摘要一致。
 - `GOCACHE=/private/tmp/obs-cli-p4-go-cache make release-check`：通过。
 - `miniobsidian.nvim make ci`：format、Selene、fixture 与完整 Plenary 回归通过。
+- Obsidian Desktop `1.12.7`：真实 UI 创建/刷新、CLI revision 写入与移动、
+  Neovim 读取/创建、Daily Note 和 stale revision 冲突保护均通过；完整证据见
+  [人工 smoke test 清单](./P4-T05-manual-smoke.md)。
 
-人工结果尚未填写，因此本任务和 P4 阶段均不能标记完成。
+移动端同步结果尚未填写，因此本任务和 P4 阶段仍不能标记完成。

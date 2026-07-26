@@ -42,7 +42,24 @@
     },
     "release_gates": {
       "type": "object",
-      "required": ["automated", "manual_pending"]
+      "required": ["automated", "manual_completed", "manual_pending"],
+      "properties": {
+        "automated": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "manual_completed": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "manual_pending": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        }
+      }
     }
   }
 }

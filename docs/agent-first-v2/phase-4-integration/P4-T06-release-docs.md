@@ -55,7 +55,8 @@ make ci PLENARY_DIR=/path/to/plenary.nvim
 `obs-cli` 与插件仍独立安装、独立版本化；插件在 CLI 缺失、禁用、协议不兼容或
 Vault 共同规范不兼容时保持本地功能可用。
 
-正式验收仍依赖 P4-T05 的 Obsidian 桌面端 smoke 与移动端同步观察。完成前：
+正式验收仍依赖 P4-T05 的移动端同步观察。Obsidian Desktop `1.12.7`
+真实 smoke 已通过。移动端门禁完成前：
 
 - `docs/compatibility.json` 保持 `release-candidate`；
 - 验收报告保持“有条件通过”；

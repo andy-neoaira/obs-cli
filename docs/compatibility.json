@@ -75,8 +75,10 @@
       "three-client-e2e.6-of-6",
       "license-check"
     ],
+    "manual_completed": [
+      "obsidian-desktop-smoke"
+    ],
     "manual_pending": [
-      "obsidian-desktop-smoke",
       "obsidian-mobile-sync-observation"
     ]
   }

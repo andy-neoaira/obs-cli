@@ -18,7 +18,9 @@ jq -e '
   .products["miniobsidian.nvim"].cli_optional == true and
   (.compatible_sets | length) >= 1 and
   ([.adapter_modes[].mode] | sort) == ["compatible", "incompatible", "standalone"] and
-  (.release_gates.manual_pending | length) >= 1
+  (.release_gates.manual_completed | index("obsidian-desktop-smoke")) != null and
+  (.release_gates.manual_pending | index("obsidian-desktop-smoke")) == null and
+  (.release_gates.manual_pending | index("obsidian-mobile-sync-observation")) != null
 ' "$matrix" >/dev/null
 
 matrix_minimum=$(jq -r '.products.skills.minimum_cli_version' "$matrix")
