@@ -51,6 +51,44 @@ func TestNoteCreateGetListAndNoOverwrite(t *testing.T) {
 	assertContent(t, filepath.Join(root, "Projects", "demo.md"), string(content))
 }
 
+func TestNoteListIgnoresHiddenFilesAndDirectories(t *testing.T) {
+	service, root := newService(t)
+	files := map[string]string{
+		"visible.md":                    "visible",
+		"Folder/nested.md":              "nested",
+		".draft.md":                     "hidden root",
+		"Folder/.private.md":            "hidden nested",
+		".obsidian/workspace.md":        "hidden directory",
+		"Folder/.private/cache/note.md": "hidden subtree",
+	}
+	for logical, content := range files {
+		path := filepath.Join(root, filepath.FromSlash(logical))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	notes, err := service.List()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"Folder/nested.md", "visible.md"}
+	if len(notes) != len(want) {
+		t.Fatalf("notes = %#v, want %#v", notes, want)
+	}
+	for index := range want {
+		if notes[index] != want[index] {
+			t.Fatalf("notes = %#v, want %#v", notes, want)
+		}
+	}
+	if _, err := service.Get(".draft.md"); !errors.Is(err, pathpolicy.ErrOutsideVault) {
+		t.Fatalf("explicit hidden get error = %v, want PATH_OUTSIDE_VAULT", err)
+	}
+}
+
 func TestNoteAppendBoundaryAndSection(t *testing.T) {
 	service, root := newService(t)
 	if _, err := service.Create("demo", []byte("# Demo\nintro\n## Tasks\none\n## Later\nafter")); err != nil {

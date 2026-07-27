@@ -42,6 +42,9 @@ go test ./... -run 'Note|Append|Patch|Replace|Delete'
 
 ## 完成记录
 
+- P5-T02 补齐 `note.list` 隐藏条目隔离：隐藏目录、文件和链接均不会出现在结果中，
+  也不会让普通笔记列表整体失败；显式访问隐藏路径仍由路径策略拒绝。
+
 - 新增 `note list/get/create/append/patch/replace/delete` V2 JSON 命令。
 - 业务层统一接入 Vault path policy、稳定快照、revision 前置条件、原子写入和可恢复删除。
 - `get` 同一快照返回原始正文、Frontmatter、逻辑路径与 revision。

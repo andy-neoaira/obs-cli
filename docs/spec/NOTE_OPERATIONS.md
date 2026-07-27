@@ -32,7 +32,9 @@ obs note move <source> <target> --if-match <revision> [--if-plan-hash <hash>]
 - 稳定快照的文件系统 `modified_at`（UTC RFC 3339）；它是文件修改时间，不代表
   笔记中事实发生或生效的时间。
 
-Frontmatter 存在但 YAML 无效时返回 `INVALID_FRONTMATTER`。`note.list` 返回按逻辑路径排序的 Markdown 文件，不遍历隐藏目录。
+Frontmatter 存在但 YAML 无效时返回 `INVALID_FRONTMATTER`。`note.list` 返回按逻辑路径
+排序的 Markdown 文件，不返回任何包含 `.` 前缀路径段的文件，也不遍历隐藏目录。
+隐藏条目不会导致整个列表失败；显式读取隐藏路径仍返回 `PATH_OUTSIDE_VAULT`。
 
 ## 3. 内容输入
 

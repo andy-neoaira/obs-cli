@@ -100,8 +100,11 @@ func (s *Service) List() ([]string, error) {
 		if path == s.resolver.Root() {
 			return nil
 		}
-		if entry.IsDir() && strings.HasPrefix(entry.Name(), ".") {
-			return filepath.SkipDir
+		if strings.HasPrefix(entry.Name(), ".") {
+			if entry.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 		if entry.IsDir() || !strings.EqualFold(filepath.Ext(entry.Name()), ".md") {
 			return nil
