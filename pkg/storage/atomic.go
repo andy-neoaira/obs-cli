@@ -178,6 +178,84 @@ func (s *Store) WriteAtomic(path string, data []byte, precondition Preconditions
 	}, nil
 }
 
+// ReplaceAtomic replaces a caller-serialized metadata file without applying the
+// revision precondition model used for Vault content. Callers remain responsible
+// for coordinating concurrent updates before invoking this method.
+func (s *Store) ReplaceAtomic(path string, data []byte, options WriteOptions) error {
+	if err := s.checkpoint("temp-create-before"); err != nil {
+		return err
+	}
+	temp, err := os.CreateTemp(filepath.Dir(path), ".obs-replace-*.tmp")
+	if err != nil {
+		return fmt.Errorf("create atomic replace temp: %w", err)
+	}
+	tempPath := temp.Name()
+	defer os.Remove(tempPath)
+	if err := s.checkpoint("temp-create-after"); err != nil {
+		temp.Close()
+		return err
+	}
+
+	mode := options.Mode.Perm()
+	if mode == 0 {
+		mode = 0o600
+	}
+	if err := temp.Chmod(mode); err != nil {
+		temp.Close()
+		return err
+	}
+	if err := s.write(temp, data); err != nil {
+		temp.Close()
+		return err
+	}
+	if err := s.checkpoint("write-after"); err != nil {
+		temp.Close()
+		return err
+	}
+	if err := temp.Sync(); err != nil {
+		temp.Close()
+		return err
+	}
+	if err := s.checkpoint("flush-after"); err != nil {
+		temp.Close()
+		return err
+	}
+	if err := temp.Close(); err != nil {
+		return err
+	}
+	if err := s.checkpoint("close-after"); err != nil {
+		return err
+	}
+
+	if err := s.checkpoint("commit-before"); err != nil {
+		return err
+	}
+	if err := replaceFile(tempPath, path); err != nil {
+		return err
+	}
+	if err := s.checkpoint("directory-sync-before"); err != nil {
+		return err
+	}
+	if err := syncDirectory(filepath.Dir(path)); err != nil {
+		return err
+	}
+	if err := s.checkpoint("directory-sync-after"); err != nil {
+		return err
+	}
+	if err := s.checkpoint("commit-after"); err != nil {
+		return err
+	}
+
+	after, err := ReadSnapshot(path)
+	if err != nil {
+		return err
+	}
+	if after.Revision != Revision(data) {
+		return fmt.Errorf("atomic replace verification failed")
+	}
+	return s.checkpoint("verify-after")
+}
+
 func (s *Store) checkpoint(stage string) error {
 	if s.hooks.Checkpoint == nil {
 		return nil

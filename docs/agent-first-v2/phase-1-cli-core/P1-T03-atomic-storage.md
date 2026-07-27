@@ -48,6 +48,8 @@ go test -race ./...
 - 完成日期：`2026-07-24`
 - 新增 `pkg/storage`：原始字节 revision、稳定快照、跨进程锁、条件原子写、可恢复删除、双路径移动和多文件事务。
 - Create、Append、Overwrite、Set、Delete、Move、Daily 与链接批量重写已移除业务层直接文件写入。
+- P5-T01 将 V2 配置更新纳入共同原子替换语义：保留配置锁与校验，并在跨平台
+  replace 后同步父目录、执行写后校验和失败清理。
 - 链接重写使用多文件 stage/journal/commit/rollback；回滚失败保留恢复资料并返回 `PARTIAL_FAILURE`。
 - 故障注入覆盖临时文件、部分 write、flush/close、提交前复核、提交、提交后验证、多文件第 N 项提交和第 N 项回滚。
 - 全量测试、全量 Race、Vet、license check 和 Windows storage 交叉编译通过。

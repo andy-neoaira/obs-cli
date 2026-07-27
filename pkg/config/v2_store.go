@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/andy-neoaira/obs-cli/pkg/storage"
 )
 
 const CurrentConfigVersion = 2
@@ -43,10 +45,18 @@ func NewV2Config() V2Config {
 type Store struct {
 	path        string
 	lockTimeout time.Duration
+	atomic      *storage.Store
 }
 
 func NewStore(path string) *Store {
-	return &Store{path: path, lockTimeout: 2 * time.Second}
+	return NewStoreWithAtomicStore(path, storage.DefaultStore())
+}
+
+func NewStoreWithAtomicStore(path string, atomic *storage.Store) *Store {
+	if atomic == nil {
+		atomic = storage.DefaultStore()
+	}
+	return &Store{path: path, lockTimeout: 2 * time.Second, atomic: atomic}
 }
 
 func DefaultStore() (*Store, error) {
@@ -186,30 +196,11 @@ func (s *Store) writeAtomic(cfg V2Config) error {
 	}
 	data = append(data, '\n')
 
-	dir := filepath.Dir(s.path)
-	temp, err := os.CreateTemp(dir, ".config-v2-*.tmp")
-	if err != nil {
-		return fmt.Errorf("create temporary config: %w", err)
-	}
-	tempPath := temp.Name()
-	defer os.Remove(tempPath)
-
-	if err := temp.Chmod(0o600); err != nil {
-		temp.Close()
-		return fmt.Errorf("protect temporary config: %w", err)
-	}
-	if _, err := temp.Write(data); err != nil {
-		temp.Close()
-		return fmt.Errorf("write temporary config: %w", err)
-	}
-	if err := temp.Sync(); err != nil {
-		temp.Close()
-		return fmt.Errorf("flush temporary config: %w", err)
-	}
-	if err := temp.Close(); err != nil {
-		return fmt.Errorf("close temporary config: %w", err)
-	}
-	if err := os.Rename(tempPath, s.path); err != nil {
+	if err := s.atomic.ReplaceAtomic(
+		s.path,
+		data,
+		storage.WriteOptions{Mode: 0o600},
+	); err != nil {
 		return fmt.Errorf("replace obs-cli V2 config: %w", err)
 	}
 	return nil

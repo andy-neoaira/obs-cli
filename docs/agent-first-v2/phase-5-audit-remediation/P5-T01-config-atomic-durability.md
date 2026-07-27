@@ -1,6 +1,6 @@
 # P5-T01：配置原子替换与目录持久化
 
-- 状态：`待开始`
+- 状态：`已完成`
 - 优先级：`高`
 - 负责人：`待分配`
 - 涉及项目：`obs-cli`
@@ -46,12 +46,12 @@ replace 和目录同步语义。
 
 ## 验收标准
 
-- [ ] `pkg/config` 不再直接执行缺少目录同步的裸 `os.Rename`。
-- [ ] 成功写入后的文件权限保持 `0600`。
-- [ ] 并发配置更新仍由现有配置锁串行化。
-- [ ] write、file sync、close、replace、directory sync 失败均有测试。
-- [ ] 失败不会产生截断配置或遗留 `.config-v2-*.tmp`。
-- [ ] Linux/macOS 测试与 Windows 交叉构建通过。
+- [x] `pkg/config` 不再直接执行缺少目录同步的裸 `os.Rename`。
+- [x] 成功写入后的文件权限保持 `0600`。
+- [x] 并发配置更新仍由现有配置锁串行化。
+- [x] write、file sync、close、replace、directory sync 失败均有测试。
+- [x] 失败不会产生截断配置或遗留原子替换临时文件。
+- [x] macOS 测试与 Linux/Windows 交叉构建通过。
 
 ## 验证命令
 
@@ -67,3 +67,13 @@ git diff --check
 
 单独回滚本任务提交，恢复原配置写入实现；回滚后必须重新执行
 `go test ./pkg/config` 和 `make release-check`。
+
+## 完成记录
+
+- 完成日期：`2026-07-28`
+- 实现：新增 caller-serialized `storage.Store.ReplaceAtomic`，配置层保留原有锁和
+  Schema 校验并复用跨平台 replace、父目录同步及写后校验。
+- 失败覆盖：部分写入、flush/close 前后、replace 前、directory sync 前后及
+  post-commit 验证。
+- 验证：定向测试、目标包 race、六目标交叉构建和 `make release-check` 通过；
+  总覆盖率 `72.8%`。

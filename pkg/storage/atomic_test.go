@@ -261,6 +261,119 @@ func TestWriteAtomicConcurrentExpectedRevisionHasOneWinner(t *testing.T) {
 	}
 }
 
+func TestReplaceAtomicCreateReplaceAndMode(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "config.json")
+	store := storage.NewStore(filepath.Join(root, "locks"))
+
+	if err := store.ReplaceAtomic(target, []byte("one"), storage.WriteOptions{Mode: 0o600}); err != nil {
+		t.Fatal(err)
+	}
+	assertBytes(t, target, "one")
+	info, err := os.Stat(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0o600 {
+		t.Fatalf("mode = %o, want 600", info.Mode().Perm())
+	}
+
+	if err := store.ReplaceAtomic(target, []byte("two"), storage.WriteOptions{Mode: 0o600}); err != nil {
+		t.Fatal(err)
+	}
+	assertBytes(t, target, "two")
+	assertNoReplaceTemps(t, root)
+}
+
+func TestReplaceAtomicFailureInjectionBeforeCommitPreservesOldBytes(t *testing.T) {
+	for _, stage := range []string{
+		"temp-create-before",
+		"temp-create-after",
+		"write-after",
+		"flush-after",
+		"close-after",
+		"commit-before",
+	} {
+		t.Run(stage, func(t *testing.T) {
+			root := t.TempDir()
+			target := filepath.Join(root, "config.json")
+			if err := os.WriteFile(target, []byte("old"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			injected := errors.New("injected " + stage)
+			store := storage.NewStoreWithHooks(filepath.Join(root, "locks"), storage.Hooks{
+				Checkpoint: func(current string) error {
+					if current == stage {
+						return injected
+					}
+					return nil
+				},
+			})
+			err := store.ReplaceAtomic(target, []byte("new"), storage.WriteOptions{Mode: 0o600})
+			if !errors.Is(err, injected) {
+				t.Fatalf("ReplaceAtomic error = %v", err)
+			}
+			assertBytes(t, target, "old")
+			assertNoReplaceTemps(t, root)
+		})
+	}
+}
+
+func TestReplaceAtomicPostCommitFailureLeavesNewCompleteBytes(t *testing.T) {
+	for _, stage := range []string{
+		"directory-sync-before",
+		"directory-sync-after",
+		"commit-after",
+		"verify-after",
+	} {
+		t.Run(stage, func(t *testing.T) {
+			root := t.TempDir()
+			target := filepath.Join(root, "config.json")
+			if err := os.WriteFile(target, []byte("old"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			injected := errors.New("injected " + stage)
+			store := storage.NewStoreWithHooks(filepath.Join(root, "locks"), storage.Hooks{
+				Checkpoint: func(current string) error {
+					if current == stage {
+						return injected
+					}
+					return nil
+				},
+			})
+			err := store.ReplaceAtomic(target, []byte("new"), storage.WriteOptions{Mode: 0o600})
+			if !errors.Is(err, injected) {
+				t.Fatalf("ReplaceAtomic error = %v", err)
+			}
+			assertBytes(t, target, "new")
+			assertNoReplaceTemps(t, root)
+		})
+	}
+}
+
+func TestReplaceAtomicPartialWriteFailureCleansTemp(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "config.json")
+	if err := os.WriteFile(target, []byte("old"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	injected := errors.New("injected partial write")
+	store := storage.NewStoreWithHooks(filepath.Join(root, "locks"), storage.Hooks{
+		Write: func(file *os.File, data []byte) error {
+			if _, err := file.Write(data[:len(data)/2]); err != nil {
+				return err
+			}
+			return injected
+		},
+	})
+	err := store.ReplaceAtomic(target, []byte("new complete"), storage.WriteOptions{Mode: 0o600})
+	if !errors.Is(err, injected) {
+		t.Fatalf("ReplaceAtomic error = %v", err)
+	}
+	assertBytes(t, target, "old")
+	assertNoReplaceTemps(t, root)
+}
+
 func assertBytes(t *testing.T, path, expected string) {
 	t.Helper()
 	data, err := os.ReadFile(path)
@@ -280,6 +393,19 @@ func assertNoTemps(t *testing.T, dir string) {
 	}
 	for _, entry := range entries {
 		if strings.HasPrefix(entry.Name(), ".obs-write-") {
+			t.Fatalf("temporary file leaked: %s", entry.Name())
+		}
+	}
+}
+
+func assertNoReplaceTemps(t *testing.T, dir string) {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), ".obs-replace-") {
 			t.Fatalf("temporary file leaked: %s", entry.Name())
 		}
 	}
