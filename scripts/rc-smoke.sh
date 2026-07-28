@@ -7,6 +7,11 @@ output_dir="$(mktemp -d "${TMPDIR:-/tmp}/obs-cli-rc.XXXXXX")"
 trap 'rm -rf "$output_dir"' EXIT
 binary="$output_dir/obs-cli"
 
+grep -Fq 'cmd.ldflagsVersion={{.Tag}}' .goreleaser.yml || {
+  echo "RC smoke failed: GoReleaser must inject the full tag via {{.Tag}}" >&2
+  exit 1
+}
+
 GOMODCACHE="$output_dir/modcache" go build -mod=vendor \
   -ldflags "-s -w -X github.com/andy-neoaira/obs-cli/cmd.ldflagsVersion=$version" \
   -o "$binary" .

@@ -21,7 +21,7 @@ builds:
     flags:
       - -mod=vendor
     ldflags:
-      - -s -w -X github.com/andy-neoaira/obs-cli/cmd.ldflagsVersion={{.Version}}
+      - -s -w -X github.com/andy-neoaira/obs-cli/cmd.ldflagsVersion={{.Tag}}
 
 # macOS Universal Binary（将 amd64 + arm64 合并为一个通用二进制）
 universal_binaries:
