@@ -36,13 +36,14 @@ actual_normalized="$run_root/actual.normalized.json"
 golden_normalized="$run_root/golden.normalized.json"
 cli_bin="$run_root/obs-cli"
 go_cache="$run_root/go-cache"
+go_mod_cache="$run_root/mod-cache"
 
-mkdir -p "$vault_root" "$config_root" "$go_cache"
+mkdir -p "$vault_root" "$config_root" "$go_cache" "$go_mod_cache"
 cp -R "$repo_root/testdata/three-client/seed/." "$vault_root/"
 
 (
   cd "$repo_root"
-  GOCACHE="$go_cache" go build -o "$cli_bin" .
+  GOCACHE="$go_cache" GOMODCACHE="$go_mod_cache" go build -mod=vendor -o "$cli_bin" .
 )
 
 export OBS_CLI_CONFIG_HOME="$config_root"
