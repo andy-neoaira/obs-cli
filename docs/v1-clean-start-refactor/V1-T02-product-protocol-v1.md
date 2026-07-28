@@ -1,6 +1,6 @@
 # V1-T02：重置产品版本和 CLI 协议
 
-- 状态：`实现完成，待提交`
+- 状态：`完成`
 - 优先级：`阻断`
 - 涉及项目：`obs-cli`
 - 依赖：V1-T01
@@ -65,12 +65,12 @@ Schema 文件重命名由 T05 完成；本任务可以先修改内容常量，�
 
 ## 验收标准
 
-- [ ] 运行时只输出 `obs-cli/v1`。
-- [ ] capabilities 只声明 `obs-cli/v1`。
-- [ ] 产品候选版本为 `v1.0.0-rc.1`。
-- [ ] 所有协议 fixture 与运行时一致。
-- [ ] `obs-write/v1` 和 `vault-contract/v1` 未变化。
-- [ ] 不存在双协议代码路径。
+- [x] 运行时只输出 `obs-cli/v1`。
+- [x] capabilities 只声明 `obs-cli/v1`。
+- [x] 产品候选版本为 `v1.0.0-rc.1`。
+- [x] 所有协议 fixture 与运行时一致。
+- [x] `obs-write/v1` 和 `vault-contract/v1` 未变化。
+- [x] 不存在双协议代码路径。
 
 ## 验证命令
 
@@ -92,7 +92,8 @@ fixture 重命名提交，恢复一个内部一致的状态。
 
 ## 完成记录
 
-- 完成日期：`2026-07-28（工作区实现）`
-- 提交：`未提交`
-- 定向测试：`待填写`
-- 协议样例：`待填写`
+- 完成日期：`2026-07-28`
+- 提交：`bb2a823`
+- 定向测试：`make release-check 与候选二进制 RC smoke 通过`
+- 协议样例：`protocol_version == "obs-cli/v1"`，且
+  `protocol_versions == ["obs-cli/v1"]`

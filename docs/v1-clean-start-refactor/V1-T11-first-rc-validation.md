@@ -1,6 +1,6 @@
 # V1-T11：验证 v1.0.0-rc.1 联合候选版本
 
-- 状态：`验证中，待 GoReleaser artifact 与 tag 审批`
+- 状态：`验证完成，待人工批准真实 tag`
 - 优先级：`发布阻断`
 - 涉及项目：`obs-cli`、`miniobsidian.nvim`
 - 依赖：V1-T10
@@ -80,15 +80,15 @@ V2”的措辞。
 
 ## 验收标准
 
-- [ ] 候选二进制版本为 `v1.0.0-rc.1`。
-- [ ] 候选二进制只声明 `obs-cli/v1`。
-- [ ] 新配置只创建 `config.json` 且 Schema 为 1。
-- [ ] 发布归档和 checksums 完整。
-- [ ] 候选二进制 RC smoke 通过。
-- [ ] 候选二进制三入口 E2E 通过。
-- [ ] 双仓配对 commit 已记录。
-- [ ] release notes 无 V2 历史叙事。
-- [ ] 在人工批准前未创建或推送 tag。
+- [x] 候选二进制版本为 `v1.0.0-rc.1`。
+- [x] 候选二进制只声明 `obs-cli/v1`。
+- [x] 新配置只创建 `config.json` 且 Schema 为 1。
+- [x] 发布归档和 checksums 完整。
+- [x] 候选二进制 RC smoke 通过。
+- [x] 候选二进制三入口 E2E 通过。
+- [x] 双仓配对 commit 已记录。
+- [x] release notes 无 V2 历史叙事。
+- [x] 在人工批准前未创建或推送 tag。
 
 ## 验证命令
 
@@ -111,11 +111,11 @@ tag 创建后：不得移动或重写 tag。若发现问题，撤下/标记该 p
 
 ## 完成记录
 
-- 完成日期：`待填写`
-- obs-cli commit：`待填写`
-- miniobsidian.nvim commit：`待填写`
-- Artifact：`待填写`
-- Checksums：`待填写`
-- RC smoke：`待填写`
-- Three-client E2E：`待填写`
-- Tag 审批：`待填写`
+- 完成日期：`2026-07-28`
+- obs-cli commit：`631737543f0658bfff7944ac4d24aff58ea18acc`
+- miniobsidian.nvim commit：`919c14fd16847d637d065e25d1056f4ec66566da`
+- Artifact：`darwin universal、linux amd64/arm64、windows amd64/arm64；共 5 个归档`
+- Checksums：`5 / 5 通过；详见 ../releases/V1_RC_VALIDATION.md`
+- RC smoke：`使用 GoReleaser 候选二进制通过`
+- Three-client E2E：`使用 GoReleaser 候选二进制 6 / 6 通过`
+- Tag 审批：`待人工批准；真实仓库尚未创建或推送 tag`

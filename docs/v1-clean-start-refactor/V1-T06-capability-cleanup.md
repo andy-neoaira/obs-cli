@@ -1,6 +1,6 @@
 # V1-T06：清理 Capability 版本后缀
 
-- 状态：`实现完成，待提交`
+- 状态：`完成`
 - 优先级：`高`
 - 涉及项目：`obs-cli`
 - 依赖：V1-T01、V1-T02
@@ -79,12 +79,12 @@ vault_path_policy
 
 ## 验收标准
 
-- [ ] Capability 不包含 `_v2` flag。
-- [ ] operation 列表继续完整声明实际命令。
-- [ ] Skills 通过 `--require operation` 协商能力。
-- [ ] 文档与运行时 flag 集合双向一致。
-- [ ] 不存在旧 flag alias。
-- [ ] capability Schema 和 golden 输出通过。
+- [x] Capability 不包含 `_v2` flag。
+- [x] operation 列表继续完整声明实际命令。
+- [x] Skills 通过 `--require operation` 协商能力。
+- [x] 文档与运行时 flag 集合双向一致。
+- [x] 不存在旧 flag alias。
+- [x] capability Schema 和 golden 输出通过。
 
 ## 验证命令
 
@@ -106,7 +106,7 @@ git diff --check
 
 ## 完成记录
 
-- 完成日期：`2026-07-28（工作区实现）`
-- 提交：`未提交`
-- 删除 flag：`待填写`
-- 保留/改名 flag：`待填写`
+- 完成日期：`2026-07-28`
+- 提交：`bb2a823`
+- 删除 flag：`5`
+- 保留/改名 flag：`0；具体能力完全由 operation discovery 表达`

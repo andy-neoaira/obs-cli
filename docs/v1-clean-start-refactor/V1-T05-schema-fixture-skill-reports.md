@@ -1,6 +1,6 @@
 # V1-T05：重命名 Schema、Golden Fixture 和 Skill 报告
 
-- 状态：`实现完成，待提交`
+- 状态：`完成`
 - 优先级：`高`
 - 涉及项目：`obs-cli`
 - 依赖：V1-T01、V1-T02
@@ -55,13 +55,13 @@ cmd/testdata/*-v2.json                  -> cmd/testdata/*-v1.json
 
 ## 验收标准
 
-- [ ] 当前 Schema 均使用 `-v1.schema.json`。
-- [ ] `$id` 与实际文件名一致。
-- [ ] golden fixture 使用 `-v1.json`。
-- [ ] 所有 Skill 引用 V1 报告 Schema。
-- [ ] Schema 内容约束未被意外放宽。
-- [ ] schema-check、Skill lint 和 Skill eval 通过。
-- [ ] 不存在重复 V2 Schema。
+- [x] 当前 Schema 均使用 `-v1.schema.json`。
+- [x] `$id` 与实际文件名一致。
+- [x] golden fixture 使用 `-v1.json`。
+- [x] 所有 Skill 引用 V1 报告 Schema。
+- [x] Schema 内容约束未被意外放宽。
+- [x] schema-check、Skill lint 和 Skill eval 通过。
+- [x] 不存在重复 V2 Schema。
 
 ## 验证命令
 
@@ -83,8 +83,8 @@ Schema 已移动但测试仍引用旧路径的中间状态。
 
 ## 完成记录
 
-- 完成日期：`2026-07-28（工作区实现）`
-- 提交：`未提交`
-- Schema 数量：`待填写`
-- Golden fixture 数量：`待填写`
-- Skill 引用数量：`待填写`
+- 完成日期：`2026-07-28`
+- 提交：`bb2a823`
+- Schema 数量：`5`
+- Golden fixture 数量：`9`
+- Skill 引用数量：`7 个 SKILL.md 直接更新；12 个 Skill 全量 lint 通过`

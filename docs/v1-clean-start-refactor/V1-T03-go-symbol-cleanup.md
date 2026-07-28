@@ -1,6 +1,6 @@
 # V1-T03：清理 Go 内部 V2 命名
 
-- 状态：`实现完成，待提交`
+- 状态：`完成`
 - 优先级：`高`
 - 涉及项目：`obs-cli`
 - 依赖：V1-T01、V1-T02
@@ -59,12 +59,12 @@ pkg/obsidian/v2_registry.go -> pkg/obsidian/registry.go
 
 ## 验收标准
 
-- [ ] `cmd`、`pkg/config`、`pkg/obsidian` 不存在项目自有 `_v2.go` 文件。
-- [ ] 不存在 `V2Config`、`renderV2`、`new*V2Command`。
-- [ ] 不存在兼容 alias 或 wrapper。
-- [ ] 命令树、operation 名和 JSON 响应未变化。
-- [ ] GoDoc 使用当前产品语言，不再叙述 V2 升级。
-- [ ] 相关包测试和 race 测试通过。
+- [x] `cmd`、`pkg/config`、`pkg/obsidian` 不存在项目自有 `_v2.go` 文件。
+- [x] 不存在 `V2Config`、`renderV2`、`new*V2Command`。
+- [x] 不存在兼容 alias 或 wrapper。
+- [x] 命令树、operation 名和 JSON 响应未变化。
+- [x] GoDoc 使用当前产品语言，不再叙述 V2 升级。
+- [x] 相关包测试和 race 测试通过。
 
 ## 验证命令
 
@@ -86,7 +86,7 @@ git diff --check
 
 ## 完成记录
 
-- 完成日期：`2026-07-28（工作区实现）`
-- 提交：`未提交`
-- 重命名文件数：`待填写`
-- 删除旧符号数：`待填写`
+- 完成日期：`2026-07-28`
+- 提交：`bb2a823`
+- 重命名文件数：`16 个 Go 文件（15 个 Git rename + 1 个 registry test 重写）`
+- 删除旧符号数：`13 个强制映射中的版本化符号；检索无残留`

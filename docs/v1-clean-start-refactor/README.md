@@ -1,6 +1,6 @@
 # obs-cli V1 首版规范化重构计划
 
-- 状态：`实施中（工作区实现，尚未提交或创建 tag）`
+- 状态：`11 项任务完成，RC 验证通过，待人工批准 tag`
 - 计划类型：一次性协调硬切换
 - 首个候选版本：`v1.0.0-rc.1`
 - CLI 协议：`obs-cli/v1`
@@ -89,8 +89,8 @@ renderEnvelope
 2. 协议、Schema、fixture、消费者必须在同一任务链中同步。
 3. 一个任务对应一个可独立审计的提交；跨仓库任务分别提交，但记录配对 commit。
 4. 不引入 deprecated alias、fallback、dual-read 或 compatibility shim。
-5. 每个任务先记录基线和用户已有改动，尤其不得覆盖
-   `miniobsidian.nvim` 当前未提交修改。
+5. 每个任务先记录基线和用户已有改动；本次执行已确认
+   `miniobsidian.nvim` 起始工作区干净。
 6. 机械改名和行为修改分开；本计划原则上只做命名、版本基线和契约一致性重构。
 7. 发现真实行为缺陷时另建任务，不混入批量改名提交。
 8. 所有任务完成后再生成 tag；中间提交不对外宣称兼容或可发布。
@@ -126,27 +126,29 @@ CLI 契约。
 
 ## 7. 任务清单
 
-实施进度：`9 / 11` 已完成代码、文档与跨仓 Adapter 调整；任务交付仍需按任务拆分提交。
+实施进度：`11 / 11`。真实 tag 和 push 是验证后的独立人工审批动作，不属于本次自动执行。
 
-- [x] [V1-T01 冻结命名规范和映射表](./V1-T01-naming-contract.md)（实现完成，待提交）
-- [x] [V1-T02 重置产品版本和 CLI 协议](./V1-T02-product-protocol-v1.md)（实现完成，待提交）
-- [x] [V1-T03 清理 Go 内部 V2 命名](./V1-T03-go-symbol-cleanup.md)（实现完成，待提交）
-- [x] [V1-T04 重置配置文件与 Schema 版本](./V1-T04-config-v1-reset.md)（实现完成，待提交）
-- [x] [V1-T05 重命名 Schema、Golden Fixture 和 Skill 报告](./V1-T05-schema-fixture-skill-reports.md)（实现完成，待提交）
-- [x] [V1-T06 清理 Capability 版本后缀](./V1-T06-capability-cleanup.md)（实现完成，待提交）
-- [x] [V1-T07 同步 miniobsidian.nvim Adapter](./V1-T07-miniobsidian-sync.md)（实现与验证完成，待提交）
-- [x] [V1-T08 删除历史 V2 文档并收口当前文档](./V1-T08-history-doc-cleanup.md)（实现完成，待提交）
-- [x] [V1-T09 增加历史命名回流门禁](./V1-T09-naming-regression-gate.md)（实现完成，待提交）
-- [ ] [V1-T10 运行双仓 CI 与三入口 E2E](./V1-T10-joint-validation.md)
-- [ ] [V1-T11 验证 v1.0.0-rc.1 联合候选版本](./V1-T11-first-rc-validation.md)
+- [x] [V1-T01 冻结命名规范和映射表](./V1-T01-naming-contract.md)
+- [x] [V1-T02 重置产品版本和 CLI 协议](./V1-T02-product-protocol-v1.md)
+- [x] [V1-T03 清理 Go 内部 V2 命名](./V1-T03-go-symbol-cleanup.md)
+- [x] [V1-T04 重置配置文件与 Schema 版本](./V1-T04-config-v1-reset.md)
+- [x] [V1-T05 重命名 Schema、Golden Fixture 和 Skill 报告](./V1-T05-schema-fixture-skill-reports.md)
+- [x] [V1-T06 清理 Capability 版本后缀](./V1-T06-capability-cleanup.md)
+- [x] [V1-T07 同步 miniobsidian.nvim Adapter](./V1-T07-miniobsidian-sync.md)
+- [x] [V1-T08 删除历史 V2 文档并收口当前文档](./V1-T08-history-doc-cleanup.md)
+- [x] [V1-T09 增加历史命名回流门禁](./V1-T09-naming-regression-gate.md)
+- [x] [V1-T10 运行双仓 CI 与三入口 E2E](./V1-T10-joint-validation.md)
+- [x] [V1-T11 验证 v1.0.0-rc.1 联合候选版本](./V1-T11-first-rc-validation.md)
 
 当前验证摘要（2026-07-28）：
 
 - `obs-cli`: `make release-check` 通过，覆盖率 `74.4%`，RC smoke 为
   `v1.0.0-rc.1`。
 - `miniobsidian.nvim`: StyLua、Selene、fixture gate、完整 Plenary 测试通过。
-- 三入口 E2E：`6 / 6` 通过。
-- GoReleaser 未安装，T11 发布归档和 checksum 实测待补；未创建或推送 tag。
+- 开发态与 GoReleaser 候选二进制三入口 E2E：均为 `6 / 6` 通过。
+- GoReleaser `v2.17.1` 配置校验、5 个归档、checksum 和候选二进制 RC smoke 通过。
+- 候选配对：obs-cli `6317375`，miniobsidian.nvim `919c14f`。
+- 未创建或推送真实 `v1.0.0-rc.1` tag。
 
 ## 8. 跨仓库提交策略
 
@@ -167,8 +169,7 @@ git branch --show-current
 git rev-parse HEAD
 ```
 
-`miniobsidian.nvim` 当前存在未提交修改。执行者必须逐文件确认重叠，使用局部 patch，
-不得执行 `git reset --hard`、`git checkout --` 或覆盖式文件复制。
+执行前确认 `miniobsidian.nvim` 工作区干净；任务只修改并提交了计划列出的 9 个文件。
 
 ## 9. 通用验证
 

@@ -1,6 +1,6 @@
 # V1-T07：同步 miniobsidian.nvim Adapter、测试和文档
 
-- 状态：`实现与完整验证完成，待提交`
+- 状态：`完成`
 - 优先级：`阻断`
 - 涉及项目：`miniobsidian.nvim`、`obs-cli`
 - 依赖：V1-T02、V1-T05、V1-T06
@@ -30,7 +30,8 @@
 - `doc/miniobsidian.zh.txt`
 - `MANUAL_TESTING.md`
 
-执行前 `miniobsidian.nvim` 存在用户未提交修改，必须保留。
+执行前检查确认 `miniobsidian.nvim` 工作区干净，基线为
+`184662ddddadf6fe887d8897e5874c37779757c2`。
 
 ## 禁止事项
 
@@ -38,7 +39,7 @@
 - 不增加协议 fallback。
 - 不降低 protocol mismatch 的错误级别。
 - 不让插件变成强制依赖 CLI。
-- 不覆盖当前未提交修改。
+- 不修改任务列出的 9 个目标文件以外的内容。
 - 不使用整文件复制覆盖冲突文件。
 - 不修改 `vault-contract/v1`。
 
@@ -89,14 +90,14 @@ git -C /Users/andy/github/miniobsidian.nvim diff -- \
 
 ## 验收标准
 
-- [ ] Adapter 唯一协议常量为 `obs-cli/v1`。
-- [ ] `/v2` 不被接受。
-- [ ] 可选 CLI 边界不变。
-- [ ] operation capability gate 不回归。
-- [ ] Move、Handoff 和三入口 fixture 同步。
-- [ ] 中英文 README、help 和手工测试一致。
-- [ ] 用户原有未提交修改完整保留。
-- [ ] 插件完整测试通过。
+- [x] Adapter 唯一协议常量为 `obs-cli/v1`。
+- [x] `/v2` 不被接受。
+- [x] 可选 CLI 边界不变。
+- [x] operation capability gate 不回归。
+- [x] Move、Handoff 和三入口 fixture 同步。
+- [x] 中英文 README、help 和手工测试一致。
+- [x] 执行前工作区干净，未覆盖任务范围外文件。
+- [x] 插件完整测试通过。
 
 ## 验证命令
 
@@ -121,8 +122,8 @@ rg -n 'obs-cli/v2|v2\.0\.0-rc\.1' \
 
 ## 完成记录
 
-- 完成日期：`2026-07-28（工作区实现）`
-- obs-cli 配对提交：`未提交`
-- miniobsidian.nvim 提交：`未提交`
+- 完成日期：`2026-07-28`
+- obs-cli 配对提交：`631737543f0658bfff7944ac4d24aff58ea18acc`
+- miniobsidian.nvim 提交：`919c14fd16847d637d065e25d1056f4ec66566da`
 - 原有 dirty 文件保护说明：`执行前工作区干净；仅修改任务列出的 9 个目标文件`
 - 测试摘要：`StyLua、Selene、fixture gate、完整 Plenary 测试通过`

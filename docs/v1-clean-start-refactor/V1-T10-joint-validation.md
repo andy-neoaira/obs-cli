@@ -1,6 +1,6 @@
 # V1-T10：运行双仓 CI 与三入口 E2E
 
-- 状态：`双仓自动回归通过，待配对提交冻结`
+- 状态：`完成`
 - 优先级：`阻断`
 - 涉及项目：`obs-cli`、`miniobsidian.nvim`
 - 依赖：V1-T02～V1-T09
@@ -96,14 +96,14 @@ make release-check
 
 ## 验收标准
 
-- [ ] `obs-cli make release-check` 通过。
-- [ ] `miniobsidian.nvim` 完整 CI 通过。
-- [ ] 三入口 E2E 全部通过。
-- [ ] 所有负向硬切换测试通过。
-- [ ] 两仓共享 fixture 一致。
-- [ ] 工作区没有测试生成的非预期文件。
-- [ ] 验证后 HEAD 未变化。
-- [ ] 结果记录包含精确 commit 和工具版本。
+- [x] `obs-cli make release-check` 通过。
+- [x] `miniobsidian.nvim` 完整 CI 通过。
+- [x] 三入口 E2E 全部通过。
+- [x] 所有负向硬切换测试通过。
+- [x] 两仓共享 fixture 一致。
+- [x] 工作区没有测试生成的非预期文件。
+- [x] 验证后 HEAD 未变化。
+- [x] 结果记录包含精确 commit 和工具版本。
 
 ## 失败处理
 
@@ -119,10 +119,10 @@ commit，不允许发布部分通过的组合。
 
 ## 完成记录
 
-- 完成日期：`待配对提交冻结后填写`
-- obs-cli commit：`基线 01be5bf3eb36b5417465833ec5d897fe2e403cc7 + 未提交工作区`
-- miniobsidian.nvim commit：`基线 184662ddddadf6fe887d8897e5874c37779757c2 + 未提交工作区`
-- 工具版本：`Go 1.26.2；Neovim 0.12.1；Selene 0.28.0`
+- 完成日期：`2026-07-28`
+- obs-cli commit：`631737543f0658bfff7944ac4d24aff58ea18acc`
+- miniobsidian.nvim commit：`919c14fd16847d637d065e25d1056f4ec66566da`
+- 工具版本：`Go 1.26.2；Neovim 0.12.1；StyLua 2.5.2；Selene 0.28.0`
 - obs-cli release-check：`通过；coverage 74.4%`
 - miniobsidian CI：`StyLua、Selene、fixture gate、完整 Plenary 通过`
 - three-client E2E：`6 / 6 通过`
