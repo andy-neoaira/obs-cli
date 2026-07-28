@@ -18,7 +18,7 @@ P5 不依赖 P4 移动端人工验证，可以与 P4-T05/P4-T06 并行推进。
 
 ## 任务进度
 
-阶段进度：`6 / 7`
+阶段进度：`7 / 7`
 
 - [x] [P5-T01 配置原子替换与目录持久化](./P5-T01-config-atomic-durability.md)
 - [x] [P5-T02 Note List 隐藏文件隔离](./P5-T02-note-list-hidden-files.md)
@@ -26,7 +26,7 @@ P5 不依赖 P4 移动端人工验证，可以与 P4-T05/P4-T06 并行推进。
 - [x] [P5-T04 删除未注册的 V1 命令死代码](./P5-T04-remove-v1-command-dead-code.md)
 - [x] [P5-T05 Capability 文档与实现一致性门禁](./P5-T05-capability-doc-gate.md)
 - [x] [P5-T06 Skill 身份三方一致性门禁](./P5-T06-skill-identity-gate.md)
-- [ ] [P5-T07 全量回归与审计关闭报告](./P5-T07-regression-audit-closure.md)
+- [x] [P5-T07 全量回归与审计关闭报告](./P5-T07-regression-audit-closure.md)
 
 推荐顺序：
 
@@ -55,14 +55,14 @@ T01、T02、T03 涉及安全与正确性，应优先于代码清理和文档补�
 
 ## 阶段完成标准
 
-- [ ] 配置文件 rename 后同步父目录，且保留现有配置锁与校验。
-- [ ] 隐藏 Markdown 文件不会出现在列表中，也不会导致整个列表失败。
-- [ ] Obsidian 配置缺失与损坏被区分，V2 写操作不会静默采用错误默认值。
-- [ ] 未注册 V1 命令及其专属初始化副作用已删除。
-- [ ] capability 实现与规范文档自动校验一致。
-- [ ] Skill 目录名、frontmatter name 和 eval manifest 自动校验一致。
-- [ ] `make release-check`、三入口自动 E2E 与相关负向测试全部通过。
-- [ ] 审计关闭报告逐项记录修复提交、证据和保留决策。
+- [x] 配置文件 rename 后同步父目录，且保留现有配置锁与校验。
+- [x] 隐藏 Markdown 文件不会出现在列表中，也不会导致整个列表失败。
+- [x] Obsidian 配置缺失与损坏被区分，V2 写操作不会静默采用错误默认值。
+- [x] 未注册 V1 命令及其专属初始化副作用已删除。
+- [x] capability 实现与规范文档自动校验一致。
+- [x] Skill 目录名、frontmatter name 和 eval manifest 自动校验一致。
+- [x] `make release-check`、三入口自动 E2E 与相关负向测试全部通过。
+- [x] 审计关闭报告逐项记录修复提交、证据和保留决策。
 
 ## 通用执行规则
 

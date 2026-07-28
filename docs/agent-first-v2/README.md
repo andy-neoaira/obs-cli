@@ -51,7 +51,7 @@
 | [P2 Neovim 可靠性](./phase-2-neovim/README.md) | 测试、路径、链接、Daily、外部变更、UX 一致性 | `[x]` | 插件独立可靠并与共同规范一致 |
 | [P3 场景化 Skills](./phase-3-skills/README.md) | Skill 契约、迁移、新场景、评测 | `[x]` | Agent 能按场景安全完成闭环任务 |
 | [P4 可选协同与端到端验收](./phase-4-integration/README.md) | 可选 CLI 适配、Agent 交接、冲突 UX、三入口 E2E | `[-]` | 三入口操作同一 Vault 且不会静默覆盖 |
-| [P5 审计修复与 V2 收口](./phase-5-audit-remediation/README.md) | 原子持久性、隐藏路径、配置错误、遗留代码、协议与 Skill 门禁 | `[ ]` | 已确认审计问题修复且完整发布门禁通过 |
+| [P5 审计修复与 V2 收口](./phase-5-audit-remediation/README.md) | 原子持久性、隐藏路径、配置错误、遗留代码、协议与 Skill 门禁 | `[x]` | 已确认审计问题修复且完整发布门禁通过 |
 
 ## 执行规则
 

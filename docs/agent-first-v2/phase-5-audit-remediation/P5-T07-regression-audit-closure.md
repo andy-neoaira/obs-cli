@@ -1,6 +1,6 @@
 # P5-T07：全量回归与审计关闭报告
 
-- 状态：`待开始`
+- 状态：`已完成`
 - 优先级：`高`
 - 负责人：`待分配`
 - 涉及项目：`obs-cli`、`miniobsidian.nvim`、Agent Skills
@@ -43,13 +43,13 @@
 
 ## 验收标准
 
-- [ ] P5-T01 至 P5-T06 全部满足各自验收标准。
-- [ ] `make release-check` 全部通过且覆盖率不低于当前门槛。
-- [ ] 三入口自动 E2E 输出 `6/6`。
-- [ ] miniobsidian.nvim CI 全部通过。
-- [ ] 两个仓库没有未解释的工作区修改。
-- [ ] 审计报告能从问题追踪到提交和测试。
-- [ ] P4 移动端待办与 release-candidate 状态保持不变。
+- [x] P5-T01 至 P5-T06 全部满足各自验收标准。
+- [x] `make release-check` 全部通过且覆盖率不低于当前门槛。
+- [x] 三入口自动 E2E 输出 `6/6`。
+- [x] miniobsidian.nvim CI 全部通过。
+- [x] 两个仓库没有未解释的工作区修改。
+- [x] 审计报告能从问题追踪到提交和测试。
+- [x] P4 移动端待办与 release-candidate 状态保持不变。
 
 ## 验证命令
 
@@ -69,3 +69,12 @@ git status --short
 
 T07 只提交报告和状态。如联合回归失败，不回滚其他任务掩盖问题，而是保持 T07
 未完成并为失败项建立独立修复任务。
+
+## 完成记录
+
+- 完成日期：`2026-07-28`
+- obs-cli：完整 release-check 通过，覆盖率 `73.8%`。
+- 联合 E2E：`6/6`。
+- miniobsidian.nvim：format、lint、fixture 和完整 Plenary suite 通过。
+- 报告：[P5_AUDIT_REMEDIATION.md](../../releases/P5_AUDIT_REMEDIATION.md)。
+- P4 状态：移动端人工门禁仍保留，未创建正式 release。
