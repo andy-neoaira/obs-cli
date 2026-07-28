@@ -35,7 +35,20 @@ func newDailyV2Command(registryFactory vaultRegistryFactory, serviceFactory note
 			}
 			selected = parsed
 		}
-		config := obsidian.ReadDailyNotesConfig(vaultPath)
+		config, _, err := obsidian.LoadDailyNotesConfig(vaultPath)
+		if err != nil {
+			var configErr *obsidian.ConfigFileError
+			details := map[string]any{"field": "daily.config"}
+			if errors.As(err, &configErr) {
+				details["config_file"] = configErr.File
+				details["failure_kind"] = configErr.Kind
+			}
+			return dailyTarget{}, protocol.NewError(
+				protocol.InvalidArgument,
+				"Obsidian Daily Notes config is not usable",
+				details,
+			)
+		}
 		if config.Format == "" {
 			config.Format = "YYYY-MM-DD"
 		}

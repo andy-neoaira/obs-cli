@@ -2,6 +2,7 @@ package obsidian
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,35 +25,64 @@ type DailyNotesConfig struct {
 	Template string `json:"template"` // 模板笔记路径
 }
 
+type ConfigFileError struct {
+	File string
+	Kind string
+	Err  error
+}
+
+func (e *ConfigFileError) Error() string {
+	return fmt.Sprintf("%s Obsidian config %s: %v", e.Kind, e.File, e.Err)
+}
+
+func (e *ConfigFileError) Unwrap() error {
+	return e.Err
+}
+
+func LoadAppConfig(vaultPath string) (ObsidianAppConfig, bool, error) {
+	var config ObsidianAppConfig
+	found, err := loadObsidianConfig(vaultPath, "app.json", &config)
+	return config, found, err
+}
+
+func LoadDailyNotesConfig(vaultPath string) (DailyNotesConfig, bool, error) {
+	var config DailyNotesConfig
+	found, err := loadObsidianConfig(vaultPath, "daily-notes.json", &config)
+	return config, found, err
+}
+
+func loadObsidianConfig(vaultPath, name string, target any) (bool, error) {
+	relative := filepath.ToSlash(filepath.Join(".obsidian", name))
+	data, err := os.ReadFile(filepath.Join(vaultPath, filepath.FromSlash(relative)))
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, &ConfigFileError{File: relative, Kind: "read", Err: err}
+	}
+	if err := json.Unmarshal(data, target); err != nil {
+		return true, &ConfigFileError{File: relative, Kind: "parse", Err: err}
+	}
+	return true, nil
+}
+
 // ExcludedPaths 读取 vault 中 .obsidian/app.json 的 userIgnoreFilters，
 // 返回需要排除的路径模式列表。如果配置文件不存在或读取失败，返回 nil。
 func ExcludedPaths(vaultPath string) []string {
-	data, err := os.ReadFile(filepath.Join(vaultPath, ".obsidian", "app.json"))
+	config, _, err := LoadAppConfig(vaultPath)
 	if err != nil {
 		return nil
 	}
-
-	var config ObsidianAppConfig
-	if err := json.Unmarshal(data, &config); err != nil {
-		return nil
-	}
-
 	return config.UserIgnoreFilters
 }
 
 // DefaultNoteFolder 读取 vault 中配置的新笔记默认存放文件夹。
 // 如果未配置或读取失败，返回空字符串（调用方应回退到 vault 根目录）。
 func DefaultNoteFolder(vaultPath string) string {
-	data, err := os.ReadFile(filepath.Join(vaultPath, ".obsidian", "app.json"))
+	config, _, err := LoadAppConfig(vaultPath)
 	if err != nil {
 		return ""
 	}
-
-	var config ObsidianAppConfig
-	if err := json.Unmarshal(data, &config); err != nil {
-		return ""
-	}
-
 	if config.NewFileLocation == "folder" && config.NewFileFolderPath != "" {
 		return config.NewFileFolderPath
 	}
@@ -63,16 +93,10 @@ func DefaultNoteFolder(vaultPath string) string {
 // ReadDailyNotesConfig 读取 vault 中 Daily Notes 插件的配置。
 // 如果配置文件不存在或读取失败，返回零值结构体。
 func ReadDailyNotesConfig(vaultPath string) DailyNotesConfig {
-	data, err := os.ReadFile(filepath.Join(vaultPath, ".obsidian", "daily-notes.json"))
+	config, _, err := LoadDailyNotesConfig(vaultPath)
 	if err != nil {
 		return DailyNotesConfig{}
 	}
-
-	var config DailyNotesConfig
-	if err := json.Unmarshal(data, &config); err != nil {
-		return DailyNotesConfig{}
-	}
-
 	return config
 }
 

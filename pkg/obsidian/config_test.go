@@ -1,6 +1,7 @@
 package obsidian_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -197,6 +198,41 @@ func TestReadDailyNotesConfig(t *testing.T) {
 		assert.Equal(t, "", config.Format)
 		assert.Equal(t, "", config.Template)
 	})
+}
+
+func TestStrictObsidianConfigLoadersDistinguishMissingAndMalformed(t *testing.T) {
+	root := t.TempDir()
+
+	if config, found, err := obsidian.LoadDailyNotesConfig(root); err != nil || found ||
+		config != (obsidian.DailyNotesConfig{}) {
+		t.Fatalf("missing daily config = %#v found=%v err=%v", config, found, err)
+	}
+	if config, found, err := obsidian.LoadAppConfig(root); err != nil || found ||
+		config.NewFileLocation != "" {
+		t.Fatalf("missing app config = %#v found=%v err=%v", config, found, err)
+	}
+
+	obsidianDir := filepath.Join(root, ".obsidian")
+	if err := os.MkdirAll(obsidianDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"daily-notes.json", "app.json"} {
+		if err := os.WriteFile(filepath.Join(obsidianDir, name), []byte("{bad"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	_, found, err := obsidian.LoadDailyNotesConfig(root)
+	var configErr *obsidian.ConfigFileError
+	if !found || !errors.As(err, &configErr) || configErr.File != ".obsidian/daily-notes.json" ||
+		configErr.Kind != "parse" {
+		t.Fatalf("malformed daily found=%v error=%#v", found, err)
+	}
+	_, found, err = obsidian.LoadAppConfig(root)
+	if !found || !errors.As(err, &configErr) || configErr.File != ".obsidian/app.json" ||
+		configErr.Kind != "parse" {
+		t.Fatalf("malformed app found=%v error=%#v", found, err)
+	}
 }
 
 func TestExcludedPaths(t *testing.T) {

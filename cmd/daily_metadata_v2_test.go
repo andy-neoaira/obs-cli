@@ -156,6 +156,34 @@ func TestDailyV2DoesNotOverwriteDailyCreatedByAnotherEntry(t *testing.T) {
 	}
 }
 
+func TestDailyV2RejectsMalformedConfigWithoutWriting(t *testing.T) {
+	registryFactory, serviceFactory, vaultRoot := noteCommandDependencies(t)
+	configDir := filepath.Join(vaultRoot, ".obsidian")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, "daily-notes.json"), []byte("{bad"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	now := func() time.Time { return time.Date(2026, 7, 28, 12, 0, 0, 0, time.Local) }
+
+	for _, operation := range []string{"get", "create"} {
+		response, _, err := executeV2TestCommandResult(
+			newDailyV2Command(registryFactory, serviceFactory, now), "", operation,
+		)
+		if err == nil || response.Error == nil || response.Error.Code != protocol.InvalidArgument {
+			t.Fatalf("%s malformed config response=%#v err=%v", operation, response, err)
+		}
+		if response.Error.Details["config_file"] != ".obsidian/daily-notes.json" ||
+			response.Error.Details["failure_kind"] != "parse" {
+			t.Fatalf("%s malformed config details=%#v", operation, response.Error.Details)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(vaultRoot, "2026-07-28.md")); !os.IsNotExist(err) {
+		t.Fatalf("malformed config created default daily: %v", err)
+	}
+}
+
 func executeV2TestCommand(t *testing.T, command *cobra.Command, stdin string, args ...string) noteTestEnvelope {
 	t.Helper()
 	response, output, err := executeV2TestCommandResult(command, stdin, args...)

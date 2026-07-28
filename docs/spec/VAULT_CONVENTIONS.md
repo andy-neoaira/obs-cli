@@ -252,6 +252,10 @@ Wikilink 和 Markdown Link 只有在 Markdown 正文的链接语法位置才参�
 
 存在有效 `.obsidian/daily-notes.json` 时，folder、format 和 template 是默认权威配置，CLI 与插件必须产生相同的有效配置。
 
+配置文件不存在时可以使用 VC-7.2 默认值；文件存在但无法读取、JSON 损坏或字段值
+不受支持时，不得静默退回默认路径执行写入。Agent CLI 必须返回包含配置文件相对路径
+和失败类别的结构化错误。
+
 客户端私有 override 只有在用户显式配置时才允许，并必须在结果或 health 中标记与 Obsidian 配置的偏差。
 
 ### VC-7.2 默认配置
@@ -387,4 +391,3 @@ Obsidian、同步服务、CLI 和 Neovim 都可能在客户端缓存之后修改
 | Neovim buffer 协同 | VC-3、VC-9 |
 
 实现只有在对应共享 fixture 全部通过后，才能声明该能力符合 `vault-contract/v1`。
-

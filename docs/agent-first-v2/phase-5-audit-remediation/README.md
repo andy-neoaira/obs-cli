@@ -18,11 +18,11 @@ P5 不依赖 P4 移动端人工验证，可以与 P4-T05/P4-T06 并行推进。
 
 ## 任务进度
 
-阶段进度：`2 / 7`
+阶段进度：`3 / 7`
 
 - [x] [P5-T01 配置原子替换与目录持久化](./P5-T01-config-atomic-durability.md)
 - [x] [P5-T02 Note List 隐藏文件隔离](./P5-T02-note-list-hidden-files.md)
-- [ ] [P5-T03 Obsidian 配置严格读取与错误可见性](./P5-T03-obsidian-config-errors.md)
+- [x] [P5-T03 Obsidian 配置严格读取与错误可见性](./P5-T03-obsidian-config-errors.md)
 - [ ] [P5-T04 删除未注册的 V1 命令死代码](./P5-T04-remove-v1-command-dead-code.md)
 - [ ] [P5-T05 Capability 文档与实现一致性门禁](./P5-T05-capability-doc-gate.md)
 - [ ] [P5-T06 Skill 身份三方一致性门禁](./P5-T06-skill-identity-gate.md)
