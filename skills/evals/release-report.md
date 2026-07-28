@@ -1,7 +1,7 @@
-# P3 Skill Eval 发布报告
+# Skill Eval 发布报告
 
-- 最低 CLI：`v2.0.0-rc.1`
-- 协议：`obs-cli/v2`
+- 最低 CLI：`v1.0.0-rc.1`
+- 协议：`obs-cli/v1`
 - 场景清单：`scenarios.json`
 - 基本场景契约：`55 / 55` 已定义并通过结构/交叉约束校验（11 个 Skill ×
   trigger/non-trigger/success/conflict/failure）
@@ -12,7 +12,7 @@
 
 发布门禁通过 `./scripts/run-skill-evals.sh` 执行：
 
-1. 严格校验所有 Skill 的 V2 契约。
+1. 严格校验所有 Skill 的 V1 契约。
 2. 校验场景清单完整覆盖当前 Skill 目录，且每个 Skill 恰有五类基本契约用例。
 3. 对照 CLI 实际 capability surface 和 Skill 声明验证兼容矩阵。
 4. 在临时 Vault 中验证 dry-run 无写入、危险内容按原始 bytes 保存。

@@ -1,6 +1,6 @@
 ---
 name: obsidian-vault-setup
-description: 配置或检查 obs-cli V2 Vault 注册表。用户要求发现、列出、注册 Vault 或修改默认 Vault 时使用；不修改 Obsidian 官方配置。
+description: 配置或检查 obs-cli V1 Vault 注册表。用户要求发现、列出、注册 Vault 或修改默认 Vault 时使用；不修改 Obsidian 官方配置。
 ---
 
 # Obsidian Vault Setup
@@ -15,7 +15,7 @@ description: 配置或检查 obs-cli V2 Vault 注册表。用户要求发现、�
 
 - 不用于创建、读取或整理笔记。
 - 不用于修改 `.obsidian/` 或 Obsidian 桌面/移动端设置。
-- 不处理打开方式等 V2 未声明的配置；明确说明当前 capability 不支持。
+- 不处理打开方式等 V1 未声明的配置；明确说明当前 capability 不支持。
 
 ## 输入
 
@@ -35,12 +35,12 @@ obs-cli capabilities --output json --require vault.add
 obs-cli capabilities --output json --require vault.set-default
 ```
 
-只要求当前请求实际使用的 capability。缺失时停止并返回 CLI 版本、缺失 operation，以及“升级到提供 obs-cli/v2 对应 operation 的版本”的提示；不得回退到 `list-vaults`、`add-vault` 或 `set-default-vault`。
+只要求当前请求实际使用的 capability。缺失时停止并返回 CLI 版本、缺失 operation，以及“升级到提供 obs-cli/v1 对应 operation 的版本”的提示；不得回退到 `list-vaults`、`add-vault` 或 `set-default-vault`。
 
 ## 读取范围
 
 - `vault discover` 只读 Obsidian 已有配置，用于发现候选项，不写入官方配置。
-- `vault list` 只读 obs-cli V2 注册表。
+- `vault list` 只读 obs-cli V1 注册表。
 - 不读取笔记正文。
 
 ```bash
@@ -50,7 +50,7 @@ obs-cli vault list --output json
 
 ## 写入范围
 
-- `vault add` 仅写 obs-cli V2 注册表。
+- `vault add` 仅写 obs-cli V1 注册表。
 - `vault set-default` 仅修改注册表中的默认 Vault。
 - 禁止直接写 `.obsidian/`、删除 Vault、迁移配置或修改 Vault 内文件。
 

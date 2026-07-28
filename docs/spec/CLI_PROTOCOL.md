@@ -1,18 +1,18 @@
-# obs-cli V2 JSON Protocol
+# obs-cli V1 JSON Protocol
 
-- 协议标识：`obs-cli/v2`
-- 状态：已接受，等待 P1 实现
+- 协议标识：`obs-cli/v1`
+- 状态：已实现
 - 发布日期：2026-07-24
 - Vault 规范：`vault-contract/v1`
 - 架构依据：[ADR-001](../architecture/ADR-001-agent-first-boundary.md)
-- JSON Schema：[response-v2.schema.json](./schema/response-v2.schema.json)
+- JSON Schema：[response-v1.schema.json](./schema/response-v1.schema.json)
 - Capability 约定：[CAPABILITIES.md](./CAPABILITIES.md)
 - Note 原子操作：[NOTE_OPERATIONS.md](./NOTE_OPERATIONS.md)
 - Move 事务：[MOVE_TRANSACTIONS.md](./MOVE_TRANSACTIONS.md)
 
 ## 1. 设计目标
 
-`obs-cli/v2` 是供 Agent、Skill、脚本和自动化系统使用的非交互协议。调用方不应解析面向人的 `--help`、表格、颜色或自然语言日志来判断结果。
+`obs-cli/v1` 是供 Agent、Skill、脚本和自动化系统使用的非交互协议。调用方不应解析面向人的 `--help`、表格、颜色或自然语言日志来判断结果。
 
 协议保证：
 
@@ -28,7 +28,7 @@
 
 JSON 模式下 stdout 必须只包含一个符合 Schema 的 UTF-8 JSON object，末尾可以有一个换行。禁止输出进度条、提示语、ANSI 颜色、表格或额外 JSON 行。
 
-批量结果必须放入单个 envelope 的 `data.items`。`obs-cli/v2` 不定义 NDJSON 流式响应；未来流式协议必须使用独立 capability 和内容类型。
+批量结果必须放入单个 envelope 的 `data.items`。`obs-cli/v1` 不定义 NDJSON 流式响应；未来流式协议必须使用独立 capability 和内容类型。
 
 ### 2.2 stderr
 
@@ -46,7 +46,7 @@ stderr 日志应包含 request ID。`--quiet` 可以关闭非必要诊断，但�
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `protocol_version` | string | 固定为 `obs-cli/v2` |
+| `protocol_version` | string | 固定为 `obs-cli/v1` |
 | `ok` | boolean | 操作是否成功 |
 | `operation` | string | 稳定操作名，如 `note.get` |
 | `request_id` | string | 调用方提供或 CLI 生成的请求 ID |
@@ -58,7 +58,7 @@ stderr 日志应包含 request ID。`--quiet` 可以关闭非必要诊断，但�
 
 ```json
 {
-  "protocol_version": "obs-cli/v2",
+  "protocol_version": "obs-cli/v1",
   "ok": true,
   "operation": "note.get",
   "request_id": "req-01JXYZ",
@@ -80,7 +80,7 @@ stderr 日志应包含 request ID。`--quiet` 可以关闭非必要诊断，但�
 
 ```json
 {
-  "protocol_version": "obs-cli/v2",
+  "protocol_version": "obs-cli/v1",
   "ok": false,
   "operation": "note.replace",
   "request_id": "req-01JXYZ",
@@ -146,7 +146,7 @@ daily.append
 --output json
 ```
 
-Agent 核心命令必须支持 JSON。V2 是否将 JSON 设为默认由 P1 命令树决定，但 Skills 必须显式传入 `--output json`，直到 capabilities 声明默认值。
+Agent 核心命令只支持 JSON。Skills 仍应显式传入 `--output json`，避免调用意图含糊。
 
 ### 6.2 `--vault`
 
@@ -167,7 +167,7 @@ Agent 核心命令必须支持 JSON。V2 是否将 JSON 设为默认由 P1 命�
 
 ### 6.4 `--if-match`
 
-更新、替换、移动和删除通过 `--if-match <revision>` 提供前置条件。revision 语法由并发规范冻结，V2 目标格式为：
+更新、替换、移动和删除通过 `--if-match <revision>` 提供前置条件。revision 语法由并发规范冻结，V1 目标格式为：
 
 ```text
 sha256:<64 lowercase hex characters>
@@ -280,11 +280,11 @@ obs capabilities --output json
 
 ## 11. 兼容性
 
-- 删除必填字段、改变字段类型或改变错误码含义，需要升级 `obs-cli/v3`。
-- 新增可选字段可以保持 V2。
+- 删除必填字段、改变字段类型或改变错误码含义，需要升级下一主协议版本。
+- 新增可选字段可以保持 V1。
 - 调用方必须忽略未知可选字段。
 - 响应 Schema 的 `additionalProperties` 允许 operation data 扩展，但 envelope 保留字段不得重定义。
-- V1 人类输出和 V2 JSON 不共享兼容承诺。
+- 历史人类可读 CLI 输出不属于当前机器协议的兼容承诺。
 
 ## 12. 安全要求
 

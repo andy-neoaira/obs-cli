@@ -2,20 +2,20 @@
 
 面向 Agent、非交互、机器可读的 Obsidian Vault 操作 CLI。
 
-`obs-cli` V2 是供 AI Agent、场景化 Skill、脚本和编辑器集成调用的本地 Markdown 执行层。它通过 Vault 边界、revision 前置条件、原子写入、dry-run 计划和稳定 JSON 错误降低 Obsidian、Neovim、同步服务与 Agent 并发修改时的覆盖风险。
+`obs-cli` V1 是供 AI Agent、场景化 Skill、脚本和编辑器集成调用的本地 Markdown 执行层。它通过 Vault 边界、revision 前置条件、原子写入、dry-run 计划和稳定 JSON 错误降低 Obsidian、Neovim、同步服务与 Agent 并发修改时的覆盖风险。
 
 本项目基于 [Yakitrak/notesmd-cli](https://github.com/Yakitrak/notesmd-cli) 二次开发。许可信息见 [LICENSE](./LICENSE) 和 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
 
 ## 当前状态
 
-V2 是破坏性升级。稳定的顶层命令树为：
+首个 Agent-first 版本使用以下稳定顶层命令树：
 
 ```text
 capabilities  vault  note  search  metadata
 link          daily  template  batch  doctor
 ```
 
-Agent 必须通过 `capabilities` 发现已实现 operation。预留命名空间返回 `CAPABILITY_UNSUPPORTED`，不会回退到 V1 picker、GUI 或 TTY 行为。
+Agent 必须通过 `capabilities` 发现已实现 operation。预留命名空间返回 `CAPABILITY_UNSUPPORTED`，不会回退到 picker、GUI 或 TTY 行为。
 
 ## 构建
 
@@ -89,7 +89,7 @@ printf 'Project Alpha' |
 
 示例中的占位 revision 必须替换为 `note get` 返回的精确值。
 
-## 已实现的 V2 operation
+## 已实现的 V1 operation
 
 ```text
 capabilities
@@ -100,7 +100,6 @@ vault get
 vault add
 vault remove
 vault set-default
-vault migrate
 
 note list
 note get
@@ -110,15 +109,25 @@ note patch
 note replace
 note delete
 note move
+
+daily get
+daily create
+daily append
+
+metadata get
+metadata set
+
+search content
+link backlinks
 ```
 
 所有修改操作支持 `--dry-run`。Note revision 格式为 `sha256:<64 lowercase hex>`。`replace`、`delete`、`patch`、`move` 要求 `--if-match`；`replace/delete` 提供显式 `--unsafe-no-if-match` 逃生参数，默认 Skill 禁止使用。
 
 ## 协议保证
 
-- stdout 只输出一个 `obs-cli/v2` JSON envelope。
+- stdout 只输出一个 `obs-cli/v1` JSON envelope。
 - stderr 仅用于包含 request ID 的诊断。
-- V2 内 operation 名称和错误码保持稳定。
+- V1 内 operation 名称和错误码保持稳定。
 - Vault 逻辑路径拒绝目录穿越、隐藏路径和符号链接逃逸。
 - create 永不覆盖。
 - append 通过 revision-aware 原子替换实现。
@@ -136,11 +145,7 @@ note move
 - [Move 事务](./docs/spec/MOVE_TRANSACTIONS.md)
 - [并发与写入](./docs/spec/CONCURRENCY_AND_WRITES.md)
 
-## V1 迁移
-
-V1 命令别名、模糊 picker、编辑器启动、Obsidian URI、基于 cwd 的 Vault 选择和 TTY 确认均不属于 V2 根命令。
-
-逐命令映射、已知限制和回滚方法见 [V1 到 V2 迁移指南](./docs/migration/V1_TO_V2.md)。
+旧命令别名、模糊 picker、编辑器启动、Obsidian URI、基于 cwd 的 Vault 选择和 TTY 确认均不属于 Agent-first 命令表面。
 
 ## 开发与发布门禁
 

@@ -9,8 +9,6 @@ type MockVaultOperator struct {
 	PathError      error  // 模拟 Path() 返回的错误
 	Name           string // DefaultName() 返回的 vault 名称
 	PathValue      string // Path() 返回的路径
-	OpenType       string // DefaultOpenType() 返回的打开方式
-	OpenTypeErr    error  // 模拟 DefaultOpenType() 返回的错误
 }
 
 func (m *MockVaultOperator) DefaultName() (string, error) {
@@ -37,14 +35,4 @@ func (m *MockVaultOperator) Path() (string, error) {
 	// 安全路径解析要求 Vault 根目录真实存在；未指定时提供只用于 Mock
 	// 交互验证的系统临时目录。
 	return os.TempDir(), nil
-}
-
-func (m *MockVaultOperator) DefaultOpenType() (string, error) {
-	if m.OpenTypeErr != nil {
-		return "", m.OpenTypeErr
-	}
-	if m.OpenType != "" {
-		return m.OpenType, nil
-	}
-	return "obsidian", nil
 }

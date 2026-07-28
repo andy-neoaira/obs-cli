@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestRootReturnsStableExitCodeForRenderedV2Failure(t *testing.T) {
-	registry := obsidian.NewRegistry(config.NewStore(filepath.Join(t.TempDir(), "config-v2.json")))
+func TestRootReturnsStableExitCodeForRenderedFailure(t *testing.T) {
+	registry := obsidian.NewRegistry(config.NewStore(filepath.Join(t.TempDir(), "config.json")))
 	factory := func() (vaultRegistry, error) { return registry, nil }
 	discover := func() ([]obsidian.DiscoveredVault, error) { return nil, nil }
 
 	root := &cobra.Command{Use: "obs-cli", SilenceErrors: true, SilenceUsage: true}
-	root.AddCommand(newVaultV2Command(factory, discover))
+	root.AddCommand(newVaultCommand(factory, discover))
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	root.SetOut(&stdout)
@@ -45,7 +45,7 @@ func TestRootReturnsStableExitCodeForRenderedV2Failure(t *testing.T) {
 	}
 }
 
-func TestV2RootCommandTreeHasNoLegacyHumanFirstCommands(t *testing.T) {
+func TestRootCommandTreeHasNoLegacyHumanFirstCommands(t *testing.T) {
 	root := newRootCommand()
 	names := make([]string, 0)
 	for _, command := range root.Commands() {

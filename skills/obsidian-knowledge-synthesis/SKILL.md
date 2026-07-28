@@ -103,7 +103,7 @@ patch apply 使用相同受控文件和 `--if-match` 去掉 `--dry-run`；两个
 
 ## 结果摘要
 
-遵循 `docs/spec/schema/compare-synthesis-report-v2.schema.json`：
+遵循 `docs/spec/schema/compare-synthesis-report-v1.schema.json`：
 
 ```yaml
 kind: synthesis
@@ -113,9 +113,9 @@ selection: {mode: explicit, queries: [], rule: user_order, confirmed: true, dupl
 sources:
   - {id: S1, path: A.md, revision: "sha256:...", body_revision: "sha256:...", modified_at: "2026-07-25T10:00:00Z", role: explicit}
 evidence:
-  - {id: E1, source_id: S1, path: A.md, revision: "sha256:...", kind: content, location: "## Decision", excerpt: "Use V2"}
+  - {id: E1, source_id: S1, path: A.md, revision: "sha256:...", kind: content, location: "## Decision", excerpt: "Use V1"}
 claims:
-  - {id: C1, type: synthesis, epistemic_status: supported, statement: "来源共同支持 V2", evidence_ids: [E1, E2]}
+  - {id: C1, type: synthesis, epistemic_status: supported, statement: "来源共同支持 V1", evidence_ids: [E1, E2]}
 conflicts: []
 gaps: []
 staleness: {verified_at: "2026-07-25T10:05:00Z", sources_current: true, changed_sources: []}

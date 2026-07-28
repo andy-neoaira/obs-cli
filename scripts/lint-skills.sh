@@ -44,9 +44,9 @@ for file in $files; do
 
   if ! grep -q '^## Capability 前置检查$' "$file"; then
     if [ "$strict" = true ] || [ "$explicit" = true ] || [ "$file" = "skills/_template/SKILL.md" ]; then
-      report_error "$file" "未采用 V2 Skill 契约（缺少 Capability 前置检查）"
+      report_error "$file" "未采用当前 Skill 契约（缺少 Capability 前置检查）"
     else
-      printf 'WARN  %s: V1 Skill，等待 P3 迁移\n' "$file" >&2
+      printf 'WARN  %s: 旧格式 Skill，缺少 Capability 前置检查\n' "$file" >&2
       warnings=$((warnings + 1))
     fi
     continue
@@ -102,5 +102,5 @@ for file in $files; do
     report_error "$file" "缺少写后验证规则"
 done
 
-printf 'Skill lint: %s V2 checked, %s legacy warning(s), %s error(s)\n' "$checked" "$warnings" "$errors"
+printf 'Skill lint: %s checked, %s legacy warning(s), %s error(s)\n' "$checked" "$warnings" "$errors"
 test "$errors" -eq 0

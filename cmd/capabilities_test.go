@@ -25,15 +25,29 @@ func TestCapabilitiesGoldenJSON(t *testing.T) {
 	if data.CLIVersion == "" || len(data.ProtocolVersions) == 0 || len(data.Operations) == 0 {
 		t.Fatalf("incomplete capabilities: %#v", data)
 	}
+	if len(data.ProtocolVersions) != 1 || data.ProtocolVersions[0] != protocol.Version {
+		t.Fatalf("protocol versions = %v, want [%s]", data.ProtocolVersions, protocol.Version)
+	}
 	if data.VaultContract["target"] != "vault-contract/v1" ||
 		data.VaultContract["implemented"] != "vault-contract/v1" {
 		t.Fatalf("vault contract is not implemented: %#v", data.VaultContract)
 	}
-	if !data.FeatureFlags["note_operations_v2"] || !data.FeatureFlags["daily_notes_v2"] ||
-		!data.FeatureFlags["metadata_v2"] || !data.FeatureFlags["search_v2"] ||
-		!data.FeatureFlags["link_inspection_v2"] || !data.FeatureFlags["dry_run_plans"] ||
-		!data.FeatureFlags["move_plan_preconditions"] {
+	if !data.FeatureFlags["dry_run_plans"] || !data.FeatureFlags["move_plan_preconditions"] {
 		t.Fatalf("capabilities feature flags are incorrect: %#v", data.FeatureFlags)
+	}
+	for _, prefix := range []string{
+		"daily_notes", "link_inspection", "metadata", "note_operations", "search",
+	} {
+		if data.FeatureFlags[prefix+"_v"+"2"] {
+			t.Fatalf("removed historical feature flag %q is still advertised", prefix)
+		}
+	}
+	for _, operation := range []string{
+		"daily.get", "link.backlinks", "metadata.get", "note.get", "search.content",
+	} {
+		if !hasCapabilityOperation(data.Operations, operation) {
+			t.Fatalf("operation discovery is missing %q", operation)
+		}
 	}
 	moveFound := false
 	for _, operation := range data.Operations {
@@ -51,6 +65,15 @@ func TestCapabilitiesGoldenJSON(t *testing.T) {
 	assertCapabilitiesSchema(t, data)
 }
 
+func hasCapabilityOperation(operations []capabilityOperation, expected string) bool {
+	for _, operation := range operations {
+		if operation.Name == expected {
+			return true
+		}
+	}
+	return false
+}
+
 func containsCapabilityFlag(flags []string, expected string) bool {
 	for _, flag := range flags {
 		if flag == expected {
@@ -62,7 +85,7 @@ func containsCapabilityFlag(flags []string, expected string) bool {
 
 func assertCapabilitiesSchema(t *testing.T, data capabilitiesData) {
 	t.Helper()
-	raw, err := os.ReadFile("../docs/spec/schema/capabilities-v2.schema.json")
+	raw, err := os.ReadFile("../docs/spec/schema/capabilities-v1.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}

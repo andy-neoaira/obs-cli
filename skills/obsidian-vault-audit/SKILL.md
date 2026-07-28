@@ -81,7 +81,7 @@ obs-cli capabilities --output json --require link.backlinks
 
 ## 结果摘要
 
-遵循 `docs/spec/schema/search-audit-report-v2.schema.json`。每个 finding 通过 `evidence_indexes` 指向 path、revision、line、snippet；修复建议只进入：
+遵循 `docs/spec/schema/search-audit-report-v1.schema.json`。每个 finding 通过 `evidence_indexes` 指向 path、revision、line、snippet；修复建议只进入：
 
 ```yaml
 plan:

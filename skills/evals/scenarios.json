@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "minimum_cli_version": "v2.0.0-rc.1",
-  "protocol_version": "obs-cli/v2",
+  "minimum_cli_version": "v1.0.0-rc.1",
+  "protocol_version": "obs-cli/v1",
   "case_kinds": ["trigger", "non_trigger", "success", "conflict", "failure"],
   "skills": [
     {
@@ -153,7 +153,7 @@
     {
       "id": "unsupported-cli-version",
       "fixture": "",
-      "plan": ["compatibility-check v1.9.9"],
+      "plan": ["compatibility-check v0.9.9"],
       "final_state": {"path": "", "content": "MINIMUM_CLI_VERSION"}
     }
   ]

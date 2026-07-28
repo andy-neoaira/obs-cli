@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andy-neoaira/obs-cli/docs/spec/schema/response-v1.schema.json",
+  "title": "obs-cli/v1 response",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "ok",
+    "operation",
+    "request_id",
+    "warnings"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "obs-cli/v1"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "operation": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "data": {
+      "type": "object"
+    },
+    "error": {
+      "$ref": "#/$defs/error"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "data": {
+          "type": "object"
+        },
+        "error": false
+      },
+      "required": [
+        "data"
+      ]
+    },
+    {
+      "properties": {
+        "ok": {
+          "const": false
+        },
+        "data": false,
+        "error": {
+          "$ref": "#/$defs/error"
+        }
+      },
+      "required": [
+        "error"
+      ]
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message",
+        "retryable",
+        "details"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "INVALID_ARGUMENT",
+            "INVALID_FRONTMATTER",
+            "VAULT_NOT_FOUND",
+            "NOTE_NOT_FOUND",
+            "ALREADY_EXISTS",
+            "AMBIGUOUS_NOTE",
+            "REVISION_CONFLICT",
+            "PATH_OUTSIDE_VAULT",
+            "PARTIAL_FAILURE",
+            "CAPABILITY_UNSUPPORTED",
+            "INTERNAL_ERROR"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "details": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "warning": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "details": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

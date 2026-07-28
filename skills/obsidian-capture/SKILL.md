@@ -39,7 +39,7 @@ obs-cli capabilities --output json --require vault.get \
   --require note.get --require note.append
 ```
 
-缺失时停止，报告缺失 operation 和当前 CLI 版本，并提示升级到支持对应 obs-cli/v2 operation 的版本。不得回退到 V1 `create --append`。
+缺失时停止，报告缺失 operation 和当前 CLI 版本，并提示升级到支持对应 obs-cli/v1 operation 的版本。不得回退到 V1 `create --append`。
 
 ## 读取范围
 

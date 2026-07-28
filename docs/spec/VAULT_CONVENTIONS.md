@@ -1,9 +1,9 @@
 # Vault Conventions
 
 - 规范标识：`vault-contract/v1`
-- 状态：已接受，等待 P1/P2 完成实现符合性
+- 状态：已实现并通过双仓共享 fixture
 - 发布日期：2026-07-24
-- 适用实现：`obs-cli` V2、`miniobsidian.nvim`
+- 适用实现：`obs-cli` V1、`miniobsidian.nvim`
 - 架构依据：[ADR-001](../architecture/ADR-001-agent-first-boundary.md)
 
 ## 0. 规范语言与兼容性

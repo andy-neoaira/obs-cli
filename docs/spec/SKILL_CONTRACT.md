@@ -1,10 +1,11 @@
-# obs-cli V2 Skill 契约
+# obs-cli V1 Skill 契约
 
 ## 1. 适用范围
 
 本契约适用于所有通过 `obs-cli` 读取或修改 Obsidian Vault 的场景化 Skill。Skill 是 Agent 工作流，不是命令清单；它必须限制读取和写入范围，并对执行结果负责。
 
-新建或迁移后的 Skill 必须以 [`skills/_template/SKILL.md`](../../skills/_template/SKILL.md) 为起点。V1 Skill 在 P3-T02 至 P3-T05 迁移期间允许保留，但 lint 会明确报告；P3 发布门禁使用严格模式禁止遗留项。
+所有 Skill 必须以 [`skills/_template/SKILL.md`](../../skills/_template/SKILL.md) 为起点。
+不符合当前 Capability 契约的 Skill 会被 lint 明确报告，发布门禁使用严格模式禁止遗留项。
 
 ## 2. 文件与元数据
 
@@ -70,7 +71,7 @@ Skill 必须返回 `status`、解析后的 Vault、读取项、计划、实际�
 
 命令退出成功不等于场景成功；verify 阶段失败时不得返回 `success`。
 
-## 8. Lint 与迁移门禁
+## 8. Lint 门禁
 
 ```bash
 ./scripts/lint-skills.sh
@@ -78,6 +79,6 @@ Skill 必须返回 `status`、解析后的 Vault、读取项、计划、实际�
 ./scripts/lint-skills.sh path/to/SKILL.md
 ```
 
-- 默认模式严格检查模板和已经声明 V2 capability 章节的 Skill，并将 V1 Skill报告为迁移警告。
+- 默认模式严格检查模板和已经声明 Capability 章节的 Skill，并将旧格式 Skill 报告为警告。
 - 指定文件时始终严格检查，适合开发单个 Skill。
-- `--strict` 将所有 V1 Skill 视为错误，供 P3 最终发布门禁使用。
+- `--strict` 将所有旧格式 Skill 视为错误，供最终发布门禁使用。

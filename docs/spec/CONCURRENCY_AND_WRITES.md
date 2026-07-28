@@ -1,9 +1,9 @@
 # Revision、原子写入与冲突协议
 
 - 协议标识：`obs-write/v1`
-- 状态：已接受，等待 P1/P2 实现
+- 状态：已实现并通过双仓契约测试
 - 发布日期：2026-07-24
-- CLI 协议：`obs-cli/v2`
+- CLI 协议：`obs-cli/v1`
 - Vault 规范：`vault-contract/v1`
 - 测试向量：[revision-v1.json](../../testdata/revision/revision-v1.json)
 
@@ -79,7 +79,7 @@ delete 必须携带 expected revision。默认删除进入可恢复隔离区或�
 
 ### CW-3.6 强制写入
 
-绕过 expected revision 的 force 操作不属于默认 `obs-cli/v2` capability，Skills 禁止使用。未来如增加，必须拥有独立 operation、醒目的 plan 风险和审计记录。
+绕过 expected revision 的 force 操作不属于默认 `obs-cli/v1` capability，Skills 禁止使用。未来如增加，必须拥有独立 operation、醒目的 plan 风险和审计记录。
 
 ## 4. 协作锁
 
@@ -225,4 +225,3 @@ request ID 用于关联，不能单独证明幂等。实现可以维护有限期
 - 移动端同步可能产生独立冲突副本，而不是 revision conflict。
 
 实现必须通过 capability 或 warning 暴露已知文件系统限制。重要批量修改前应建议用户使用 Vault 级快照或同步服务版本历史，但不得把备份建议替代本协议的安全检查。
-

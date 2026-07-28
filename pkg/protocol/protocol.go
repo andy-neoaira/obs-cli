@@ -15,7 +15,7 @@ import (
 	"github.com/andy-neoaira/obs-cli/pkg/storage"
 )
 
-const Version = "obs-cli/v2"
+const Version = "obs-cli/v1"
 
 type Code string
 

@@ -12,7 +12,7 @@ import (
 
 func TestGoldenEnvelopesAgainstResponseSchemaContract(t *testing.T) {
 	var schema map[string]any
-	data, err := os.ReadFile("../../docs/spec/schema/response-v2.schema.json")
+	data, err := os.ReadFile("../../docs/spec/schema/response-v1.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}

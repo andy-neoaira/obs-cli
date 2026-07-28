@@ -39,7 +39,7 @@ require("miniobsidian").setup({
 运行 `:checkhealth miniobsidian` 查看状态。Adapter 依次校验：
 
 1. `capabilities --output json` 可执行且返回合法 envelope；
-2. `obs-cli/v2`；
+2. `obs-cli/v1`；
 3. `vault-contract/v1`；
 4. 当前操作所需 operation。
 
@@ -61,7 +61,7 @@ require("miniobsidian").setup({
 4. 不兼容时先设 `cli.enabled = false`，再切回上一个二进制或插件 commit。
 5. 升降级不要求改写 Markdown、Frontmatter、Wikilink 或 Daily Note 格式。
 
-V2 CLI 自有 registry 与 Obsidian 官方配置分离。降级二进制不会撤销已经成功提交的
+V1 CLI 自有 registry 与 Obsidian 官方配置分离。降级二进制不会撤销已经成功提交的
 笔记变更；业务内容恢复必须使用同步历史、版本控制或备份。
 
 ## Agent 使用约束

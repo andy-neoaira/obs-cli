@@ -6,7 +6,7 @@ import (
 	"github.com/andy-neoaira/obs-cli/pkg/pathpolicy"
 )
 
-// ErrPathTraversal 保留旧 API 名称；V2 稳定错误语义为 PATH_OUTSIDE_VAULT。
+// ErrPathTraversal 保留旧 API 名称；稳定错误语义为 PATH_OUTSIDE_VAULT。
 var ErrPathTraversal = pathpolicy.ErrOutsideVault
 
 // ErrPhysicalPathConflict 表示逻辑路径通过 Vault 内符号链接形成物理别名。

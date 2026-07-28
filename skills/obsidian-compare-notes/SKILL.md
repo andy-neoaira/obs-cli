@@ -88,7 +88,7 @@ obs-cli note get "<path>" --vault "<vault>" \
 
 ## 结果摘要
 
-遵循 `docs/spec/schema/compare-synthesis-report-v2.schema.json`：
+遵循 `docs/spec/schema/compare-synthesis-report-v1.schema.json`：
 
 ```yaml
 kind: compare

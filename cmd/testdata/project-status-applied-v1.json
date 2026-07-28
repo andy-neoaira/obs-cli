@@ -1,0 +1,24 @@
+{
+  "status": "success",
+  "vault": "vault-demo",
+  "project": "Projects/Demo.md",
+  "period_id": "2026-W30",
+  "window": {"timezone": "Asia/Shanghai", "start": "2026-07-20", "end": "2026-07-26", "inclusive": true},
+  "baseline": {"period_id": "2026-W29", "path": "Projects/Demo.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "section": "### 2026-W29", "evidence_id": "E1"},
+  "sources": [
+    {"id": "S1", "role": "project", "path": "Projects/Demo.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "date": "", "query": "", "scope": "", "selection_reason": "explicit"}
+  ],
+  "evidence": [
+    {"id": "E1", "source_id": "S1", "path": "Projects/Demo.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "location": "### 2026-W29", "excerpt": "上周完成内核"},
+    {"id": "E2", "source_id": "S1", "path": "Projects/Demo.md", "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "location": "## Goals", "excerpt": "发布 V1"}
+  ],
+  "progress": [{"id": "I1", "category": "progress", "statement": "V1 接近发布", "epistemic_status": "inference", "evidence_ids": ["E1", "E2"]}],
+  "risks": [],
+  "decisions": [],
+  "next_steps": [],
+  "writeback": {"requested": true, "status": "applied", "revision_before": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "revision_after": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+  "writeback_plan": {"section": "Status", "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "expected_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "planned_revision_after": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "request_id": "project-status-demo", "sources_verified_at": "2026-07-25T10:00:00Z"},
+  "verified": {"period_heading_count": 1, "payload_count": 1, "sources_current": true},
+  "warnings": [],
+  "errors": []
+}

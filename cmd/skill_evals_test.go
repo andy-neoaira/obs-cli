@@ -359,11 +359,11 @@ func TestSkillEvalTemporaryVaultSafety(t *testing.T) {
 
 func TestSkillEvalCompatibilityFailureIsExplicit(t *testing.T) {
 	manifest := readSkillEvalManifest(t)
-	if skillEvalVersionCompatible("v1.9.9", manifest.MinimumCLIVersion) {
+	if skillEvalVersionCompatible("v0.9.9", manifest.MinimumCLIVersion) {
 		t.Fatalf("obsolete CLI unexpectedly meets %s", manifest.MinimumCLIVersion)
 	}
-	if !skillEvalVersionCompatible("v2.0.0-rc.1", manifest.MinimumCLIVersion) ||
-		!skillEvalVersionCompatible("v2.0.0", manifest.MinimumCLIVersion) ||
+	if !skillEvalVersionCompatible("v1.0.0-rc.1", manifest.MinimumCLIVersion) ||
+		!skillEvalVersionCompatible("v1.0.0", manifest.MinimumCLIVersion) ||
 		!skillEvalVersionCompatible("dev", manifest.MinimumCLIVersion) {
 		t.Fatal("compatible release or local development build was rejected")
 	}

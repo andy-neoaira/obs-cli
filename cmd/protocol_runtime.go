@@ -15,7 +15,7 @@ type renderedCommandError struct {
 func (e *renderedCommandError) Error() string { return e.cause.Error() }
 func (e *renderedCommandError) Unwrap() error { return e.cause }
 
-func renderV2(
+func renderEnvelope(
 	cmd *cobra.Command,
 	operation string,
 	requestID string,

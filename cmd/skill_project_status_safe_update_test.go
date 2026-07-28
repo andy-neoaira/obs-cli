@@ -13,7 +13,7 @@ import (
 	"github.com/google/jsonschema-go/jsonschema"
 )
 
-func TestSkillV2ProjectStatus(t *testing.T) {
+func TestSkillProjectStatus(t *testing.T) {
 	content := readSkill(t, "../skills/obsidian-project-status/SKILL.md")
 	requireSkillText(t, content,
 		"note.get", "daily.get", "search.content", "note.append",
@@ -24,7 +24,7 @@ func TestSkillV2ProjectStatus(t *testing.T) {
 	forbidSkillText(t, content, "obs-cli replace ")
 }
 
-func TestSkillV2SafeUpdate(t *testing.T) {
+func TestSkillSafeUpdate(t *testing.T) {
 	content := readSkill(t, "../skills/obsidian-safe-note-update/SKILL.md")
 	requireSkillText(t, content,
 		"note.get", "note.patch", "obs-cli note patch",
@@ -39,7 +39,7 @@ func TestSkillV2SafeUpdate(t *testing.T) {
 }
 
 func TestProjectStatusSchemaGolden(t *testing.T) {
-	schemaBytes, err := os.ReadFile("../docs/spec/schema/project-status-report-v2.schema.json")
+	schemaBytes, err := os.ReadFile("../docs/spec/schema/project-status-report-v1.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,10 +52,10 @@ func TestProjectStatusSchemaGolden(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, name := range []string{
-		"project-status-report-v2.json",
-		"project-status-applied-v2.json",
-		"project-status-no-change-v2.json",
-		"project-status-conflict-v2.json",
+		"project-status-report-v1.json",
+		"project-status-applied-v1.json",
+		"project-status-no-change-v1.json",
+		"project-status-conflict-v1.json",
 	} {
 		t.Run(name, func(t *testing.T) {
 			report := readProjectStatusGolden(t, name)
@@ -66,13 +66,13 @@ func TestProjectStatusSchemaGolden(t *testing.T) {
 		})
 	}
 
-	invalidPeriod := readProjectStatusGolden(t, "project-status-report-v2.json")
+	invalidPeriod := readProjectStatusGolden(t, "project-status-report-v1.json")
 	invalidPeriod["period_id"] = "2026-W00"
 	if err := resolved.Validate(invalidPeriod); err == nil {
 		t.Fatal("project status schema accepted invalid ISO week W00")
 	}
 
-	invalidWriteback := readProjectStatusGolden(t, "project-status-report-v2.json")
+	invalidWriteback := readProjectStatusGolden(t, "project-status-report-v1.json")
 	invalidWriteback["writeback"].(map[string]any)["status"] = "applied"
 	if err := resolved.Validate(invalidWriteback); err == nil {
 		t.Fatal("project status schema accepted applied writeback without request")

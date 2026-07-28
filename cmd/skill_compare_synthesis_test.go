@@ -13,7 +13,7 @@ import (
 	"github.com/google/jsonschema-go/jsonschema"
 )
 
-func TestSkillV2Compare(t *testing.T) {
+func TestSkillCompare(t *testing.T) {
 	content := readSkill(t, "../skills/obsidian-compare-notes/SKILL.md")
 	requireSkillText(t, content,
 		"note.get", "search.content", "obs-cli note get",
@@ -24,7 +24,7 @@ func TestSkillV2Compare(t *testing.T) {
 	forbidSkillText(t, content, "obs-cli print ", "obs-cli search-content", "obs-cli replace ")
 }
 
-func TestSkillV2Synthesis(t *testing.T) {
+func TestSkillSynthesis(t *testing.T) {
 	content := readSkill(t, "../skills/obsidian-knowledge-synthesis/SKILL.md")
 	requireSkillText(t, content,
 		"note.get", "note.create", "note.patch",
@@ -37,7 +37,7 @@ func TestSkillV2Synthesis(t *testing.T) {
 }
 
 func TestCompareSynthesisSchemaAndGoldenReports(t *testing.T) {
-	raw, err := os.ReadFile("../docs/spec/schema/compare-synthesis-report-v2.schema.json")
+	raw, err := os.ReadFile("../docs/spec/schema/compare-synthesis-report-v1.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,11 +58,11 @@ func TestCompareSynthesisSchemaAndGoldenReports(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, name := range []string{
-		"compare-report-v2.json",
-		"compare-search-report-v2.json",
-		"compare-insufficient-duplicates-v2.json",
-		"compare-stale-report-v2.json",
-		"synthesis-report-v2.json",
+		"compare-report-v1.json",
+		"compare-search-report-v1.json",
+		"compare-insufficient-duplicates-v1.json",
+		"compare-stale-report-v1.json",
+		"synthesis-report-v1.json",
 	} {
 		data, err := os.ReadFile(filepath.Join("testdata", name))
 		if err != nil {
@@ -270,7 +270,7 @@ func normalizedEvidenceSet(values []string) string {
 }
 
 func TestCompareSynthesisSchemaRejectsUnsafeReports(t *testing.T) {
-	raw, err := os.ReadFile("../docs/spec/schema/compare-synthesis-report-v2.schema.json")
+	raw, err := os.ReadFile("../docs/spec/schema/compare-synthesis-report-v1.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -300,20 +300,20 @@ func TestCompareSynthesisSchemaRejectsUnsafeReports(t *testing.T) {
 		mutate func(map[string]any)
 	}{
 		{
-			name: "compare cannot write", report: load("compare-report-v2.json"),
+			name: "compare cannot write", report: load("compare-report-v1.json"),
 			mutate: func(report map[string]any) {
 				writeback := report["writeback"].(map[string]any)
 				writeback["requested"], writeback["operation"], writeback["status"] = true, "create", "applied"
 			},
 		},
 		{
-			name: "search requires queries", report: load("compare-search-report-v2.json"),
+			name: "search requires queries", report: load("compare-search-report-v1.json"),
 			mutate: func(report map[string]any) {
 				report["selection"].(map[string]any)["queries"] = []any{}
 			},
 		},
 		{
-			name: "stale clears conclusions", report: load("compare-stale-report-v2.json"),
+			name: "stale clears conclusions", report: load("compare-stale-report-v1.json"),
 			mutate: func(report map[string]any) {
 				report["claims"] = []any{map[string]any{
 					"id": "C1", "type": "unknown", "epistemic_status": "unknown",
@@ -322,20 +322,20 @@ func TestCompareSynthesisSchemaRejectsUnsafeReports(t *testing.T) {
 			},
 		},
 		{
-			name: "inference must be inferred", report: load("compare-report-v2.json"),
+			name: "inference must be inferred", report: load("compare-report-v1.json"),
 			mutate: func(report map[string]any) {
 				claim := report["claims"].([]any)[0].(map[string]any)
 				claim["type"], claim["epistemic_status"] = "inference", "supported"
 			},
 		},
 		{
-			name: "requested false cannot apply", report: load("synthesis-report-v2.json"),
+			name: "requested false cannot apply", report: load("synthesis-report-v1.json"),
 			mutate: func(report map[string]any) {
 				report["writeback"].(map[string]any)["requested"] = false
 			},
 		},
 		{
-			name: "patch requires anchor", report: load("synthesis-report-v2.json"),
+			name: "patch requires anchor", report: load("synthesis-report-v1.json"),
 			mutate: func(report map[string]any) {
 				writeback := report["writeback"].(map[string]any)
 				writeback["operation"] = "patch"
@@ -386,7 +386,7 @@ func TestSkillCompareDetectsChangedSource(t *testing.T) {
 
 func TestSkillSynthesisCreateAndPatchConflictSafety(t *testing.T) {
 	registryFactory, serviceFactory, vaultRoot := noteCommandDependencies(t)
-	executeNoteCommand(t, registryFactory, serviceFactory, "# A\nUse V2\n",
+	executeNoteCommand(t, registryFactory, serviceFactory, "# A\nUse V1\n",
 		"create", "Sources/A", "--content-file", "-")
 	executeNoteCommand(t, registryFactory, serviceFactory, "# B\nKeep revisions\n",
 		"create", "Sources/B", "--content-file", "-")
@@ -396,44 +396,44 @@ func TestSkillSynthesisCreateAndPatchConflictSafety(t *testing.T) {
 		"\n- Sources/B.md@" + b.Revision + "\n"
 
 	dry := executeNoteCommand(t, registryFactory, serviceFactory, content,
-		"create", "Synthesis/V2", "--content-file", "-", "--dry-run")
+		"create", "Synthesis/V1", "--content-file", "-", "--dry-run")
 	if !dry.OK {
 		t.Fatalf("create dry-run = %#v", dry)
 	}
 	if err := os.MkdirAll(filepath.Join(vaultRoot, "Synthesis"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(vaultRoot, "Synthesis", "V2.md"), []byte("external"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(vaultRoot, "Synthesis", "V1.md"), []byte("external"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	existing, _, err := executeNoteCommandResult(t, registryFactory, serviceFactory, content,
-		"create", "Synthesis/V2", "--content-file", "-")
+		"create", "Synthesis/V1", "--content-file", "-")
 	if err == nil || existing.Error == nil || existing.Error.Code != protocol.AlreadyExists {
 		t.Fatalf("create conflict = %#v err=%v", existing, err)
 	}
-	assertFileContent(t, filepath.Join(vaultRoot, "Synthesis", "V2.md"), "external")
+	assertFileContent(t, filepath.Join(vaultRoot, "Synthesis", "V1.md"), "external")
 
-	target := getNoteForInboxTest(t, registryFactory, serviceFactory, "Synthesis/V2")
+	target := getNoteForInboxTest(t, registryFactory, serviceFactory, "Synthesis/V1")
 	matchFile := filepath.Join(t.TempDir(), "anchor.md")
 	if err := os.WriteFile(matchFile, []byte("external"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	patchDry := executeNoteCommand(t, registryFactory, serviceFactory, content,
-		"patch", "Synthesis/V2", "--match-file", matchFile, "--content-file", "-",
+		"patch", "Synthesis/V1", "--match-file", matchFile, "--content-file", "-",
 		"--if-match", target.Revision, "--dry-run")
 	if !patchDry.OK {
 		t.Fatalf("patch dry-run = %#v", patchDry)
 	}
-	if err := os.WriteFile(filepath.Join(vaultRoot, "Synthesis", "V2.md"), []byte("external edit"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(vaultRoot, "Synthesis", "V1.md"), []byte("external edit"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	conflict, _, err := executeNoteCommandResult(t, registryFactory, serviceFactory, content,
-		"patch", "Synthesis/V2", "--match-file", matchFile, "--content-file", "-",
+		"patch", "Synthesis/V1", "--match-file", matchFile, "--content-file", "-",
 		"--if-match", target.Revision)
 	if err == nil || conflict.Error == nil || conflict.Error.Code != protocol.RevisionConflict {
 		t.Fatalf("patch conflict = %#v err=%v", conflict, err)
 	}
-	assertFileContent(t, filepath.Join(vaultRoot, "Synthesis", "V2.md"), "external edit")
+	assertFileContent(t, filepath.Join(vaultRoot, "Synthesis", "V1.md"), "external edit")
 
 	exact := executeNoteCommand(t, registryFactory, serviceFactory, content,
 		"create", "Synthesis/Exact", "--content-file", "-")

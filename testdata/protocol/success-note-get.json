@@ -1,5 +1,5 @@
 {
-  "protocol_version": "obs-cli/v2",
+  "protocol_version": "obs-cli/v1",
   "ok": true,
   "operation": "note.get",
   "request_id": "fixture-success-note-get",

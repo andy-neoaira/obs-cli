@@ -87,7 +87,7 @@ obs-cli link backlinks "<path>" --vault "<vault>" --scope "<scope>" \
 
 ## 结果摘要
 
-遵循 `docs/spec/schema/search-audit-report-v2.schema.json`：
+遵循 `docs/spec/schema/search-audit-report-v1.schema.json`：
 
 ```yaml
 status: success | no_results | partial | failed

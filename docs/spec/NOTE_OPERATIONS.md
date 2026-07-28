@@ -1,8 +1,8 @@
-# obs-cli V2 Note 原子操作
+# obs-cli V1 Note 原子操作
 
-- CLI 协议：`obs-cli/v2`
+- CLI 协议：`obs-cli/v1`
 - 写入协议：`obs-write/v1`
-- 状态：P1-T06 已实现
+- 状态：已实现
 
 ## 1. 命令面
 

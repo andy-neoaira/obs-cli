@@ -141,8 +141,8 @@ func TestSkillInboxDetectsLateExternalBacklink(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(vaultRoot, "late.md"), []byte("[[Inbox/item]]"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	verification := executeV2TestCommand(t,
-		newLinkV2Command(registryFactory, serviceFactory), "",
+	verification := executeTestCommand(t,
+		newLinkCommand(registryFactory, serviceFactory), "",
 		"backlinks", "Inbox/item", "--max-files", "1000",
 	)
 	var data struct {
@@ -173,10 +173,10 @@ func TestSkillInboxMetadataPartialResumeAndRepeat(t *testing.T) {
 		"--if-plan-hash", getMovePlanHashForInboxTest(t, dry))
 	moveReceipt := getInboxMoveReceipt(t, moved)
 	metadataCommand := func() *cobra.Command {
-		return newMetadataV2Command(registryFactory, serviceFactory)
+		return newMetadataCommand(registryFactory, serviceFactory)
 	}
 
-	status := executeV2TestCommand(t, metadataCommand(), "",
+	status := executeTestCommand(t, metadataCommand(), "",
 		"set", "Projects/item", "--key", "status", "--value", "organized",
 		"--if-match", moveReceipt.TargetRevision)
 	statusStep := getInboxMetadataStep(t, status)
@@ -184,21 +184,21 @@ func TestSkillInboxMetadataPartialResumeAndRepeat(t *testing.T) {
 		statusStep.BodyRevision != moveReceipt.TargetBodyRevision {
 		t.Fatalf("status receipt step = %#v move=%#v", statusStep, moveReceipt)
 	}
-	conflict, _, err := executeV2TestCommandResult(metadataCommand(), "",
+	conflict, _, err := executeTestCommandResult(metadataCommand(), "",
 		"set", "Projects/item", "--key", "classification", "--value", "project",
 		"--if-match", moveReceipt.TargetRevision)
 	if err == nil || conflict.Error == nil || conflict.Error.Code != protocol.RevisionConflict {
 		t.Fatalf("metadata partial conflict = %#v err=%v", conflict, err)
 	}
 
-	resume := executeV2TestCommand(t, metadataCommand(), "", "get", "Projects/item")
+	resume := executeTestCommand(t, metadataCommand(), "", "get", "Projects/item")
 	current := getInboxMetadataSnapshot(t, resume)
 	if current.Revision != statusStep.RevisionAfter ||
 		current.BodyRevision != moveReceipt.TargetBodyRevision ||
 		current.Frontmatter["status"] != "organized" {
 		t.Fatalf("metadata resume evidence = %#v step=%#v", current, statusStep)
 	}
-	classification := executeV2TestCommand(t, metadataCommand(), "",
+	classification := executeTestCommand(t, metadataCommand(), "",
 		"set", "Projects/item", "--key", "classification", "--value", "project",
 		"--if-match", current.Revision)
 	classificationStep := getInboxMetadataStep(t, classification)
@@ -208,7 +208,7 @@ func TestSkillInboxMetadataPartialResumeAndRepeat(t *testing.T) {
 		t.Fatalf("classification receipt step = %#v", classificationStep)
 	}
 
-	repeated := executeV2TestCommand(t, metadataCommand(), "",
+	repeated := executeTestCommand(t, metadataCommand(), "",
 		"set", "Projects/item", "--key", "classification", "--value", "project",
 		"--if-match", classificationStep.RevisionAfter)
 	repeatStep := getInboxMetadataStep(t, repeated)

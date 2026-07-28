@@ -1,7 +1,7 @@
 # Skill Capability / Version 兼容矩阵
 
-所有场景 Skill 的最低兼容版本为 `obs-cli v2.0.0-rc.1`，协议为
-`obs-cli/v2`。`dev` 仅代表同一源码树中的本地开发构建；发布包必须提供可比较的
+所有场景 Skill 的最低兼容版本为 `obs-cli v1.0.0-rc.1`，协议为
+`obs-cli/v1`。`dev` 仅代表同一源码树中的本地开发构建；发布包必须提供可比较的
 SemVer。
 
 | Skill | 必需 capability | 修改型 capability |
@@ -20,4 +20,4 @@ SemVer。
 
 修改型 capability 仅在用户明确授权写入后要求。运行时仍必须以
 `obs-cli capabilities --output json --require ...` 的结果为准；缺失任一当前路径所需
-capability 时返回 `CAPABILITY_UNSUPPORTED`，不得回退到 V1 或直接文件写入。
+capability 时返回 `CAPABILITY_UNSUPPORTED`，不得回退到历史命令或直接文件写入。

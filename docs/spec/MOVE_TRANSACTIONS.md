@@ -3,7 +3,7 @@
 - CLI operation：`note.move`
 - 写入协议：`obs-write/v1`
 - Vault 规范：`vault-contract/v1` VC-5
-- 状态：P1-T07 已实现
+- 状态：已实现
 
 ## 1. 调用
 

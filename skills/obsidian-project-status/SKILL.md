@@ -94,7 +94,7 @@ obs-cli search content "<task-query>" --vault "<vault>" --scope "<scope>" \
 
 ## 结果摘要
 
-遵循 `docs/spec/schema/project-status-report-v2.schema.json`：
+遵循 `docs/spec/schema/project-status-report-v1.schema.json`：
 
 ```yaml
 status: success | no_change | stale | conflict | partial | failed

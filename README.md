@@ -2,20 +2,20 @@
 
 Agent-first, non-interactive operations for Obsidian Vaults.
 
-`obs-cli` V2 is a machine-readable execution layer for AI Agents, scenario-oriented Skills, scripts, and editor integrations. It operates on local Markdown files while enforcing Vault boundaries, revision preconditions, atomic writes, dry-run plans, and stable JSON errors.
+`obs-cli` V1 is a machine-readable execution layer for AI Agents, scenario-oriented Skills, scripts, and editor integrations. It operates on local Markdown files while enforcing Vault boundaries, revision preconditions, atomic writes, dry-run plans, and stable JSON errors.
 
 This project is a derivative of [Yakitrak/notesmd-cli](https://github.com/Yakitrak/notesmd-cli). See [LICENSE](./LICENSE) and [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
 
 ## Status
 
-V2 is a breaking upgrade. The stable top-level command tree is:
+The first Agent-first release uses this stable top-level command tree:
 
 ```text
 capabilities  vault  note  search  metadata
 link          daily  template  batch  doctor
 ```
 
-Implemented operations are discovered through `capabilities`. `vault`, `note`, `daily`, `metadata`, `search`, and `link` currently expose implemented V2 operations. Other reserved namespaces return `CAPABILITY_UNSUPPORTED`; they never fall back to V1 interactive behavior.
+Implemented operations are discovered through `capabilities`. `vault`, `note`, `daily`, `metadata`, `search`, and `link` expose the current V1 operations. Other reserved namespaces return `CAPABILITY_UNSUPPORTED`; they never fall back to interactive picker, GUI, or TTY behavior.
 
 ## Build
 
@@ -89,7 +89,7 @@ printf 'Project Alpha' |
 
 The placeholder revision must be replaced with the exact revision returned by `note get`.
 
-## Implemented V2 operations
+## Implemented V1 operations
 
 ```text
 capabilities
@@ -100,7 +100,6 @@ vault get
 vault add
 vault remove
 vault set-default
-vault migrate
 
 note list
 note get
@@ -110,15 +109,25 @@ note patch
 note replace
 note delete
 note move
+
+daily get
+daily create
+daily append
+
+metadata get
+metadata set
+
+search content
+link backlinks
 ```
 
 All mutating operations support `--dry-run`. Note updates use `sha256:<64 lowercase hex>` revisions. `replace`, `delete`, `patch`, and `move` require `--if-match`; `replace` and `delete` expose an explicit `--unsafe-no-if-match` escape hatch that default Skills must not use.
 
 ## Protocol guarantees
 
-- stdout contains one `obs-cli/v2` JSON envelope.
+- stdout contains one `obs-cli/v1` JSON envelope.
 - stderr is diagnostic only and includes the request ID.
-- operation names and error codes are stable within V2.
+- operation names and error codes are stable within V1.
 - Vault logical paths reject traversal, hidden paths, and symlink escape.
 - create never overwrites.
 - append is implemented as revision-aware atomic replacement.
@@ -136,11 +145,7 @@ Specifications:
 - [Move transactions](./docs/spec/MOVE_TRANSACTIONS.md)
 - [Concurrency and writes](./docs/spec/CONCURRENCY_AND_WRITES.md)
 
-## V1 migration
-
-V1 command aliases, fuzzy pickers, editor launching, Obsidian URI launching, cwd-based Vault selection, and TTY confirmation are not part of the V2 root command.
-
-See [V1 to V2 migration](./docs/migration/V1_TO_V2.md) for command mappings, known limitations, and rollback instructions.
+Legacy command aliases, fuzzy pickers, editor launching, Obsidian URI launching, cwd-based Vault selection, and TTY confirmation are not part of the Agent-first command surface.
 
 ## Development and release gate
 

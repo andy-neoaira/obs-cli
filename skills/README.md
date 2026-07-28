@@ -4,7 +4,7 @@
 
 ## 当前 Skill
 
-- `obsidian-vault-setup`：初始化 vault、设置默认 vault 和默认打开方式。
+- `obsidian-vault-setup`：发现、注册并设置默认 vault。
 - `obsidian-capture`：把内容快速捕获到 Inbox 或指定笔记。
 - `obsidian-daily-log`：把日志、总结、会议记录追加到 Daily Note。
 - `obsidian-knowledge-search`：只读搜索 vault 并提取相关笔记上下文。
@@ -23,7 +23,7 @@
 
 发布前应至少用 `SKILL_SCENARIOS.md` 中的场景做人工或自动化验收：
 
-- setup：注册 vault、设置默认 vault、设置默认打开方式。
+- setup：发现、注册并设置默认 vault。
 - capture：创建 Inbox 笔记、追加 Inbox、stdin 多行输入。
 - daily：追加 daily、只打开 daily、模板配置存在时创建 daily。
 - search/audit：JSON 搜索、分页、读取 top notes、mentions。

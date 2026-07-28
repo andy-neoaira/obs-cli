@@ -1,8 +1,8 @@
-# obs-cli V2 Capability 与 Dry-run 约定
+# obs-cli V1 Capability 与 Dry-run 约定
 
-- 协议：`obs-cli/v2`
-- Schema：[capabilities-v2.schema.json](./schema/capabilities-v2.schema.json)
-- 状态：P1-T05 已实现
+- 协议：`obs-cli/v1`
+- Schema：[capabilities-v1.schema.json](./schema/capabilities-v1.schema.json)
+- 状态：已实现
 
 ## 1. 发现能力
 
@@ -19,7 +19,7 @@ obs capabilities --output json \
 调用方只依赖 operation 名称、版本、声明的通用参数和 feature flag，不解析 `--help` 或自然语言描述。
 
 当前 `vault_contract.target` 与 `vault_contract.implemented` 均为
-`vault-contract/v1`。编辑器 Adapter 必须同时检查 `obs-cli/v2`、该共同规范和场景
+`vault-contract/v1`。编辑器 Adapter 必须同时检查 `obs-cli/v1`、该共同规范和场景
 所需 operation；任一不匹配时只禁用 CLI 高级集成，不影响编辑器自身功能。
 
 ## 2. 稳定名称
@@ -29,17 +29,12 @@ obs capabilities --output json \
 | 名称 | 含义 |
 |---|---|
 | `atomic_writes` | 单文件写入通过临时文件和原子替换提交 |
-| `json_error_envelopes` | V2 失败返回稳定 JSON envelope |
+| `json_error_envelopes` | 失败返回稳定 JSON envelope |
 | `multi_file_transactions` | 存在带回滚语义的多文件事务内核 |
 | `revision_preconditions` | 存储内核支持 revision 条件写入 |
 | `vault_discovery_read_only` | Obsidian Vault 发现不会修改官方配置 |
 | `vault_path_policy` | Vault 路径执行统一边界和符号链接校验 |
 | `dry_run_plans` | 当前 capability 中声明为 mutating 的 operation 支持 dry-run |
-| `note_operations_v2` | V2 Note 原子操作命令是否可用；命令语义见 [NOTE_OPERATIONS.md](./NOTE_OPERATIONS.md) |
-| `daily_notes_v2` | `daily.get/create/append` 按 Obsidian Daily Notes 配置安全操作日记 |
-| `metadata_v2` | `metadata.get/set` 提供 revision-aware frontmatter 字段更新 |
-| `search_v2` | `search.content` 提供有界分页及 path/revision/line/snippet 证据 |
-| `link_inspection_v2` | `link.backlinks` 只读返回反向链接及来源 revision |
 | `move_plan_preconditions` | `note.move` dry-run 返回确定性 `plan_hash`，apply 可用 `--if-plan-hash` 绑定已审查的 source、target、链接集合和 revision |
 
 当前 Daily 与 Metadata operation：
@@ -55,7 +50,7 @@ obs capabilities --output json \
 | `search.content` | 否 | 仅扫描 Markdown，限制页大小和读取文件数 |
 | `link.backlinks` | 否 | 有界扫描 Wikilink/Markdown link，返回来源证据；允许检查不存在的 target |
 
-operation 名称和 feature flag 只增不改。新增名称属于兼容变更；删除、改名或改变已有名称的语义需要升级协议主版本。弃用项至少保留一个 V2 发布周期，并通过新增的可选 deprecation 元数据公告；调用方必须忽略未知可选字段。
+operation 名称和 feature flag 只增不改。新增名称属于兼容变更；删除、改名或改变已有名称的语义需要升级协议主版本。弃用项通过新增的可选 deprecation 元数据公告；调用方必须忽略未知可选字段。
 
 `feature_flags[name] == false` 表示当前版本不提供该完整场景，不能解释为永久不支持。
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestConfigCliPath(t *testing.T) {
+func TestConfigPath(t *testing.T) {
 	originalUserConfigDirectory := config.UserConfigDirectory
 	defer func() { config.UserConfigDirectory = originalUserConfigDirectory }()
 
@@ -18,11 +18,11 @@ func TestConfigCliPath(t *testing.T) {
 			return "user/config/dir", nil
 		}
 		// Act
-		obsConfigDir, obsConfigFile, err := config.CliPath()
+		obsConfigDir, obsConfigFile, err := config.ConfigPath()
 		// Assert
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "user/config/dir/obs-cli", obsConfigDir)
-		assert.Equal(t, "user/config/dir/obs-cli/preferences.json", obsConfigFile)
+		assert.Equal(t, "user/config/dir/obs-cli/config.json", obsConfigFile)
 	})
 
 	t.Run("UserConfigDir func returns an error", func(t *testing.T) {
@@ -31,7 +31,7 @@ func TestConfigCliPath(t *testing.T) {
 			return "", errors.New(config.UserConfigDirectoryNotFoundErrorMessage)
 		}
 		// Act
-		obsConfigDir, obsConfigFile, err := config.CliPath()
+		obsConfigDir, obsConfigFile, err := config.ConfigPath()
 		// Assert
 		assert.Equal(t, config.UserConfigDirectoryNotFoundErrorMessage, err.Error())
 		assert.Equal(t, "", obsConfigDir)
@@ -40,7 +40,7 @@ func TestConfigCliPath(t *testing.T) {
 
 }
 
-func TestConfigCliPathEnvironmentOverride(t *testing.T) {
+func TestConfigPathEnvironmentOverride(t *testing.T) {
 	originalUserConfigDirectory := config.UserConfigDirectory
 	t.Cleanup(func() { config.UserConfigDirectory = originalUserConfigDirectory })
 	config.UserConfigDirectory = originalUserConfigDirectory
@@ -49,17 +49,17 @@ func TestConfigCliPathEnvironmentOverride(t *testing.T) {
 		root := filepath.Join(t.TempDir(), "config-root")
 		t.Setenv("OBS_CLI_CONFIG_HOME", root)
 
-		configDir, configFile, err := config.V2Path()
+		configDir, configFile, err := config.ConfigPath()
 
 		assert.NoError(t, err)
 		assert.Equal(t, filepath.Join(root, "obs-cli"), configDir)
-		assert.Equal(t, filepath.Join(root, "obs-cli", "config-v2.json"), configFile)
+		assert.Equal(t, filepath.Join(root, "obs-cli", "config.json"), configFile)
 	})
 
 	t.Run("rejects a relative override", func(t *testing.T) {
 		t.Setenv("OBS_CLI_CONFIG_HOME", "relative/config-root")
 
-		configDir, configFile, err := config.V2Path()
+		configDir, configFile, err := config.ConfigPath()
 
 		assert.EqualError(t, err, config.UserConfigDirectoryNotFoundErrorMessage)
 		assert.Empty(t, configDir)

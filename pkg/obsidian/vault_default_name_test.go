@@ -7,7 +7,7 @@ import (
 	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 )
 
-func TestVaultUsesV2DefaultConfiguration(t *testing.T) {
+func TestVaultUsesDefaultConfiguration(t *testing.T) {
 	original := config.UserConfigDirectory
 	configRoot := t.TempDir()
 	config.UserConfigDirectory = func() (string, error) { return configRoot, nil }
@@ -35,16 +35,9 @@ func TestVaultUsesV2DefaultConfiguration(t *testing.T) {
 		t.Fatalf("path = %q, %v", path, err)
 	}
 
-	if err := vault.SetDefaultOpenType("editor"); err != nil {
-		t.Fatal(err)
-	}
-	openType, err := vault.DefaultOpenType()
-	if err != nil || openType != "editor" {
-		t.Fatalf("open type = %q, %v", openType, err)
-	}
 }
 
-func TestVaultExplicitNameUsesV2Registry(t *testing.T) {
+func TestVaultExplicitNameUsesRegistry(t *testing.T) {
 	original := config.UserConfigDirectory
 	configRoot := t.TempDir()
 	config.UserConfigDirectory = func() (string, error) { return configRoot, nil }

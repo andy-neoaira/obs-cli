@@ -13,7 +13,7 @@ command -v jq >/dev/null 2>&1 || {
 jq -e '
   .schema_version == "obsidian-joint-compatibility/v1" and
   .content_format_migration_required == false and
-  .products["obs-cli"].protocol == "obs-cli/v2" and
+  .products["obs-cli"].protocol == "obs-cli/v1" and
   .products["obs-cli"].vault_contract == "vault-contract/v1" and
   .products["miniobsidian.nvim"].cli_optional == true and
   (.compatible_sets | length) >= 1 and

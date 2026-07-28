@@ -4,36 +4,36 @@
   "content_format_migration_required": false,
   "products": {
     "obs-cli": {
-      "candidate_version": "v2.0.0-rc.1",
+      "candidate_version": "v1.0.0-rc.1",
       "released": false,
-      "protocol": "obs-cli/v2",
+      "protocol": "obs-cli/v1",
       "write_protocol": "obs-write/v1",
       "vault_contract": "vault-contract/v1"
     },
     "miniobsidian.nvim": {
       "release_selector": {
         "kind": "feature-line",
-        "value": "agent-first-v2-p4"
+        "value": "agent-first-v1-p4"
       },
       "released": false,
       "minimum_neovim": "0.11.2",
       "cli_optional": true,
-      "required_protocol": "obs-cli/v2",
+      "required_protocol": "obs-cli/v1",
       "required_vault_contract": "vault-contract/v1"
     },
     "skills": {
-      "bundle": "agent-first-v2",
+      "bundle": "agent-first-v1",
       "scenario_skills": 11,
-      "minimum_cli_version": "v2.0.0-rc.1",
-      "required_protocol": "obs-cli/v2"
+      "minimum_cli_version": "v1.0.0-rc.1",
+      "required_protocol": "obs-cli/v1"
     }
   },
   "compatible_sets": [
     {
-      "id": "agent-first-v2-rc1",
-      "cli_version_range": ">=v2.0.0-rc.1 <v3.0.0",
-      "plugin_release_selector": "agent-first-v2-p4",
-      "protocol": "obs-cli/v2",
+      "id": "agent-first-v1-rc1",
+      "cli_version_range": ">=v1.0.0-rc.1 <v2.0.0",
+      "plugin_release_selector": "agent-first-v1-p4",
+      "protocol": "obs-cli/v1",
       "vault_contract": "vault-contract/v1",
       "required_plugin_operations": [
         "note.get",

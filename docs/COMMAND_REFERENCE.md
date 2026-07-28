@@ -1,13 +1,13 @@
-# obs-cli V2 命令参考
+# obs-cli V1 命令参考
 
-所有已实现命令默认输出一个 `obs-cli/v2` JSON object。
+所有已实现命令默认输出一个 `obs-cli/v1` JSON object。
 
 ## 通用参数
 
 | 参数 | 适用范围 |
 |---|---|
-| `--output json` | 所有 V2 operation |
-| `--request-id <id>` | 所有 V2 operation |
+| `--output json` | 所有 V1 operation |
+| `--request-id <id>` | 所有 V1 operation |
 | `--vault <id-or-name-or-registered-path>` | Vault-scoped operation |
 | `--dry-run` | 修改 operation |
 | `--if-match <revision>` | 条件修改 operation |
@@ -27,7 +27,6 @@ vault get <id-or-name>
 vault add <path> [--name <name>] [--set-default] [--dry-run]
 vault remove <id-or-name> [--dry-run]
 vault set-default <id-or-name> [--dry-run]
-vault migrate [--dry-run]
 ```
 
 ## Note
@@ -45,10 +44,24 @@ note move <source> <target> --if-match <revision> [--dry-run]
 
 `replace/delete` 可以由人类显式传入 `--unsafe-no-if-match`，默认 Agent/Skill 禁止使用。
 
+## Daily、Metadata、Search 与 Link
+
+```text
+daily get [--date <YYYY-MM-DD>]
+daily create [--date <YYYY-MM-DD>] [--dry-run]
+daily append --content-file <file|-> [--date <YYYY-MM-DD>] [--section <heading>] [--if-match <revision>] [--dry-run]
+
+metadata get <path>
+metadata set <path> --key <key> --value <value> --if-match <revision> [--dry-run]
+
+search content <query> [--scope <directory>] [--page <n>] [--page-size <n>] [--max-files <n>]
+link backlinks <path> [--scope <directory>] [--max-files <n>]
+```
+
 ## 预留命名空间
 
 ```text
-search  metadata  link  daily  template  batch  doctor
+template  batch  doctor
 ```
 
 在 capabilities 声明具体 operation 前，调用这些命名空间会返回 `CAPABILITY_UNSUPPORTED`（退出码 8）。

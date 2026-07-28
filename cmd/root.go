@@ -41,12 +41,12 @@ func newRootCommand() *cobra.Command {
 	}
 	command.AddCommand(
 		newCapabilitiesCommand(),
-		newVaultV2Command(defaultVaultRegistryFactory, obsidian.DiscoverObsidianVaults),
-		newNoteV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
-		newDailyV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory, nil),
-		newMetadataV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
-		newSearchV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
-		newLinkV2Command(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+		newVaultCommand(defaultVaultRegistryFactory, obsidian.DiscoverObsidianVaults),
+		newNoteCommand(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+		newDailyCommand(defaultVaultRegistryFactory, defaultNoteServiceFactory, nil),
+		newMetadataCommand(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+		newSearchCommand(defaultVaultRegistryFactory, defaultNoteServiceFactory),
+		newLinkCommand(defaultVaultRegistryFactory, defaultNoteServiceFactory),
 	)
 	for _, namespace := range []string{"template", "batch", "doctor"} {
 		command.AddCommand(newReservedNamespaceCommand(namespace))
@@ -58,28 +58,28 @@ func newReservedNamespaceCommand(name string) *cobra.Command {
 	var common commonFlags
 	command := &cobra.Command{
 		Use:   name,
-		Short: "Reserved V2 namespace; inspect capabilities before use",
+		Short: "Reserved namespace; inspect capabilities before use",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			requestID, err := protocol.ResolveRequestID(common.RequestID)
 			if err != nil {
 				requestID, _ = protocol.ResolveRequestID("")
-				return renderV2(cmd, name+".status", requestID, func() (any, error) { return nil, err })
+				return renderEnvelope(cmd, name+".status", requestID, func() (any, error) { return nil, err })
 			}
 			if common.Output != "json" {
 				err = protocol.NewError(
 					protocol.InvalidArgument,
-					"reserved V2 namespaces only support JSON output",
+					"reserved namespaces only support JSON output",
 					map[string]any{"field": "output"},
 				)
 			} else {
 				err = protocol.NewError(
 					protocol.CapabilityUnsupported,
-					"this V2 namespace has no implemented operations",
+					"this namespace has no implemented operations",
 					map[string]any{"namespace": name, "required": []string{name + ".*"}},
 				)
 			}
-			return renderV2(cmd, name+".status", requestID, func() (any, error) { return nil, err })
+			return renderEnvelope(cmd, name+".status", requestID, func() (any, error) { return nil, err })
 		},
 	}
 	bindCommonFlags(command, &common, commonFlagSet{Output: true, RequestID: true, Vault: true}, false)

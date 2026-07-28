@@ -10,7 +10,7 @@
 | 现象/错误 | 常见原因 | 安全处理 |
 |---|---|---|
 | `CLI_UNAVAILABLE` | CLI 缺失或路径错误 | 保持纯插件模式；检查 `cli.command` |
-| `CLI_PROTOCOL_INCOMPATIBLE` | 不是 `obs-cli/v2` | 禁用 Adapter，升级/降级到兼容版本 |
+| `CLI_PROTOCOL_INCOMPATIBLE` | 不是 `obs-cli/v1` | 禁用 Adapter，升级/降级到兼容版本 |
 | `CLI_VAULT_CONTRACT_INCOMPATIBLE` | 共同规范不是 v1 | 禁用 Adapter，不执行 CLI 写入 |
 | `CAPABILITY_UNSUPPORTED` | operation 缺失 | 不猜旧命令；只禁用该高级场景 |
 | `REVISION_CONFLICT` | Obsidian/Neovim/同步服务已改文件 | 重新 get、比较并重新 plan |
@@ -20,7 +20,7 @@
 
 ## 配置损坏
 
-CLI V2 配置位于操作系统用户配置目录的 `obs-cli/config-v2.json`。处理步骤：
+CLI V1 配置位于操作系统用户配置目录的 `obs-cli/config.json`。处理步骤：
 
 1. 停止所有 CLI/Agent 写入。
 2. 复制损坏文件及同目录 lock，记录时间和报错。
