@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/andy-neoaira/obs-cli/pkg/protocol"
@@ -104,6 +105,29 @@ func TestCapabilitiesUnsupportedRequirement(t *testing.T) {
 	}
 	if response.RequestID != "req-unsupported" || !bytes.Contains([]byte(diagnostic), []byte("req-unsupported")) {
 		t.Fatalf("request ID mismatch response=%q diagnostic=%q", response.RequestID, diagnostic)
+	}
+}
+
+func TestCapabilitiesFeatureFlagsMatchDocumentation(t *testing.T) {
+	document, err := os.ReadFile("../docs/spec/CAPABILITIES.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tableFlag := regexp.MustCompile(`(?m)^\| ` + "`" + `([a-z][a-z0-9_]*)` + "`" + ` \|`)
+	documented := map[string]bool{}
+	for _, match := range tableFlag.FindAllSubmatch(document, -1) {
+		documented[string(match[1])] = true
+	}
+	runtimeFlags := currentCapabilities().FeatureFlags
+	for flag := range runtimeFlags {
+		if !documented[flag] {
+			t.Errorf("runtime feature flag %q is missing from CAPABILITIES.md", flag)
+		}
+	}
+	for flag := range documented {
+		if _, exists := runtimeFlags[flag]; !exists {
+			t.Errorf("documented feature flag %q is missing from runtime capabilities", flag)
+		}
 	}
 }
 

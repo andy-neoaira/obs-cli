@@ -1,6 +1,6 @@
 # P5-T05：Capability 文档与实现一致性门禁
 
-- 状态：`待开始`
+- 状态：`已完成`
 - 优先级：`中`
 - 负责人：`待分配`
 - 涉及项目：`obs-cli`
@@ -43,11 +43,11 @@ Schema 和规范之间可追踪。
 
 ## 验收标准
 
-- [ ] `move_plan_preconditions` 有准确、可供 Agent 使用的规范说明。
-- [ ] 实现新增未文档化 flag 会导致测试失败。
-- [ ] 文档残留已删除 flag 会导致测试失败或明确标记 deprecation。
-- [ ] operation/flag 名称唯一且稳定。
-- [ ] 不改变现有 capabilities JSON 的兼容字段。
+- [x] `move_plan_preconditions` 有准确、可供 Agent 使用的规范说明。
+- [x] 实现新增未文档化 flag 会导致测试失败。
+- [x] 文档残留已删除 flag 会导致测试失败或明确标记 deprecation。
+- [x] operation/flag 名称唯一且稳定。
+- [x] 不改变现有 capabilities JSON 的兼容字段。
 
 ## 验证命令
 
@@ -61,3 +61,11 @@ git diff --check
 ## 回滚
 
 文档与自动门禁必须一起回滚；不得只回滚文档而保留会永久失败的集合测试。
+
+## 完成记录
+
+- 完成日期：`2026-07-28`
+- 文档：补充 `move_plan_preconditions` 的 plan hash、授权绑定和 revision 语义。
+- 门禁：测试双向比较 runtime feature flags 与规范稳定名称表，任一侧漂移均失败。
+- 兼容性：未改变 capabilities JSON、operation 或 flag 名称。
+- 验证：Capabilities 定向测试与 `make release-check` 通过；总覆盖率 `73.8%`。

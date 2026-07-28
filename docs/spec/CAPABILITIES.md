@@ -40,6 +40,7 @@ obs capabilities --output json \
 | `metadata_v2` | `metadata.get/set` 提供 revision-aware frontmatter 字段更新 |
 | `search_v2` | `search.content` 提供有界分页及 path/revision/line/snippet 证据 |
 | `link_inspection_v2` | `link.backlinks` 只读返回反向链接及来源 revision |
+| `move_plan_preconditions` | `note.move` dry-run 返回确定性 `plan_hash`，apply 可用 `--if-plan-hash` 绑定已审查的 source、target、链接集合和 revision |
 
 当前 Daily 与 Metadata operation：
 
