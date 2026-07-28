@@ -11,7 +11,6 @@ fail() {
   exit 1
 }
 
-command -v go >/dev/null 2>&1 || fail "go is required"
 command -v jq >/dev/null 2>&1 || fail "jq is required"
 command -v "$nvim_bin" >/dev/null 2>&1 || fail "Neovim is required: $nvim_bin"
 [ -f "$mini_root/tests/three_client_e2e_spec.lua" ] ||
@@ -41,10 +40,16 @@ go_mod_cache="$run_root/mod-cache"
 mkdir -p "$vault_root" "$config_root" "$go_cache" "$go_mod_cache"
 cp -R "$repo_root/testdata/three-client/seed/." "$vault_root/"
 
-(
-  cd "$repo_root"
-  GOCACHE="$go_cache" GOMODCACHE="$go_mod_cache" go build -mod=vendor -o "$cli_bin" .
-)
+if [ -n "${OBS_CLI_BIN:-}" ]; then
+  [ -x "$OBS_CLI_BIN" ] || fail "OBS_CLI_BIN is not executable: $OBS_CLI_BIN"
+  cp "$OBS_CLI_BIN" "$cli_bin"
+else
+  command -v go >/dev/null 2>&1 || fail "go is required"
+  (
+    cd "$repo_root"
+    GOCACHE="$go_cache" GOMODCACHE="$go_mod_cache" go build -mod=vendor -o "$cli_bin" .
+  )
+fi
 
 export OBS_CLI_CONFIG_HOME="$config_root"
 "$cli_bin" vault add "$vault_root" --name ThreeClientE2E --set-default --output json |
