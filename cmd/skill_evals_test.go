@@ -86,10 +86,21 @@ func TestSkillEvalManifestCoverageAndContracts(t *testing.T) {
 	}
 
 	manifestSkills := make([]string, 0, len(manifest.Skills))
+	manifestNames := make(map[string]struct{}, len(manifest.Skills))
 	caseIDs := make(map[string]struct{})
 	for _, skill := range manifest.Skills {
+		if _, exists := manifestNames[skill.Name]; exists {
+			t.Errorf("duplicate Skill manifest name %q", skill.Name)
+		}
+		manifestNames[skill.Name] = struct{}{}
 		manifestSkills = append(manifestSkills, skill.Name)
 		skillText := readSkill(t, filepath.Join("../skills", skill.Name, "SKILL.md"))
+		namePattern := regexp.MustCompile(`(?m)^name: ([a-z0-9][a-z0-9-]*)$`)
+		nameMatch := namePattern.FindStringSubmatch(skillText)
+		if len(nameMatch) != 2 || nameMatch[1] != skill.Name {
+			t.Errorf("%s frontmatter name = %q, want directory/manifest name %q",
+				skill.Name, nameMatch, skill.Name)
+		}
 		required := make(map[string]struct{}, len(skill.RequiredCapabilities))
 		for _, capability := range skill.RequiredCapabilities {
 			if _, ok := available[capability]; !ok {

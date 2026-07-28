@@ -1,6 +1,6 @@
 # P5-T06：Skill 身份三方一致性门禁
 
-- 状态：`待开始`
+- 状态：`已完成`
 - 优先级：`中`
 - 负责人：`待分配`
 - 涉及项目：`obs-cli`、Agent Skills
@@ -45,11 +45,11 @@ eval 测试通过 manifest name 定位目录，也没有比较文件中的 front
 
 ## 验收标准
 
-- [ ] 任意正式 Skill 名称不一致都会使 `skill-lint` 失败。
-- [ ] manifest 缺项、多项或重复项都会使 eval 门禁失败。
-- [ ] `_template` 不被错误要求命名为 `_template`。
-- [ ] 当前所有正式 Skill 和 5 类场景 eval 继续通过。
-- [ ] lint 不依赖文件遍历的非确定顺序。
+- [x] 任意正式 Skill 名称不一致都会使 `skill-lint` 失败。
+- [x] manifest 缺项、多项或重复项都会使 eval 门禁失败。
+- [x] `_template` 不被错误要求命名为 `_template`。
+- [x] 当前所有正式 Skill 和 5 类场景 eval 继续通过。
+- [x] lint 不依赖文件遍历的非确定顺序。
 
 ## 验证命令
 
@@ -65,3 +65,12 @@ git diff --check
 
 整体回滚 lint、eval 测试和 fixture；回滚后必须运行现有 Skill lint/eval，
 确认没有留下只由新门禁支持的 manifest 结构。
+
+## 完成记录
+
+- 完成日期：`2026-07-28`
+- lint：正式 Skill 的 frontmatter name 必须等于目录名，`_template` 明确豁免。
+- eval：新增 manifest name 唯一性和 frontmatter/目录/manifest 三方比较；既有
+  `skillDirectories` 覆盖 manifest 缺项和多项。
+- 验证：strict Skill lint、场景 eval 和 `make release-check` 通过；总覆盖率
+  `73.8%`。

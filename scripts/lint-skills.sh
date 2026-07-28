@@ -63,6 +63,7 @@ for file in $files; do
   if [ -z "$frontmatter" ]; then
     report_error "$file" "缺少 YAML frontmatter"
   else
+    frontmatter_name=$(printf '%s\n' "$frontmatter" | sed -n 's/^name: //p')
     printf '%s\n' "$frontmatter" | grep -q '^name: [a-z0-9][a-z0-9-]*$' ||
       report_error "$file" "name 必须使用小写字母、数字和连字符"
     printf '%s\n' "$frontmatter" | grep -q '^description: .\+' ||
@@ -70,6 +71,10 @@ for file in $files; do
     extra_keys=$(printf '%s\n' "$frontmatter" | sed -n 's/^\([A-Za-z_][A-Za-z0-9_-]*\):.*/\1/p' | grep -Ev '^(name|description)$' || true)
     if [ -n "$extra_keys" ]; then
       report_error "$file" "frontmatter 仅允许 name 和 description"
+    fi
+    directory_name=$(basename "$(dirname "$file")")
+    if [ "$directory_name" != "_template" ] && [ "$frontmatter_name" != "$directory_name" ]; then
+      report_error "$file" "frontmatter name '$frontmatter_name' 与目录名 '$directory_name' 不一致"
     fi
   fi
 
