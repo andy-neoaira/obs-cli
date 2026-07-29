@@ -15,7 +15,8 @@
 
 写入流程为：排序锁定、稳定快照、前置条件检查、同目录随机临时文件、权限继承、write、flush、close、提交前复核、原子提交、目录 flush 和提交后 revision 验证。
 
-`DeleteAtomic` 在 CLI 私有 runtime 中创建权限为 `0600` 的恢复副本后删除。`MoveAtomic` 同时锁定源和目标，先 no-replace 创建完整目标，再删除源；源删除前失败会移除目标。
+`DeleteAtomic` 在 CLI 私有 runtime 中创建权限为 `0600` 的恢复副本后删除。Note move
+不使用独立的单文件移动分支，而是统一进入下述多文件事务。
 
 ## 多文件事务
 

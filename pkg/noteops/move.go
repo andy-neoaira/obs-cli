@@ -241,14 +241,6 @@ func (s *Service) logicalPaths(paths []string) []string {
 	return result
 }
 
-func (s *Service) Move(source, target, expectedRevision string) (MoveResult, error) {
-	plan, err := s.PlanMove(source, target, expectedRevision)
-	if err != nil {
-		return MoveResult{}, err
-	}
-	return s.ApplyMovePlan(plan)
-}
-
 func hashMovePlan(plan MovePlan) string {
 	payload := struct {
 		Version string       `json:"version"`

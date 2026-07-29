@@ -56,29 +56,6 @@ func TestHasFrontmatter(t *testing.T) {
 	})
 }
 
-func TestFormat(t *testing.T) {
-	t.Run("Format valid map", func(t *testing.T) {
-		fm := map[string]interface{}{
-			"title": "Test",
-		}
-		result, err := frontmatter.Format(fm)
-		assert.NoError(t, err)
-		assert.Contains(t, result, "title: Test")
-	})
-
-	t.Run("Format empty map", func(t *testing.T) {
-		result, err := frontmatter.Format(map[string]interface{}{})
-		assert.NoError(t, err)
-		assert.Empty(t, result)
-	})
-
-	t.Run("Format nil map", func(t *testing.T) {
-		result, err := frontmatter.Format(nil)
-		assert.NoError(t, err)
-		assert.Empty(t, result)
-	})
-}
-
 func TestSetKey(t *testing.T) {
 	t.Run("Add key to existing frontmatter", func(t *testing.T) {
 		content := "---\ntitle: Test\n---\nBody"
@@ -135,38 +112,5 @@ func TestSetKey(t *testing.T) {
 		result, err := frontmatter.SetKey(content, "tags", "[]")
 		assert.NoError(t, err)
 		assert.Contains(t, result, "tags: []")
-	})
-}
-
-func TestDeleteKey(t *testing.T) {
-	t.Run("Delete existing key", func(t *testing.T) {
-		content := "---\ntitle: Test\nauthor: John\n---\nBody"
-		result, err := frontmatter.DeleteKey(content, "author")
-		assert.NoError(t, err)
-		assert.Contains(t, result, "title: Test")
-		assert.NotContains(t, result, "author")
-		assert.Contains(t, result, "Body")
-	})
-
-	t.Run("Delete last key removes frontmatter", func(t *testing.T) {
-		content := "---\ntitle: Test\n---\nBody"
-		result, err := frontmatter.DeleteKey(content, "title")
-		assert.NoError(t, err)
-		assert.False(t, strings.HasPrefix(result, "---"))
-		assert.Contains(t, result, "Body")
-	})
-
-	t.Run("Delete from no frontmatter returns error", func(t *testing.T) {
-		content := "Just body content"
-		_, err := frontmatter.DeleteKey(content, "title")
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "does not contain frontmatter")
-	})
-
-	t.Run("Delete non-existent key succeeds", func(t *testing.T) {
-		content := "---\ntitle: Test\n---\nBody"
-		result, err := frontmatter.DeleteKey(content, "nonexistent")
-		assert.NoError(t, err)
-		assert.Contains(t, result, "title: Test")
 	})
 }

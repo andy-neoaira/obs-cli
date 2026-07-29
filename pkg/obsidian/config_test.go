@@ -49,16 +49,3 @@ func TestLoadDailyNotesConfig(t *testing.T) {
 		t.Fatalf("malformed config found=%v error=%#v", found, err)
 	}
 }
-
-func TestMomentToGoFormat(t *testing.T) {
-	cases := map[string]string{
-		"YYYY-MM-DD":        "2006-01-02",
-		"YYYY/MM/DD dddd":   "2006/01/02 Monday",
-		"MMM D, YYYY HH:mm": "Jan 2, 2006 15:04",
-	}
-	for input, want := range cases {
-		if got := obsidian.MomentToGoFormat(input); got != want {
-			t.Fatalf("MomentToGoFormat(%q) = %q, want %q", input, got, want)
-		}
-	}
-}

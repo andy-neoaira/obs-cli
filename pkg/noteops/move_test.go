@@ -108,7 +108,11 @@ func TestMoveRollbackRestoresEveryFile(t *testing.T) {
 	if _, err := service.Create("links", []byte("[[Old]]")); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := service.Move("Old", "New", source.RevisionAfter); err == nil {
+	plan, err := service.PlanMove("Old", "New", source.RevisionAfter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.ApplyMovePlan(plan); err == nil {
 		t.Fatal("expected injected failure")
 	}
 	assertContent(t, filepath.Join(root, "Old.md"), "source")
@@ -137,7 +141,11 @@ func TestMovePartialFailureUsesLogicalRecoveryPaths(t *testing.T) {
 	}
 	source, _ := service.Create("Old", []byte("source"))
 	_, _ = service.Create("links", []byte("[[Old]]"))
-	_, err = service.Move("Old", "New", source.RevisionAfter)
+	plan, err := service.PlanMove("Old", "New", source.RevisionAfter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = service.ApplyMovePlan(plan)
 	var partial *noteops.MovePartialFailure
 	if !errors.As(err, &partial) {
 		t.Fatalf("error = %v, want MovePartialFailure", err)

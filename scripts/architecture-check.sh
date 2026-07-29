@@ -8,10 +8,12 @@ legacy_paths=(
   pkg/actions
   pkg/obsidian/fuzzyfinder.go
   pkg/obsidian/note.go
+  pkg/obsidian/path_validation.go
   pkg/obsidian/uri.go
   pkg/obsidian/vault.go
   pkg/obsidian/vault_list.go
   pkg/obsidian/vault_path.go
+  pkg/storage/move_delete.go
 )
 
 legacy_patterns=(
@@ -19,8 +21,17 @@ legacy_patterns=(
   'github\.com/ktr0731/go-fuzzyfinder'
   'github\.com/skratchdot/open-golang'
   '\bFuzzyFinderManager\b'
+  '\bDeleteKey\b'
+  '\bErrPathTraversal\b'
+  '\bErrPhysicalPathConflict\b'
+  '\bMomentToGoFormat\b'
   '\bLinkRewriteManager\b'
+  '\bMoveAtomic\b'
   '\bNoteManager\b'
+  '\bNoFrontmatterError\b'
+  '\bResolvePath\b'
+  '\bValidatePath\b'
+  '\bValidateWritablePath\b'
   '\bUriManager\b'
   '\bVaultManager\b'
 )

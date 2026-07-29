@@ -10,7 +10,6 @@ import (
 
 const (
 	Delimiter               = "---" // YAML frontmatter 的起止分隔符
-	NoFrontmatterError      = "note does not contain frontmatter"
 	InvalidFrontmatterError = "frontmatter contains invalid YAML"
 )
 
@@ -23,18 +22,6 @@ func Parse(content string) (map[string]interface{}, string, error) {
 		return nil, "", errors.New(InvalidFrontmatterError)
 	}
 	return fm, string(rest), nil
-}
-
-// Format 将 frontmatter map 转换为 YAML 字符串。
-func Format(fm map[string]interface{}) (string, error) {
-	if len(fm) == 0 {
-		return "", nil
-	}
-	data, err := yaml.Marshal(fm)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
 }
 
 // HasFrontmatter 检查内容是否以 frontmatter 分隔符开头。
@@ -73,38 +60,6 @@ func SetKey(content, key, value string) (string, error) {
 
 	// 更新 key
 	fm[key] = parsedValue
-
-	// 重新组装内容
-	fmStr, err := yaml.Marshal(fm)
-	if err != nil {
-		return "", err
-	}
-
-	return Delimiter + "\n" + string(fmStr) + Delimiter + "\n" + body, nil
-}
-
-// DeleteKey 从 frontmatter 中删除指定 key，返回更新后的完整内容。
-func DeleteKey(content, key string) (string, error) {
-	if !HasFrontmatter(content) {
-		return "", errors.New(NoFrontmatterError)
-	}
-
-	fm, body, err := Parse(content)
-	if err != nil {
-		return "", err
-	}
-
-	if fm == nil {
-		return "", errors.New(NoFrontmatterError)
-	}
-
-	// 删除指定 key
-	delete(fm, key)
-
-	// 如果删除后 frontmatter 为空，直接返回正文（去掉开头可能的换行）
-	if len(fm) == 0 {
-		return strings.TrimPrefix(body, "\n"), nil
-	}
 
 	// 重新组装内容
 	fmStr, err := yaml.Marshal(fm)
