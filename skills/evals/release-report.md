@@ -5,7 +5,7 @@
 - 场景清单：`scenarios.json`
 - 基本场景契约：`55 / 55` 已定义并通过结构/交叉约束校验（11 个 Skill ×
   trigger/non-trigger/success/conflict/failure）
-- 跨场景安全用例：3（危险 shell 文本、Unicode/多行 Markdown、stale revision、
+- 跨场景安全用例：3（危险 shell 与 Unicode/多行 Markdown、stale revision、
   低版本/缺失 capability）
 
 ## 确定性评测

@@ -35,7 +35,8 @@ obs-cli capabilities --output json --require vault.add
 obs-cli capabilities --output json --require vault.set-default
 ```
 
-只要求当前请求实际使用的 capability。缺失时停止并返回 CLI 版本、缺失 operation，以及“升级到提供 obs-cli/v1 对应 operation 的版本”的提示；不得回退到 `list-vaults`、`add-vault` 或 `set-default-vault`。
+只要求当前请求实际使用的 capability。缺失时停止并返回 CLI 版本、缺失 operation，
+以及“升级到提供 obs-cli/v1 对应 operation 的版本”的提示；不得回退到未声明的旧命令。
 
 ## 读取范围
 

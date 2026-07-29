@@ -32,7 +32,8 @@ obs-cli capabilities --output json --require vault.get \
   --require search.content --require note.get --require link.backlinks
 ```
 
-只要求实际使用的 operation；不需要 backlinks 时可省略。缺失时返回明确升级提示，不回退到 `search-content`、`print` 或交互命令。
+只要求实际使用的 operation；不需要 backlinks 时可省略。缺失时返回明确升级提示，
+不回退到未声明的旧命令、交互命令或直接文件系统读取。
 
 ## 读取范围
 

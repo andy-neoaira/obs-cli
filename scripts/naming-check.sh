@@ -76,6 +76,7 @@ content_targets=(
   skills
   testdata
   docs/spec
+  docs/README.md
   README.md
   README_CN.md
   docs/COMMAND_REFERENCE.md

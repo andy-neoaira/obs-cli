@@ -26,6 +26,7 @@ jobs:
           make format-check
           make naming-check
           make architecture-check
+          make docs-check
           make compatibility-check
           make schema-check
           make coverage-check

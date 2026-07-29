@@ -137,6 +137,7 @@ All mutating operations support `--dry-run`. Note updates use `sha256:<64 lowerc
 
 Specifications:
 
+- [Documentation index](./docs/README.md)
 - [Command reference](./docs/COMMAND_REFERENCE.md)
 - [CLI protocol](./docs/spec/CLI_PROTOCOL.md)
 - [Capabilities and dry-run](./docs/spec/CAPABILITIES.md)

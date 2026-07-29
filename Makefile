@@ -42,6 +42,9 @@ architecture-check:
 	./scripts/architecture-check.sh
 	./scripts/architecture-check.sh --self-test
 
+docs-check:
+	./scripts/docs-check.sh
+
 schema-check:
 	./scripts/schema-check.sh
 
@@ -63,7 +66,7 @@ skill-lint:
 skill-evals:
 	./scripts/run-skill-evals.sh
 
-release-check: format-check naming-check architecture-check compatibility-check
+release-check: format-check naming-check architecture-check docs-check compatibility-check
 	go vet ./...
 	go test ./...
 	go test -race ./...

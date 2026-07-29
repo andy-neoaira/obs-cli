@@ -31,7 +31,6 @@
 
 ## 接入边界
 
-- `obsidian.ValidatePath` 是旧业务代码的兼容入口，内部只委托给 `pkg/pathpolicy`。
 - Create、Delete、Move、Daily、模板读取、Note 读写和链接重写均在文件操作前完成路径解析。
 - Move/Delete 在解析前补齐 `.md`，避免“校验一个路径、实际修改另一个路径”。
 - Vault 内符号链接可以安全读取；普通写入若经过符号链接则返回物理身份冲突，要求改用无歧义的规范逻辑路径。

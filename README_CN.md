@@ -137,6 +137,7 @@ link backlinks
 
 规范：
 
+- [当前文档索引](./docs/README.md)
 - [命令参考](./docs/COMMAND_REFERENCE.md)
 - [CLI 协议](./docs/spec/CLI_PROTOCOL.md)
 - [Capabilities 与 dry-run](./docs/spec/CAPABILITIES.md)

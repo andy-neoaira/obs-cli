@@ -38,7 +38,7 @@ obs-cli capabilities --output json --require vault.get --require note.get
 obs-cli capabilities --output json --require search.content
 ```
 
-缺失能力时停止，不回退到 V1 `print/search-content` 或文件系统读取。
+缺失能力时停止，不回退到未声明的旧命令或直接文件系统读取。
 
 ## 读取范围
 
