@@ -9,14 +9,6 @@ import (
 	"strings"
 )
 
-// ObsidianAppConfig 对应 vault 中 .obsidian/app.json 的结构。
-// 主要读取新建笔记的默认位置和用户配置的排除规则。
-type ObsidianAppConfig struct {
-	NewFileLocation   string   `json:"newFileLocation"`   // 新笔记存放方式：root 或 folder
-	NewFileFolderPath string   `json:"newFileFolderPath"` // 当方式为 folder 时的目标文件夹
-	UserIgnoreFilters []string `json:"userIgnoreFilters"` // 用户配置的排除路径/通配符列表
-}
-
 // DailyNotesConfig 对应 vault 中 .obsidian/daily-notes.json 的结构。
 // 保存 Daily Notes 插件的文件夹、日期格式和模板配置。
 type DailyNotesConfig struct {
@@ -39,12 +31,6 @@ func (e *ConfigFileError) Unwrap() error {
 	return e.Err
 }
 
-func LoadAppConfig(vaultPath string) (ObsidianAppConfig, bool, error) {
-	var config ObsidianAppConfig
-	found, err := loadObsidianConfig(vaultPath, "app.json", &config)
-	return config, found, err
-}
-
 func LoadDailyNotesConfig(vaultPath string) (DailyNotesConfig, bool, error) {
 	var config DailyNotesConfig
 	found, err := loadObsidianConfig(vaultPath, "daily-notes.json", &config)
@@ -64,53 +50,6 @@ func loadObsidianConfig(vaultPath, name string, target any) (bool, error) {
 		return true, &ConfigFileError{File: relative, Kind: "parse", Err: err}
 	}
 	return true, nil
-}
-
-// ExcludedPaths 读取 vault 中 .obsidian/app.json 的 userIgnoreFilters，
-// 返回需要排除的路径模式列表。如果配置文件不存在或读取失败，返回 nil。
-func ExcludedPaths(vaultPath string) []string {
-	config, _, err := LoadAppConfig(vaultPath)
-	if err != nil {
-		return nil
-	}
-	return config.UserIgnoreFilters
-}
-
-// DefaultNoteFolder 读取 vault 中配置的新笔记默认存放文件夹。
-// 如果未配置或读取失败，返回空字符串（调用方应回退到 vault 根目录）。
-func DefaultNoteFolder(vaultPath string) string {
-	config, _, err := LoadAppConfig(vaultPath)
-	if err != nil {
-		return ""
-	}
-	if config.NewFileLocation == "folder" && config.NewFileFolderPath != "" {
-		return config.NewFileFolderPath
-	}
-
-	return ""
-}
-
-// ReadDailyNotesConfig 读取 vault 中 Daily Notes 插件的配置。
-// 如果配置文件不存在或读取失败，返回零值结构体。
-func ReadDailyNotesConfig(vaultPath string) DailyNotesConfig {
-	config, _, err := LoadDailyNotesConfig(vaultPath)
-	if err != nil {
-		return DailyNotesConfig{}
-	}
-	return config
-}
-
-// ApplyDefaultFolder 在 noteName 没有显式路径（不含 "/"）时，
-// 自动在前面加上 Obsidian 配置的新笔记默认文件夹。
-// 如果 noteName 已包含 "/" 或未配置默认文件夹，则原样返回。
-func ApplyDefaultFolder(noteName, vaultPath string) string {
-	if strings.Contains(noteName, "/") {
-		return noteName
-	}
-	if folder := DefaultNoteFolder(vaultPath); folder != "" {
-		return folder + "/" + noteName
-	}
-	return noteName
 }
 
 // MomentToGoFormat 将 Moment.js 日期格式字符串转换为 Go 的 time.Layout 格式。

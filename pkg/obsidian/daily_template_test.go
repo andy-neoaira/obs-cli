@@ -13,7 +13,9 @@ import (
 
 func TestRenderDailyTemplateMatchesContractFixture(t *testing.T) {
 	fixture := filepath.Join("..", "..", "testdata", "vault-contract", "v1", "daily-template")
-	config := obsidian.ReadDailyNotesConfig(fixture)
+	config, found, err := obsidian.LoadDailyNotesConfig(fixture)
+	assert.NoError(t, err)
+	assert.True(t, found)
 	template, err := os.ReadFile(filepath.Join(fixture, "Templates", "Daily.md"))
 	assert.NoError(t, err)
 	location, err := time.LoadLocation("Asia/Shanghai")

@@ -25,6 +25,7 @@ jobs:
         run: |
           make format-check
           make naming-check
+          make architecture-check
           make compatibility-check
           make schema-check
           make coverage-check

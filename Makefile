@@ -28,9 +28,6 @@ test:
 compatibility-check:
 	./scripts/compatibility-check.sh
 
-test-search-content:
-	go test ./pkg/actions -run TestSearchNotesContentWithOptions -v
-
 test-coverage:
 	go test ./... -coverprofile=coverage.out
 
@@ -40,6 +37,10 @@ format-check:
 naming-check:
 	./scripts/naming-check.sh
 	./scripts/naming-check.sh --self-test
+
+architecture-check:
+	./scripts/architecture-check.sh
+	./scripts/architecture-check.sh --self-test
 
 schema-check:
 	./scripts/schema-check.sh
@@ -62,7 +63,7 @@ skill-lint:
 skill-evals:
 	./scripts/run-skill-evals.sh
 
-release-check: format-check naming-check compatibility-check
+release-check: format-check naming-check architecture-check compatibility-check
 	go vet ./...
 	go test ./...
 	go test -race ./...

@@ -1,6 +1,6 @@
 # obs-cli V1 首版规范化重构计划
 
-- 状态：`11 项任务完成，RC 验证通过，待人工批准 tag`
+- 状态：`12 项任务完成，旧运行时已硬删除，联合验证通过，待人工批准 tag`
 - 计划类型：一次性协调硬切换
 - 首个候选版本：`v1.0.0-rc.1`
 - CLI 协议：`obs-cli/v1`
@@ -126,7 +126,7 @@ CLI 契约。
 
 ## 7. 任务清单
 
-实施进度：`11 / 11`。真实 tag 和 push 是验证后的独立人工审批动作，不属于本次自动执行。
+实施进度：`12 / 12`。真实 tag 和 push 是验证后的独立人工审批动作，不属于本次自动执行。
 
 - [x] [V1-T01 冻结命名规范和映射表](./V1-T01-naming-contract.md)
 - [x] [V1-T02 重置产品版本和 CLI 协议](./V1-T02-product-protocol-v1.md)
@@ -139,6 +139,19 @@ CLI 契约。
 - [x] [V1-T09 增加历史命名回流门禁](./V1-T09-naming-regression-gate.md)
 - [x] [V1-T10 运行双仓 CI 与三入口 E2E](./V1-T10-joint-validation.md)
 - [x] [V1-T11 验证 v1.0.0-rc.1 联合候选版本](./V1-T11-first-rc-validation.md)
+- [x] [V1-T12 删除旧 Human-first 运行时](./V1-T12-remove-legacy-runtime.md)
+
+T12 是 RC 验证后的追加硬清理。它不改变 `obs-cli/v1` 外部协议，但删除了没有生产
+调用者的旧 action/manager 运行时和 `miniobsidian.nvim` 中明确的旧配置空 API。
+因此，T11 的历史验证结果仍作为当时证据保留，正式 tag 前必须基于 T12 结果重新运行
+联合验证。
+
+T12 重新验证摘要（2026-07-29）：
+
+- `obs-cli make release-check` 通过，覆盖率 `72.7%`，RC smoke 为
+  `v1.0.0-rc.1`。
+- `miniobsidian.nvim make ci` 通过。
+- 三入口 E2E：`6 / 6` 通过。
 
 当前验证摘要（2026-07-28）：
 
