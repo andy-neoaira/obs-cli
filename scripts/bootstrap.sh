@@ -4,7 +4,7 @@ set -euo pipefail
 
 repository="${OBS_CLI_REPOSITORY:-andy-neoaira/obs-cli}"
 agent="codex"
-version=""
+version="latest"
 install_dir="${OBS_CLI_INSTALL_DIR:-${HOME}/.local/bin}"
 skills_dir=""
 source_root=""
@@ -31,6 +31,7 @@ Agents:
 Options:
   --agent <name>       Skill host (default: codex)
   --version <tag>      Install the same release tag for CLI and Skills
+                       (default: latest GitHub Release)
   --install-dir <dir>  Binary directory (default: ~/.local/bin)
   --skills-dir <dir>   Override the Agent Skill directory
   --source <checkout>  Use installer scripts and Skills from a local checkout
@@ -108,13 +109,29 @@ if [[ "$agent" == "custom" && -z "$skills_dir" ]]; then
 fi
 [[ "$repository" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] ||
   fail "invalid GitHub repository: $repository"
-if [[ -n "$version" &&
+if [[ "$version" != "latest" &&
   ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
   fail "invalid release tag: $version"
 fi
 
 work_dir=$(mktemp -d "${TMPDIR:-/tmp}/obs-cli-bootstrap.XXXXXX")
 trap 'rm -rf "$work_dir"' EXIT
+
+if [[ "$version" == "latest" ]]; then
+  command -v curl >/dev/null 2>&1 ||
+    fail "required command not found: curl"
+  latest_url=$(
+    curl --fail --location --silent --show-error \
+      --output /dev/null \
+      --write-out '%{url_effective}' \
+      "https://github.com/${repository}/releases/latest"
+  )
+  version="${latest_url%/}"
+  version="${version##*/}"
+  [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]] ||
+    fail "GitHub latest Release returned an invalid tag: $version"
+  printf 'Resolved latest obs-cli Release: %s\n' "$version"
+fi
 
 if [[ -n "$source_root" ]]; then
   source_root=$(CDPATH= cd -- "$source_root" && pwd)
@@ -125,7 +142,7 @@ if [[ -n "$source_root" ]]; then
 else
   command -v curl >/dev/null 2>&1 ||
     fail "required command not found: curl"
-  raw_ref="${version:-main}"
+  raw_ref="$version"
   raw_base="https://raw.githubusercontent.com/${repository}/${raw_ref}/scripts"
   cli_installer="$work_dir/install.sh"
   skill_installer="$work_dir/install-skills.sh"
@@ -136,9 +153,7 @@ else
 fi
 
 cli_args=(--install-dir "$install_dir")
-if [[ -n "$version" ]]; then
-  cli_args+=(--version "$version")
-fi
+cli_args+=(--version "$version")
 if [[ "$force_cli" == true ]]; then
   cli_args+=(--force)
 fi
@@ -150,20 +165,6 @@ printf '==> Installing obs-cli\n'
 bash "$cli_installer" "${cli_args[@]}"
 
 selected_version="$version"
-if [[ -z "$selected_version" ]]; then
-  if [[ "$dry_run" == true ]]; then
-    command -v obs-cli >/dev/null 2>&1 ||
-      fail "--dry-run requires --version when obs-cli is not already on PATH"
-    selected_version=$(obs-cli --version | awk '{print $3}')
-  else
-    binary="$install_dir/obs-cli"
-    if [[ -x "$install_dir/obs-cli.exe" ]]; then
-      binary="$install_dir/obs-cli.exe"
-    fi
-    [[ -x "$binary" ]] || fail "installed obs-cli binary is not executable"
-    selected_version=$("$binary" --version | awk '{print $3}')
-  fi
-fi
 
 skill_args=(--agent "$agent" --version "$selected_version")
 if [[ -n "$skills_dir" ]]; then

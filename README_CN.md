@@ -18,8 +18,12 @@
 ```bash
 curl -fsSL \
   https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/bootstrap.sh |
-  bash -s -- --agent codex --version v1.0.0-rc.1
+  bash -s -- --agent codex
 ```
+
+未传入 `--version` 时，bootstrap 会解析 GitHub 最新 Release，并为 CLI 和全部
+正式 Skills 安装同一个准确 tag。只有需要固定版本时才传入
+`--version v1.0.0-rc.1`。
 
 首版本支持以下用户级 Skill 宿主：
 
@@ -85,8 +89,7 @@ obs-cli capabilities --output json
 [`skills/install-manifest.txt`](./skills/install-manifest.txt)，其中只包含 11 个
 `obsidian-*` Skill；`_template` 和 `evals` 是开发资源，永远不会被安装。
 
-下载安装器后，未指定版本时会读取本地 `obs-cli --version`，下载同一个 tag 的
-Skills：
+下载安装器后，未指定版本时会安装 GitHub 最新 Release 的 Skills：
 
 ```bash
 curl -fsSLo /tmp/obs-cli-install-skills.sh \

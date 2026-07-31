@@ -20,8 +20,12 @@ offline installation audit:
 ```bash
 curl -fsSL \
   https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/bootstrap.sh |
-  bash -s -- --agent codex --version v1.0.0-rc.1
+  bash -s -- --agent codex
 ```
+
+Without `--version`, bootstrap resolves the latest GitHub Release and installs
+that exact tag for both the CLI and all official Skills. Pass
+`--version v1.0.0-rc.1` only when a pinned release is required.
 
 The first release supports these user-level Skill hosts:
 
@@ -93,7 +97,7 @@ The official distributable list is
 11 `obsidian-*` Skills; `_template` and `evals` are development resources and
 are never installed.
 
-Download the installer and let it select the same tag as the installed CLI:
+Download the installer and let it select the latest GitHub Release:
 
 ```bash
 curl -fsSLo /tmp/obs-cli-install-skills.sh \

@@ -23,7 +23,7 @@ Usage:
 
 Options:
   --agent <name>       codex, claude-code, opencode, cursor, kimi-code, or custom
-  --version <tag>      Git tag to download; defaults to installed CLI version
+  --version <tag>      Git tag to download (default: latest GitHub Release)
   --source <checkout>  Install from a local obs-cli checkout instead of GitHub
   --dest <dir>         Override the Agent skill directory
   --upgrade            Upgrade intact Skills installed by this installer
@@ -120,7 +120,7 @@ esac
 
 [[ "$repository" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] ||
   fail "invalid GitHub repository: $repository"
-if [[ -n "$version" &&
+if [[ -n "$version" && "$version" != "latest" &&
   ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
   fail "invalid release tag: $version"
 fi
@@ -136,10 +136,18 @@ elif [[ -f "$checkout_root/skills/install-manifest.txt" ]]; then
     printf 'Using local checkout with managed version %s.\n' "$version"
   fi
 else
-  if [[ -z "$version" ]]; then
-    command -v obs-cli >/dev/null 2>&1 ||
-      fail "obs-cli is not on PATH; pass --version explicitly"
-    version=$(obs-cli --version | awk '{print $3}')
+  if [[ -z "$version" || "$version" == "latest" ]]; then
+    command -v curl >/dev/null 2>&1 ||
+      fail "required command not found: curl"
+    latest_url=$(
+      curl --fail --location --silent --show-error \
+        --output /dev/null \
+        --write-out '%{url_effective}' \
+        "https://github.com/${repository}/releases/latest"
+    )
+    version="${latest_url%/}"
+    version="${version##*/}"
+    printf 'Resolved latest obs-cli Release: %s\n' "$version"
   fi
   [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]] ||
     fail "invalid or development CLI version: $version"
