@@ -54,7 +54,7 @@ func TestRootCommandTreeHasNoLegacyHumanFirstCommands(t *testing.T) {
 	sort.Strings(names)
 	want := []string{
 		"batch", "capabilities", "daily", "doctor", "link", "metadata",
-		"note", "search", "template", "vault",
+		"note", "search", "template", "update", "vault",
 	}
 	if len(names) != len(want) {
 		t.Fatalf("command tree = %v, want %v", names, want)

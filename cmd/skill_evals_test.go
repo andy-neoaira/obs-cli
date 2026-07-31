@@ -154,6 +154,16 @@ func TestSkillEvalManifestCoverageAndContracts(t *testing.T) {
 	if want := skillDirectories(t); fmt.Sprint(manifestSkills) != fmt.Sprint(want) {
 		t.Fatalf("eval Skill coverage = %v, want %v", manifestSkills, want)
 	}
+	installableSkills := readInstallableSkills(t)
+	sort.Strings(installableSkills)
+	if fmt.Sprint(manifestSkills) != fmt.Sprint(installableSkills) {
+		t.Fatalf("install manifest Skills = %v, want %v", installableSkills, manifestSkills)
+	}
+	doctorSkills := append([]string(nil), officialSkillNames...)
+	sort.Strings(doctorSkills)
+	if fmt.Sprint(manifestSkills) != fmt.Sprint(doctorSkills) {
+		t.Fatalf("doctor Skills = %v, want %v", doctorSkills, manifestSkills)
+	}
 	if len(manifest.CrossCutting) < 3 {
 		t.Fatalf("cross-cutting evals = %d, want at least 3", len(manifest.CrossCutting))
 	}
@@ -442,6 +452,23 @@ func skillDirectories(t *testing.T) []string {
 		}
 	}
 	sort.Strings(names)
+	return names
+}
+
+func readInstallableSkills(t *testing.T) []string {
+	t.Helper()
+	raw, err := os.ReadFile("../skills/install-manifest.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, line := range strings.Split(string(raw), "\n") {
+		name := strings.TrimSpace(line)
+		if name == "" || strings.HasPrefix(name, "#") {
+			continue
+		}
+		names = append(names, name)
+	}
 	return names
 }
 

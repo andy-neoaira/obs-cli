@@ -58,10 +58,36 @@ search content <query> [--scope <directory>] [--page <n>] [--page-size <n>] [--m
 link backlinks <path> [--scope <directory>] [--max-files <n>]
 ```
 
+## Doctor 与显式升级
+
+```text
+doctor [--agent <name>] [--skills-path <absolute-path>] [--online]
+
+update check
+update apply [--version <tag>] [--dry-run]
+```
+
+`doctor` 默认只执行本地审计，检查 CLI、配置、Vault 注册和所选 Agent 的 Skills。
+内置 Agent 名称为 `codex`、`claude-code`、`opencode`、`cursor` 和 `kimi-code`；
+其他宿主可以同时传入自定义名称与 `--skills-path`。
+只有显式传入 `--online` 才查询 GitHub Releases。
+
+`update check` 只检查版本；`update apply` 才会下载、校验 checksum、验证候选二进制并
+替换当前 CLI。它不会自动执行，也不会升级 Skills。Windows 上的二进制替换应继续
+使用 `scripts/install.sh --force`。
+
+Skills 使用单独的显式升级流程：
+
+```text
+scripts/install-skills.sh --agent codex --version <tag> --upgrade [--dry-run]
+```
+
+缺少托管 metadata 或本地 `SKILL.md` 已修改时，升级会停止而不是覆盖。
+
 ## 预留命名空间
 
 ```text
-template  batch  doctor
+template  batch
 ```
 
 在 capabilities 声明具体 operation 前，调用这些命名空间会返回 `CAPABILITY_UNSUPPORTED`（退出码 8）。

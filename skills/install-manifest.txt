@@ -1,0 +1,12 @@
+# Official distributable Skills. _template and evals are intentionally excluded.
+obsidian-vault-setup
+obsidian-capture
+obsidian-compare-notes
+obsidian-daily-log
+obsidian-inbox-triage
+obsidian-knowledge-search
+obsidian-knowledge-synthesis
+obsidian-project-note
+obsidian-project-status
+obsidian-safe-note-update
+obsidian-vault-audit

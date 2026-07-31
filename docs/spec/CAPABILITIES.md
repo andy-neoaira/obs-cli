@@ -9,7 +9,7 @@
 Agent 和 Skill 在首次写入前应执行：
 
 ```bash
-obs capabilities --output json \
+obs-cli capabilities --output json \
   --require vault.add \
   --require vault.set-default
 ```
@@ -49,6 +49,9 @@ obs capabilities --output json \
 | `metadata.set` | 是 | 只设置一个键，保留正文和未知字段，要求 revision 并回显 body_revision |
 | `search.content` | 否 | 仅扫描 Markdown，限制页大小和读取文件数 |
 | `link.backlinks` | 否 | 有界扫描 Wikilink/Markdown link，返回来源证据；允许检查不存在的 target |
+| `doctor.audit` | 否 | 默认离线审计 CLI、Vault registry 和指定 Agent 的托管 Skills；`--online` 才查询 Release |
+| `update.check` | 否 | 显式查询 GitHub Release，不在普通命令启动时自动执行 |
+| `update.apply` | 是 | 显式下载、校验、验证并替换当前二进制；支持 dry-run |
 
 operation 名称和 feature flag 只增不改。新增名称属于兼容变更；删除、改名或改变已有名称的语义需要升级协议主版本。弃用项通过新增的可选 deprecation 元数据公告；调用方必须忽略未知可选字段。
 
@@ -88,6 +91,10 @@ CLI 通过同一绑定层注册以下通用参数，具体 operation 是否支�
 
 Skill 在 dry-run 成功后仍需将 apply 当作独立请求；并发状态可能在两次调用之间改变。
 `note.move` 可用 `--if-plan-hash` 把 apply 绑定到已审查的 dry-run 链接集合。
+
+`update.apply --dry-run` 只解析 Release、目标资产、当前可执行文件、备份位置和
+checksum 资产，不下载归档、不创建 staging/backup 文件，也不替换二进制。真正的
+apply 必须是独立的显式调用；CLI 不提供后台或静默自动更新。
 
 ## 5. Skill 场景示例
 

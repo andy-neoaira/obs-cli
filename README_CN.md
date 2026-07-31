@@ -6,16 +6,206 @@
 
 本项目基于 [Yakitrak/notesmd-cli](https://github.com/Yakitrak/notesmd-cli) 二次开发。许可信息见 [LICENSE](./LICENSE) 和 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
 
+## 安装
+
+`obs-cli` 与 Agent Skills 独立安装。可执行文件必须位于 Agent 进程继承的
+`PATH` 中；Skill 只是工作流指令包，不包含、也不会自动安装 CLI。
+
+### 一键安装
+
+一条命令安装 CLI、相同版本的全部正式 Skills，并执行离线安装审计：
+
+```bash
+curl -fsSL \
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/bootstrap.sh |
+  bash -s -- --agent codex --version v1.0.0-rc.1
+```
+
+首版本支持以下用户级 Skill 宿主：
+
+| `--agent` | 默认 Skill 目录 |
+|---|---|
+| `codex` | `${CODEX_HOME:-$HOME/.codex}/skills` |
+| `claude-code` | `~/.claude/skills` |
+| `opencode` | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills` |
+| `cursor` | `~/.cursor/skills` |
+| `kimi-code` | `${KIMI_CODE_HOME:-$HOME/.kimi-code}/skills` |
+
+安装到其他受支持的 Agent 时只需修改 `--agent`。bootstrap 不会注册、扫描或修改
+Vault，也不会静默覆盖已有 CLI/Skills；托管升级必须显式传入 `--force-cli` 和
+`--upgrade-skills`。使用 `--dry-run` 可以预览两部分计划。
+
+### 1. 安装 CLI
+
+普通用户推荐从 GitHub Releases 下载并校验预编译二进制。安装器支持 macOS、
+Linux 和 Windows shell，默认安装到 `~/.local/bin`：
+
+```bash
+curl -fsSLo /tmp/obs-cli-install.sh \
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/install.sh
+
+# 建议执行前先检查脚本。
+less /tmp/obs-cli-install.sh
+bash /tmp/obs-cli-install.sh
+```
+
+也可以固定版本或指定其他用户可写目录：
+
+```bash
+bash /tmp/obs-cli-install.sh \
+  --version v1.0.0-rc.1 \
+  --install-dir "$HOME/.local/bin"
+```
+
+安装器会校验 `checksums.txt`，通过 `--version` 和 `capabilities` 验证下载的
+二进制；目标已经存在时默认拒绝覆盖，只有显式传入 `--force` 才会替换。使用
+`--dry-run` 可以只查看解析后的平台、下载地址和目标路径。
+
+当前仓库仍处于 release candidate 状态。只有对应 tag 和 GitHub Release 资产发布后，
+上述下载命令才可使用。开发者可以从当前源码构建：
+
+```bash
+go build -mod=vendor -o obs-cli .
+mkdir -p "$HOME/.local/bin"
+install -m 0755 obs-cli "$HOME/.local/bin/obs-cli"
+```
+
+应从实际启动 Agent 的同一环境验证：
+
+```bash
+obs-cli capabilities --output json
+```
+
+如果交互式终端能够运行，而 Agent 中找不到命令，应为 Agent 进程配置安装目录，而
+不是假定它继承了终端的 `PATH`。
+
+### 2. 单独安装 Agent Skills
+
+正式可分发 Skill 清单位于
+[`skills/install-manifest.txt`](./skills/install-manifest.txt)，其中只包含 11 个
+`obsidian-*` Skill；`_template` 和 `evals` 是开发资源，永远不会被安装。
+
+下载安装器后，未指定版本时会读取本地 `obs-cli --version`，下载同一个 tag 的
+Skills：
+
+```bash
+curl -fsSLo /tmp/obs-cli-install-skills.sh \
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/install-skills.sh
+
+# 建议执行前先检查脚本。
+less /tmp/obs-cli-install-skills.sh
+bash /tmp/obs-cli-install-skills.sh --agent codex
+```
+
+将 `codex` 替换为 `claude-code`、`opencode`、`cursor` 或 `kimi-code` 即可安装到
+其他受支持的宿主。如果新 Skill 未立即出现，请启动新的 Agent 会话。安装器在普通
+模式下不会覆盖任何已有目录；显式升级还会校验托管 metadata 和已安装内容的
+digest。
+
+从本地仓库安装当前源码版本：
+
+```bash
+./scripts/install-skills.sh --agent codex --source .
+```
+
+其他支持 `SKILL.md` 的 Agent 可以显式指定目录：
+
+```bash
+./scripts/install-skills.sh \
+  --agent custom \
+  --dest /absolute/path/to/agent/skills \
+  --source .
+```
+
+不同 Agent 没有统一的 Skill 安装目录。custom 模式只负责复制正式 Skill 包，具体
+发现时机和加载方式仍由目标 Agent 决定。
+
+CLI 与 Skills 应固定在同一个 release tag。Skill 会通过
+`obs-cli capabilities --output json --require ...` 协商实际能力，但把不断变化的
+`main` Skills 与旧 CLI 混用仍可能导致不必要的 capability 不兼容。
+
+### 3. 审计与手动升级
+
+默认审计不会联网：
+
+```bash
+obs-cli doctor --agent codex --output json
+```
+
+它会检查可执行文件、配置、已注册 Vault 路径、正式 Codex Skills、托管 metadata、
+本地 Skill 修改以及 CLI/Skill 版本是否一致。查询在线 Release 必须显式执行：
+
+```bash
+obs-cli doctor --agent codex --online --output json
+obs-cli update check --output json
+```
+
+预演并手动执行经过校验的 CLI 升级：
+
+```bash
+obs-cli update apply --version v1.0.0 --dry-run --output json
+obs-cli update apply --version v1.0.0 --output json
+```
+
+apply 会下载对应平台资产和 `checksums.txt`，验证候选版本与 `obs-cli/v1`
+capabilities，将旧二进制保留为 `<path>.previous`，然后替换当前文件。该命令永远
+不会自动运行。Windows 无法由运行中的进程安全替换自身，应继续使用
+`scripts/install.sh --version <tag> --force`。
+
+Skills 使用独立的显式升级：
+
+```bash
+bash /tmp/obs-cli-install-skills.sh \
+  --agent codex \
+  --version v1.0.0 \
+  --upgrade \
+  --dry-run
+
+bash /tmp/obs-cli-install-skills.sh \
+  --agent codex \
+  --version v1.0.0 \
+  --upgrade
+```
+
+首次安装会记录 digest 和托管版本。缺少 metadata 或 `SKILL.md` 已被本地修改时，
+升级会停止。升级成功后，旧的托管 Skills 会保留在命令输出的备份目录中。
+
+### 4. 注册 Vault
+
+安装过程不会自动扫描或注册个人 Vault。应先只读发现和检查候选：
+
+```bash
+obs-cli vault discover --output json
+obs-cli vault list --output json
+```
+
+先预演注册表变化，再对相同目标执行：
+
+```bash
+obs-cli vault add /absolute/path/to/vault \
+  --name Personal \
+  --set-default \
+  --dry-run \
+  --output json
+
+obs-cli vault add /absolute/path/to/vault \
+  --name Personal \
+  --set-default \
+  --output json
+```
+
 ## 当前状态
 
 首个 Agent-first 版本使用以下稳定顶层命令树：
 
 ```text
 capabilities  vault  note  search  metadata
-link          daily  template  batch  doctor
+link          daily  doctor  update  template  batch
 ```
 
-Agent 必须通过 `capabilities` 发现已实现 operation。预留命名空间返回 `CAPABILITY_UNSUPPORTED`，不会回退到 picker、GUI 或 TTY 行为。
+Agent 必须通过 `capabilities` 发现已实现 operation。`doctor` 默认只做离线审计，
+`update` 只有在用户显式调用时才检查或修改版本。预留命名空间返回
+`CAPABILITY_UNSUPPORTED`，不会回退到 picker、GUI 或 TTY 行为。
 
 ## 构建
 
