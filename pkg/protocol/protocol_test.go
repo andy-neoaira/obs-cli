@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/andy-neoaira/obs-cli/pkg/noteops"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/andy-neoaira/obs-cli/pkg/pathpolicy"
 	"github.com/andy-neoaira/obs-cli/pkg/protocol"
 	"github.com/andy-neoaira/obs-cli/pkg/storage"
@@ -37,6 +39,53 @@ func TestJSONSuccessAndFailureEnvelope(t *testing.T) {
 			}
 		} else if _, ok := decoded["data"]; ok {
 			t.Fatal("failure envelope contains data")
+		}
+	}
+}
+
+func TestDryRunDataAndDomainErrorMethods(t *testing.T) {
+	empty := protocol.NewDryRunData(nil, nil, nil)
+	if !empty.DryRun || empty.Applied || empty.Changed || empty.Plan.Changes == nil || empty.Plan.Risks == nil || empty.Plan.Preconditions == nil {
+		t.Fatalf("empty dry run = %#v", empty)
+	}
+	changed := protocol.NewDryRunData([]protocol.PlanChange{{Action: "create", Resource: "note", Target: "a.md"}}, []string{"risk"}, []string{"revision"})
+	if !changed.Changed || len(changed.Plan.Changes) != 1 {
+		t.Fatalf("changed dry run = %#v", changed)
+	}
+	cause := errors.New("cause")
+	err := protocol.Wrap(protocol.InternalError, "wrapped", cause, nil)
+	if err.Error() != "wrapped" || !errors.Is(err, cause) {
+		t.Fatalf("domain error methods failed: %v", err)
+	}
+}
+
+func TestAllDomainErrorMappings(t *testing.T) {
+	partialMove := &noteops.MovePartialFailure{TransactionID: "txn", Completed: []string{"a.md"}, Failed: []string{"b.md"}}
+	invalidFrontmatter := &noteops.InvalidFrontmatterError{Path: "a.md", Revision: "sha256:x", Cause: errors.New("yaml")}
+	createConflict := &noteops.CreateConflict{Path: "a.md", ExistingRevision: "one", RequestedRevision: "two"}
+	cases := []struct {
+		err  error
+		code protocol.Code
+	}{
+		{createConflict, protocol.AlreadyExists},
+		{invalidFrontmatter, protocol.InvalidFrontmatter},
+		{partialMove, protocol.PartialFailure},
+		{noteops.ErrPatchContextMismatch, protocol.RevisionConflict},
+		{noteops.ErrSectionNotFound, protocol.RevisionConflict},
+		{noteops.ErrPatchContextAmbiguous, protocol.AmbiguousNote},
+		{noteops.ErrSectionAmbiguous, protocol.AmbiguousNote},
+		{obsidian.ErrVaultAlreadyExists, protocol.AlreadyExists},
+		{obsidian.ErrVaultNameConflict, protocol.AlreadyExists},
+		{obsidian.ErrVaultNotFound, protocol.VaultNotFound},
+		{noteops.ErrNoteNotFound, protocol.NoteNotFound},
+		{noteops.ErrInvalidFrontmatter, protocol.InvalidFrontmatter},
+		{noteops.ErrRevisionRequired, protocol.InvalidArgument},
+		{noteops.ErrInvalidRevision, protocol.InvalidArgument},
+		{storage.ErrPrecondition, protocol.InvalidArgument},
+	}
+	for _, item := range cases {
+		if got := protocol.MapError(item.err); got.Code != item.code {
+			t.Fatalf("MapError(%v) = %#v, want %s", item.err, got, item.code)
 		}
 	}
 }

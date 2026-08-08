@@ -68,6 +68,19 @@ func TestWriteAtomicCreateReplaceAndConflict(t *testing.T) {
 		t.Fatalf("revision conflict error = %v", err)
 	}
 	assertBytes(t, target, "two")
+
+	unchanged, err := store.WriteAtomic(
+		target,
+		[]byte("two"),
+		storage.Preconditions{ExpectedRevision: replaced.RevisionAfter},
+		storage.WriteOptions{},
+	)
+	if err != nil || unchanged.Changed || unchanged.RevisionAfter != replaced.RevisionAfter {
+		t.Fatalf("unchanged write = %#v, %v", unchanged, err)
+	}
+	if _, err := store.WriteAtomic(target, nil, storage.Preconditions{}, storage.WriteOptions{}); !errors.Is(err, storage.ErrPrecondition) {
+		t.Fatalf("missing precondition error = %v", err)
+	}
 }
 
 func TestWriteAtomicPartialWriteFailureLeavesOldBytesAndCleansTemp(t *testing.T) {
@@ -283,6 +296,64 @@ func TestReplaceAtomicCreateReplaceAndMode(t *testing.T) {
 	}
 	assertBytes(t, target, "two")
 	assertNoReplaceTemps(t, root)
+}
+
+func TestDefaultModes(t *testing.T) {
+	root := t.TempDir()
+	store := storage.NewStore(filepath.Join(root, "locks"))
+	note := filepath.Join(root, "note.md")
+	if _, err := store.WriteAtomic(note, []byte("note"), storage.Preconditions{MustNotExist: true}, storage.WriteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(note)
+	if err != nil || info.Mode().Perm() != 0o644 {
+		t.Fatalf("default note mode = %v, %v", info, err)
+	}
+	config := filepath.Join(root, "config.json")
+	if err := store.ReplaceAtomic(config, []byte("{}"), storage.WriteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	info, err = os.Stat(config)
+	if err != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("default replacement mode = %v, %v", info, err)
+	}
+}
+
+func TestAtomicOperationsReportFilesystemSetupErrors(t *testing.T) {
+	root := t.TempDir()
+	blocker := filepath.Join(root, "blocker")
+	if err := os.WriteFile(blocker, []byte("file"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	badLockStore := storage.NewStore(filepath.Join(blocker, "locks"))
+	if _, err := badLockStore.WriteAtomic(
+		filepath.Join(root, "note.md"), []byte("note"),
+		storage.Preconditions{MustNotExist: true}, storage.WriteOptions{},
+	); err == nil {
+		t.Fatal("write with unusable lock directory should fail")
+	}
+	if _, err := badLockStore.DeleteAtomic(filepath.Join(root, "note.md"), storage.Revision(nil)); err == nil {
+		t.Fatal("delete with unusable lock directory should fail")
+	}
+
+	store := storage.NewStore(filepath.Join(root, "locks"))
+	missingTarget := filepath.Join(root, "missing", "note.md")
+	if _, err := store.WriteAtomic(
+		missingTarget, []byte("note"), storage.Preconditions{MustNotExist: true}, storage.WriteOptions{},
+	); err == nil {
+		t.Fatal("write below missing parent should fail")
+	}
+	if err := store.ReplaceAtomic(missingTarget, []byte("config"), storage.WriteOptions{}); err == nil {
+		t.Fatal("replace below missing parent should fail")
+	}
+
+	directoryTarget := filepath.Join(root, "directory-target")
+	if err := os.Mkdir(directoryTarget, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.ReplaceAtomic(directoryTarget, []byte("config"), storage.WriteOptions{}); err == nil {
+		t.Fatal("replace over directory should fail")
+	}
 }
 
 func TestReplaceAtomicFailureInjectionBeforeCommitPreservesOldBytes(t *testing.T) {

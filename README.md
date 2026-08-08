@@ -19,7 +19,7 @@ offline installation audit:
 
 ```bash
 curl -fsSL \
-  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/bootstrap.sh |
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/master/scripts/bootstrap.sh |
   bash -s -- --agent codex
 ```
 
@@ -50,7 +50,7 @@ to `~/.local/bin` by default:
 
 ```bash
 curl -fsSLo /tmp/obs-cli-install.sh \
-  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/install.sh
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/master/scripts/install.sh
 
 # Inspect the script before running it.
 less /tmp/obs-cli-install.sh
@@ -101,7 +101,7 @@ Download the installer and let it select the latest GitHub Release:
 
 ```bash
 curl -fsSLo /tmp/obs-cli-install-skills.sh \
-  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/install-skills.sh
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/master/scripts/install-skills.sh
 
 # Inspect the script before running it.
 less /tmp/obs-cli-install-skills.sh

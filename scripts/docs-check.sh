@@ -5,6 +5,16 @@ set -euo pipefail
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$repo_root"
 
+if rg -n --glob '*.md' '\bobs (capabilities|vault|note|search|metadata|link|daily|doctor|update|template|batch)\b' README.md README_CN.md docs skills; then
+  echo "docs-check: use the canonical executable name obs-cli" >&2
+  exit 1
+fi
+
+if rg -n 'raw\.githubusercontent\.com/andy-neoaira/obs-cli/main/' README.md README_CN.md; then
+  echo "docs-check: installation sources must use the authoritative master branch" >&2
+  exit 1
+fi
+
 retired_markers=(
   'COMPAT_CLEANUP_TASKS\.md'
   'SKILL_SCENARIOS\.md'

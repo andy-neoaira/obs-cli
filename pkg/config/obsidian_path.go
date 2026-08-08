@@ -13,6 +13,7 @@ import (
 // WslInteropFile 是 WSL 环境的标志性文件路径，用于检测是否在 WSL 中运行。
 var (
 	WslInteropFile = "/proc/sys/fs/binfmt_misc/WSLInterop"
+	currentGOOS    = runtime.GOOS
 )
 
 // ExecCommand 是包级变量，指向 exec.Command(...).Output() 的调用。
@@ -23,7 +24,7 @@ var ExecCommand = func(name string, args ...string) ([]byte, error) {
 
 // RunningInWSL 检测当前是否在 Windows Subsystem for Linux (WSL) 环境中运行。
 func RunningInWSL() bool {
-	if runtime.GOOS != "linux" {
+	if currentGOOS != "linux" {
 		return false
 	}
 
@@ -47,7 +48,7 @@ func ObsidianFile() (obsidianConfigFile string, err error) {
 	}
 
 	// 非 Linux 系统没有更多候选路径
-	if runtime.GOOS != "linux" {
+	if currentGOOS != "linux" {
 		return "", errors.New(UserConfigDirectoryNotFoundErrorMessage)
 	}
 

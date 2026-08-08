@@ -17,7 +17,7 @@
 
 ```bash
 curl -fsSL \
-  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/bootstrap.sh |
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/master/scripts/bootstrap.sh |
   bash -s -- --agent codex
 ```
 
@@ -46,7 +46,7 @@ Linux 和 Windows shell，默认安装到 `~/.local/bin`：
 
 ```bash
 curl -fsSLo /tmp/obs-cli-install.sh \
-  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/install.sh
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/master/scripts/install.sh
 
 # 建议执行前先检查脚本。
 less /tmp/obs-cli-install.sh
@@ -93,7 +93,7 @@ obs-cli capabilities --output json
 
 ```bash
 curl -fsSLo /tmp/obs-cli-install-skills.sh \
-  https://raw.githubusercontent.com/andy-neoaira/obs-cli/main/scripts/install-skills.sh
+  https://raw.githubusercontent.com/andy-neoaira/obs-cli/master/scripts/install-skills.sh
 
 # 建议执行前先检查脚本。
 less /tmp/obs-cli-install-skills.sh

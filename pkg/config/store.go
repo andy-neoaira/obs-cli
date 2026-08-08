@@ -203,16 +203,12 @@ func (s *Store) lock() (func(), error) {
 	lockPath := s.path + ".lock"
 	deadline := time.Now().Add(s.lockTimeout)
 	for {
-		file, err := os.OpenFile(lockPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-		if err == nil {
-			_, _ = fmt.Fprintf(file, "pid=%d\n", os.Getpid())
-			_ = file.Close()
-			return func() {
-				_ = os.Remove(lockPath)
-			}, nil
+		unlock, acquired, err := tryConfigLock(lockPath)
+		if err != nil {
+			return nil, fmt.Errorf("acquire config lock: %w", err)
 		}
-		if !errors.Is(err, os.ErrExist) {
-			return nil, fmt.Errorf("create config lock: %w", err)
+		if acquired {
+			return unlock, nil
 		}
 		if time.Now().After(deadline) {
 			return nil, ErrConfigLocked

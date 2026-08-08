@@ -48,4 +48,7 @@ func TestLoadDailyNotesConfig(t *testing.T) {
 		configErr.File != ".obsidian/daily-notes.json" || configErr.Kind != "parse" {
 		t.Fatalf("malformed config found=%v error=%#v", found, err)
 	}
+	if configErr.Error() == "" || !errors.Is(configErr, configErr.Err) {
+		t.Fatalf("config error methods failed: %v", configErr)
+	}
 }

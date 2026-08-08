@@ -104,3 +104,25 @@ func TestRegistryCanonicalizesSymlink(t *testing.T) {
 		t.Fatalf("get by registered symlink alias = %#v, %v", byLink, err)
 	}
 }
+
+func TestRegistryListAndDefaultFactory(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("OBS_CLI_CONFIG_HOME", root)
+	registry, err := obsidian.DefaultRegistry()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if records, err := registry.List(); err != nil || len(records) != 0 {
+		t.Fatalf("empty List = %#v, %v", records, err)
+	}
+	if _, err := registry.Add(t.TempDir(), "Zulu"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := registry.Add(t.TempDir(), "Alpha"); err != nil {
+		t.Fatal(err)
+	}
+	records, err := registry.List()
+	if err != nil || len(records) != 2 || records[0].Name != "Alpha" || records[1].Name != "Zulu" {
+		t.Fatalf("sorted List = %#v, %v", records, err)
+	}
+}

@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bytes"
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -273,6 +275,156 @@ func TestReleaseVersionOrdering(t *testing.T) {
 		if err != nil || got != test.want {
 			t.Errorf("compare(%s, %s) = %d, %v; want %d", test.left, test.right, got, err, test.want)
 		}
+	}
+}
+
+func TestGitHubUpdaterCheckPlanAndHTTPFailures(t *testing.T) {
+	asset, err := updateAssetName(runtime.GOOS, runtime.GOARCH)
+	if err != nil {
+		t.Skip(err)
+	}
+	releaseBody, _ := json.Marshal(releaseMetadata{TagName: "v1.2.0", Assets: []releaseAsset{
+		{Name: asset, URL: "https://assets.test/archive"},
+		{Name: "checksums.txt", URL: "https://assets.test/checksums"},
+	}})
+	transport := roundTripFunc(func(request *http.Request) (*http.Response, error) {
+		status := http.StatusOK
+		body := releaseBody
+		switch {
+		case strings.Contains(request.URL.Path, "/server-error/"):
+			status = http.StatusInternalServerError
+		case strings.Contains(request.URL.Path, "/bad-json/"):
+			body = []byte("{")
+		case strings.Contains(request.URL.Path, "/empty-release/"):
+			body = []byte(`{"assets":[]}`)
+		}
+		return &http.Response{StatusCode: status, Body: io.NopCloser(bytes.NewReader(body)), Header: make(http.Header), Request: request}, nil
+	})
+	current := filepath.Join(t.TempDir(), "obs-cli")
+	if err := os.WriteFile(current, []byte("current"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	service := &githubUpdater{client: &http.Client{Transport: transport}, apiBase: "https://api.test", repository: "owner/repo", executablePath: func() (string, error) { return current, nil }}
+	checked, err := service.Check(context.Background(), "v1.0.0")
+	if err != nil || !checked.UpdateAvailable || checked.LatestVersion != "v1.2.0" || checked.Channel != "stable" {
+		t.Fatalf("Check = %#v, %v", checked, err)
+	}
+	if checked, err = service.Check(context.Background(), "dev"); err != nil || !checked.UpdateAvailable {
+		t.Fatalf("development Check = %#v, %v", checked, err)
+	}
+	plan, err := service.Plan(context.Background(), "v1.0.0", "")
+	if err != nil || !plan.Changed || plan.Asset != asset {
+		t.Fatalf("Plan = %#v, %v", plan, err)
+	}
+	if _, err := service.Plan(context.Background(), "v2.0.0", ""); err == nil {
+		t.Fatal("downgrade plan should fail")
+	}
+	if result, err := service.Apply(context.Background(), updatePlan{Changed: false}); err != nil || result.Applied || result.Changed {
+		t.Fatalf("no-change Apply = %#v, %v", result, err)
+	}
+
+	badRepository := *service
+	badRepository.repository = "bad repository"
+	if _, err := badRepository.Check(context.Background(), "v1.0.0"); err == nil {
+		t.Fatal("invalid repository should fail")
+	}
+	insecure := *service
+	insecure.apiBase = "http://api.test"
+	if _, err := insecure.Check(context.Background(), "v1.0.0"); err == nil {
+		t.Fatal("insecure API should fail")
+	}
+	for path := range map[string]struct{}{"/server-error": {}, "/bad-json": {}, "/empty-release": {}} {
+		broken := *service
+		broken.apiBase = "https://api.test" + path
+		broken.repository = "owner/repo"
+		if _, err := broken.Check(context.Background(), "v1.0.0"); err == nil {
+			t.Fatalf("API failure %s should fail", path)
+		}
+	}
+	missingAssets := *service
+	missingAssets.client = &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+		body := []byte(`{"tag_name":"v1.2.0","assets":[]}`)
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(bytes.NewReader(body)), Header: make(http.Header), Request: request}, nil
+	})}
+	if _, err := missingAssets.Plan(context.Background(), "v1.0.0", ""); err == nil {
+		t.Fatal("release without assets should fail")
+	}
+	executableFailure := *service
+	executableFailure.executablePath = func() (string, error) { return "", errors.New("executable failed") }
+	if _, err := executableFailure.Plan(context.Background(), "v1.0.0", ""); err == nil {
+		t.Fatal("executable lookup failure should fail")
+	}
+}
+
+func TestUpdateArchiveURLChecksumAndPlatformBranches(t *testing.T) {
+	for _, item := range []struct{ goos, arch string }{
+		{"darwin", "amd64"}, {"linux", "amd64"}, {"linux", "arm64"}, {"windows", "amd64"}, {"windows", "arm64"},
+	} {
+		if _, err := updateAssetName(item.goos, item.arch); err != nil {
+			t.Fatalf("updateAssetName(%s/%s): %v", item.goos, item.arch, err)
+		}
+	}
+	if _, err := updateAssetName("plan9", "amd64"); err == nil {
+		t.Fatal("unsupported platform should fail")
+	}
+	if releaseChannel("v1.0.0-rc.2") != "prerelease" || releaseChannel("v1.0.0") != "stable" {
+		t.Fatal("release channel classification failed")
+	}
+	if _, err := parseUpdateURL("/relative"); err == nil {
+		t.Fatal("relative update URL should fail")
+	}
+
+	root := t.TempDir()
+	archivePath := filepath.Join(root, "asset.zip")
+	var archive bytes.Buffer
+	writer := zip.NewWriter(&archive)
+	entry, err := writer.Create("nested/obs-cli.exe")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := entry.Write([]byte("binary")); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(archivePath, archive.Bytes(), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	candidate, err := extractUpdateBinary(archivePath, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if data, err := os.ReadFile(candidate); err != nil || string(data) != "binary" {
+		t.Fatalf("zip candidate = %q, %v", data, err)
+	}
+
+	checksumPath := filepath.Join(root, "checksums.txt")
+	digest := sha256.Sum256(archive.Bytes())
+	if err := os.WriteFile(checksumPath, []byte(hex.EncodeToString(digest[:])+"  asset.zip\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := verifyReleaseChecksum(archivePath, checksumPath, "asset.zip"); err != nil {
+		t.Fatal(err)
+	}
+	if err := verifyReleaseChecksum(archivePath, checksumPath, "missing.zip"); err == nil {
+		t.Fatal("missing checksum entry should fail")
+	}
+	if err := os.WriteFile(checksumPath, []byte(strings.Repeat("0", 64)+"  asset.zip\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := verifyReleaseChecksum(archivePath, checksumPath, "asset.zip"); err == nil {
+		t.Fatal("checksum mismatch should fail")
+	}
+
+	service := &githubUpdater{client: &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: http.StatusNotFound, Body: io.NopCloser(strings.NewReader("missing")), Header: make(http.Header), Request: request}, nil
+	})}}
+	if err := service.download(context.Background(), "http://assets.test/file", filepath.Join(root, "insecure")); err == nil {
+		t.Fatal("insecure asset URL should fail")
+	}
+	if err := service.download(context.Background(), "https://assets.test/file", filepath.Join(root, "missing")); err == nil {
+		t.Fatal("HTTP download failure should fail")
 	}
 }
 

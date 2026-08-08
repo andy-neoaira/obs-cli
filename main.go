@@ -10,7 +10,9 @@ import (
 	"github.com/andy-neoaira/obs-cli/cmd"
 )
 
+var exitProcess = os.Exit
+
 func main() {
 	// Execute 负责解析命令行参数并分发到对应的子命令
-	os.Exit(cmd.Execute())
+	exitProcess(cmd.Execute())
 }

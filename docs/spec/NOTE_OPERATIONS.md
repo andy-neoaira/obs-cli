@@ -7,14 +7,14 @@
 ## 1. 命令面
 
 ```text
-obs note list
-obs note get <path>
-obs note create <path> --content-file <file|->
-obs note append <path> --content-file <file|-> [--section <heading>] [--if-match <revision>]
-obs note patch <path> --match-file <file|-> --content-file <file|-> --if-match <revision>
-obs note replace <path> --content-file <file|-> --if-match <revision>
-obs note delete <path> --if-match <revision>
-obs note move <source> <target> --if-match <revision> [--if-plan-hash <hash>]
+obs-cli note list
+obs-cli note get <path>
+obs-cli note create <path> --content-file <file|->
+obs-cli note append <path> --content-file <file|-> [--section <heading>] [--if-match <revision>]
+obs-cli note patch <path> --match-file <file|-> --content-file <file|-> --if-match <revision>
+obs-cli note replace <path> --content-file <file|-> --if-match <revision>
+obs-cli note delete <path> --if-match <revision>
+obs-cli note move <source> <target> --if-match <revision> [--if-plan-hash <hash>]
 ```
 
 所有命令使用 `--output json`、`--request-id` 和 `--vault`。所有修改命令支持 `--dry-run`。路径是 Vault 内逻辑路径；省略 `.md` 时 CLI 自动补充。绝对路径、父目录跳转、隐藏路径和写入符号链接别名均被拒绝。

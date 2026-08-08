@@ -264,7 +264,7 @@ Note 等 Vault 内资源的 `target` 必须是 Vault 逻辑路径。Vault 注册
 Agent 在执行场景前应调用：
 
 ```bash
-obs capabilities --output json
+obs-cli capabilities --output json
 ```
 
 `capabilities.get` 至少返回：

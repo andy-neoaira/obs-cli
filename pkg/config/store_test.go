@@ -88,6 +88,48 @@ func TestStoreRejectsDuplicateNamesAndPaths(t *testing.T) {
 	}
 }
 
+func TestValidateConfigAndSortedVaults(t *testing.T) {
+	root := t.TempDir()
+	valid := config.NewConfig()
+	valid.Vaults["z"] = config.VaultRecord{ID: "z", Name: "Zulu", Path: filepath.Join(root, "z")}
+	valid.Vaults["a"] = config.VaultRecord{ID: "a", Name: "Alpha", Path: filepath.Join(root, "a")}
+	valid.DefaultVaultID = "a"
+	if err := config.ValidateConfig(valid); err != nil {
+		t.Fatal(err)
+	}
+	sorted := config.SortedVaults(valid)
+	if len(sorted) != 2 || sorted[0].ID != "a" || sorted[1].ID != "z" {
+		t.Fatalf("SortedVaults = %#v", sorted)
+	}
+
+	tests := []struct {
+		name   string
+		mutate func(*config.Config)
+	}{
+		{"nil vault map", func(cfg *config.Config) { cfg.Vaults = nil }},
+		{"mismatched id", func(cfg *config.Config) {
+			cfg.Vaults["a"] = config.VaultRecord{ID: "b", Name: "A", Path: filepath.Join(root, "a")}
+		}},
+		{"blank name", func(cfg *config.Config) {
+			cfg.Vaults["a"] = config.VaultRecord{ID: "a", Name: " ", Path: filepath.Join(root, "a")}
+		}},
+		{"relative path", func(cfg *config.Config) { cfg.Vaults["a"] = config.VaultRecord{ID: "a", Name: "A", Path: "relative"} }},
+		{"unclean path", func(cfg *config.Config) {
+			cfg.Vaults["a"] = config.VaultRecord{ID: "a", Name: "A", Path: filepath.Join(root, "folder", "..", "a") + string(filepath.Separator)}
+		}},
+		{"missing default", func(cfg *config.Config) { cfg.DefaultVaultID = "missing" }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cfg := config.NewConfig()
+			test.mutate(&cfg)
+			if err := config.ValidateConfig(cfg); err == nil {
+				t.Fatalf("ValidateConfig(%s) succeeded", test.name)
+			}
+		})
+	}
+}
+
 func TestStoreConcurrentUpdatesDoNotLoseData(t *testing.T) {
 	store := config.NewStore(filepath.Join(t.TempDir(), "config.json"))
 	const writers = 12
@@ -133,6 +175,32 @@ func TestStoreConcurrentUpdatesDoNotLoseData(t *testing.T) {
 	var decoded map[string]any
 	if err := json.Unmarshal(data, &decoded); err != nil {
 		t.Fatalf("written config is not valid JSON: %v", err)
+	}
+}
+
+func TestStoreIgnoresAbandonedCoordinationFile(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "config.json")
+	lockPath := path + ".lock"
+	if err := os.WriteFile(lockPath, []byte("abandoned by crashed process\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	store := config.NewStore(path)
+	cfg, err := store.Update(func(cfg *config.Config) error {
+		cfg.Vaults["one"] = config.VaultRecord{
+			ID: "one", Name: "One", Path: filepath.Join(root, "vault"),
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Update with abandoned lock file: %v", err)
+	}
+	if cfg.Vaults["one"].Name != "One" {
+		t.Fatalf("config was not updated: %#v", cfg)
+	}
+	if _, err := os.Stat(lockPath); err != nil {
+		t.Fatalf("coordination file should remain reusable: %v", err)
 	}
 }
 
@@ -183,7 +251,7 @@ func TestStoreUsesDurableAtomicReplace(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, entry := range entries {
-		if entry.Name() == "config.json.lock" || strings.HasPrefix(entry.Name(), ".obs-replace-") {
+		if strings.HasPrefix(entry.Name(), ".obs-replace-") {
 			t.Fatalf("temporary config artifact leaked: %s", entry.Name())
 		}
 	}

@@ -107,6 +107,158 @@ func TestTransactionCreateRewriteDelete(t *testing.T) {
 	assertBytes(t, link, "[[new]]")
 }
 
+func TestTransactionRejectsInvalidMutationSets(t *testing.T) {
+	root := t.TempDir()
+	store := storage.NewStore(filepath.Join(root, "runtime", "locks"))
+	if _, err := store.ApplyTransaction(nil); err == nil {
+		t.Fatal("empty transaction should fail")
+	}
+
+	path := filepath.Join(root, "note.md")
+	if _, err := store.ApplyTransaction([]storage.Mutation{
+		{Path: path, Data: []byte("one"), Precondition: storage.Preconditions{MustNotExist: true}},
+		{Path: path, Data: []byte("two"), Precondition: storage.Preconditions{MustNotExist: true}},
+	}); err == nil {
+		t.Fatal("duplicate transaction path should fail")
+	}
+	if _, err := store.ApplyTransaction([]storage.Mutation{{
+		Path: path, Delete: true, Precondition: storage.Preconditions{MustNotExist: true},
+	}}); !errors.Is(err, storage.ErrAlreadyExists) && !errors.Is(err, storage.ErrPrecondition) {
+		t.Fatalf("invalid delete precondition error = %v", err)
+	}
+	if _, err := store.ApplyTransaction([]storage.Mutation{{
+		Path: path, Data: []byte("update"), Precondition: storage.Preconditions{ExpectedRevision: storage.Revision(nil)},
+	}}); !errors.Is(err, storage.ErrRevisionConflict) {
+		t.Fatalf("missing update target error = %v", err)
+	}
+	missingParent := filepath.Join(root, "missing", "new.md")
+	if _, err := store.ApplyTransaction([]storage.Mutation{{
+		Path: missingParent, Data: []byte("create"), Precondition: storage.Preconditions{MustNotExist: true},
+	}}); err == nil {
+		t.Fatal("staging below a missing parent should fail")
+	}
+}
+
+func TestTransactionRollbackRemovesNewlyCreatedFile(t *testing.T) {
+	root := t.TempDir()
+	created := filepath.Join(root, "a-new.md")
+	existing := filepath.Join(root, "z-existing.md")
+	if err := os.WriteFile(existing, []byte("old"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	existingSnapshot, err := storage.ReadSnapshot(existing)
+	if err != nil {
+		t.Fatal(err)
+	}
+	injected := errors.New("second commit failed")
+	store := storage.NewStoreWithHooks(filepath.Join(root, "runtime", "locks"), storage.Hooks{
+		Checkpoint: func(stage string) error {
+			if stage == "transaction-commit:2:before" {
+				return injected
+			}
+			return nil
+		},
+	})
+	_, err = store.ApplyTransaction([]storage.Mutation{
+		{Path: created, Data: []byte("new"), Precondition: storage.Preconditions{MustNotExist: true}},
+		{Path: existing, Data: []byte("changed"), Precondition: storage.Preconditions{ExpectedRevision: existingSnapshot.Revision}},
+	})
+	if !errors.Is(err, injected) {
+		t.Fatalf("ApplyTransaction error = %v", err)
+	}
+	if _, err := os.Stat(created); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("created file survived rollback: %v", err)
+	}
+	assertBytes(t, existing, "old")
+}
+
+func TestTransactionDetectsLateConflictCommitFailureAndVerificationFailure(t *testing.T) {
+	t.Run("late conflict rolls back prior commit", func(t *testing.T) {
+		root := t.TempDir()
+		first, second := transactionFiles(t, root)
+		mutations := transactionMutations(t, first, second)
+		store := storage.NewStoreWithHooks(filepath.Join(root, "runtime", "locks"), storage.Hooks{
+			Checkpoint: func(stage string) error {
+				if stage == "transaction-commit:1:before" {
+					return os.WriteFile(second, []byte("external"), 0o644)
+				}
+				return nil
+			},
+		})
+		if _, err := store.ApplyTransaction(mutations); !errors.Is(err, storage.ErrRevisionConflict) {
+			t.Fatalf("late conflict error = %v", err)
+		}
+		assertBytes(t, first, "old-one")
+		assertBytes(t, second, "external")
+	})
+
+	t.Run("filesystem commit error", func(t *testing.T) {
+		root := t.TempDir()
+		first, second := transactionFiles(t, root)
+		store := storage.NewStoreWithHooks(filepath.Join(root, "runtime", "locks"), storage.Hooks{
+			Checkpoint: func(stage string) error {
+				if stage == "transaction-commit:1:before" {
+					if err := os.Remove(first); err != nil {
+						return err
+					}
+					return os.Mkdir(first, 0o755)
+				}
+				return nil
+			},
+		})
+		if _, err := store.ApplyTransaction(transactionMutations(t, first, second)); err == nil {
+			t.Fatal("commit over a directory should fail")
+		}
+	})
+
+	t.Run("post-commit verification detects external edit", func(t *testing.T) {
+		root := t.TempDir()
+		first, second := transactionFiles(t, root)
+		store := storage.NewStoreWithHooks(filepath.Join(root, "runtime", "locks"), storage.Hooks{
+			Checkpoint: func(stage string) error {
+				if stage == "transaction-commit:2:before" {
+					return os.WriteFile(first, []byte("external-after-commit"), 0o644)
+				}
+				return nil
+			},
+		})
+		if _, err := store.ApplyTransaction(transactionMutations(t, first, second)); !errors.Is(err, storage.ErrPartialFailure) {
+			t.Fatalf("verification error = %v", err)
+		}
+		assertBytes(t, first, "external-after-commit")
+		assertBytes(t, second, "new-two")
+	})
+}
+
+func TestTransactionJournalCreationFailureCleansStagedArtifacts(t *testing.T) {
+	root := t.TempDir()
+	first, _ := transactionFiles(t, root)
+	runtimeRoot := filepath.Join(root, "runtime")
+	if err := os.MkdirAll(runtimeRoot, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(runtimeRoot, "journals"), []byte("blocker"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	snapshot, err := storage.ReadSnapshot(first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store := storage.NewStore(filepath.Join(runtimeRoot, "locks"))
+	if _, err := store.ApplyTransaction([]storage.Mutation{{
+		Path: first, Data: []byte("new"), Precondition: storage.Preconditions{ExpectedRevision: snapshot.Revision},
+	}}); err == nil {
+		t.Fatal("blocked journal directory should fail")
+	}
+	assertBytes(t, first, "old-one")
+}
+
+func TestSnapshotRejectsNonRegularFile(t *testing.T) {
+	if _, err := storage.ReadSnapshot(t.TempDir()); err == nil {
+		t.Fatal("directory snapshot should fail")
+	}
+}
+
 func transactionFiles(t *testing.T, root string) (string, string) {
 	t.Helper()
 	first := filepath.Join(root, "one.md")
