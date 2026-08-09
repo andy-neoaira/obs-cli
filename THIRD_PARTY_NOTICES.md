@@ -2,6 +2,19 @@
 
 `obs-cli` is derived from [Yakitrak/notesmd-cli](https://github.com/Yakitrak/notesmd-cli), originally authored by Kartikay Jainwal and distributed under the MIT License. The original copyright and MIT permission notice remain in [LICENSE](./LICENSE).
 
+## Upstream fork point
+
+Provenance is recorded here so it stays verifiable without relying on GitHub fork metadata.
+
+| Field | Value |
+|---|---|
+| Upstream repository | `https://github.com/Yakitrak/notesmd-cli` |
+| Last common commit | `cae9aa84eed47ce23d139526ea3184ce09100450` (`cae9aa8`, 2026-05-13) |
+| Upstream version at that commit | `v0.3.6` (`git describe`: `v0.3.6-1-gcae9aa8`) |
+| First divergent commit | `7379326` (2026-06-04) `feat: rename to obs-cli, add Chinese comments, update docs` |
+
+Every commit up to and including `cae9aa8` is shared with upstream and remains under Kartikay Jainwal's copyright. Everything from `7379326` onward is original to this project. No upstream changes have been merged since the fork point; the two code bases have diverged and are no longer merge-compatible.
+
 The project also vendors the Go modules below. This file is a summary; the complete, controlling license and notice texts are distributed from the corresponding paths under `vendor/`.
 
 | Module | Version | License | License files |
